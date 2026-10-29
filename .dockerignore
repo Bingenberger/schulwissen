@@ -7,4 +7,6 @@ __pycache__
 medien/
 statisch/
 node_modules/
-*.xlsx
+frontend/node_modules/
+# Die Arbeitsmappe und die Kompetenzdatei gehoeren ins Abbild: seed_demo und
+# die Import-Kommandos finden sie dann ohne zusaetzliches Einhaengen.

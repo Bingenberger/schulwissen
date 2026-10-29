@@ -1,0 +1,28 @@
+{% extends "grundlage.html" %}
+{% block titel %}Neues Passwort{% endblock %}
+{% block inhalt %}
+<div class="anmeldung">
+  <h1>Neues Passwort setzen</h1>
+  <div class="karte">
+    {% if validlink %}
+      <form method="post">
+        {% csrf_token %}
+        {% for feld in form %}
+          <div class="feld">
+            <label for="{{ feld.id_for_label }}">{{ feld.label }}</label>
+            {% if feld.help_text %}<p class="feld-hilfe">{{ feld.help_text|safe }}</p>{% endif %}
+            {{ feld }}
+            {% for fehler in feld.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="knopf knopf-wichtig" type="submit" style="width:100%">Passwort speichern</button>
+      </form>
+    {% else %}
+      <div class="meldung meldung-error">
+        Dieser Link ist nicht mehr gültig. Bitte
+        <a href="{% url 'kern:passwort_zuruecksetzen' %}">einen neuen anfordern</a>.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

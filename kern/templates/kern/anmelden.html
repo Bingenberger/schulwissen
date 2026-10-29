@@ -1,0 +1,37 @@
+{% extends "grundlage.html" %}
+{% block titel %}Anmelden{% endblock %}
+
+{% block inhalt %}
+<div class="anmeldung">
+  <h1>Schulwissen</h1>
+  <p class="leise">Bitte mit der Schul-E-Mail-Adresse anmelden.</p>
+
+  <div class="karte">
+    {% if form.errors %}
+      <div class="meldung meldung-error">
+        E-Mail-Adresse oder Passwort stimmen nicht. Bitte noch einmal versuchen.
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="feld">
+        <label for="{{ form.username.id_for_label }}">E-Mail-Adresse</label>
+        <input type="email" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+               autocomplete="username" autofocus required>
+      </div>
+      <div class="feld">
+        <label for="{{ form.password.id_for_label }}">Passwort</label>
+        <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+               autocomplete="current-password" required>
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="knopf knopf-wichtig" type="submit" style="width:100%">Anmelden</button>
+    </form>
+
+    <p class="klein" style="margin-bottom:0">
+      <a href="{% url 'kern:passwort_zuruecksetzen' %}">Passwort vergessen?</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

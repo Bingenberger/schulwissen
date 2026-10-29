@@ -53,9 +53,7 @@ def rollen(db) -> dict[str, Group]:
 @pytest.fixture
 def arbeitsgruppe(db) -> Group:
     gruppe, _ = Group.objects.get_or_create(name="Jahrgang 3")
-    Gruppenprofil.objects.get_or_create(
-        gruppe=gruppe, defaults={"art": Gruppenart.ARBEITSGRUPPE}
-    )
+    Gruppenprofil.objects.get_or_create(gruppe=gruppe, defaults={"art": Gruppenart.ARBEITSGRUPPE})
     return gruppe
 
 

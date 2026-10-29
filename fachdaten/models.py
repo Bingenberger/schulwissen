@@ -98,7 +98,9 @@ class Kompetenzerwartung(Zeitstempel):
         verbose_name_plural = "Kompetenzerwartungen"
         ordering = ["fach", "bereich", "schwerpunkt_nr", "id"]
         indexes = [
-            models.Index(fields=["fach", "bereich", "schwerpunkt_nr"], name="kompetenz_schwerpunkt"),
+            models.Index(
+                fields=["fach", "bereich", "schwerpunkt_nr"], name="kompetenz_schwerpunkt"
+            ),
             models.Index(fields=["stufe"], name="kompetenz_stufe"),
             GinIndex(
                 name="kompetenz_suchtext_trgm",

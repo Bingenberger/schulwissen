@@ -7,35 +7,53 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('fachdaten', '0002_initial'),
+        ("fachdaten", "0002_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='kompetenzerwartung',
-            name='erstellt_von',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von'),
+            model_name="kompetenzerwartung",
+            name="erstellt_von",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="erstellt von",
+            ),
         ),
         migrations.AddField(
-            model_name='kompetenzerwartung',
-            name='progressionspartner',
-            field=models.ForeignKey(blank=True, help_text='Erwartung gleicher Nummer der anderen Stufe.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='fachdaten.kompetenzerwartung', verbose_name='Progressionspartner'),
+            model_name="kompetenzerwartung",
+            name="progressionspartner",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Erwartung gleicher Nummer der anderen Stufe.",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="fachdaten.kompetenzerwartung",
+                verbose_name="Progressionspartner",
+            ),
         ),
         migrations.AddIndex(
-            model_name='kompetenzerwartung',
-            index=models.Index(fields=['fach', 'bereich', 'schwerpunkt_nr'], name='kompetenz_schwerpunkt'),
+            model_name="kompetenzerwartung",
+            index=models.Index(
+                fields=["fach", "bereich", "schwerpunkt_nr"], name="kompetenz_schwerpunkt"
+            ),
         ),
         migrations.AddIndex(
-            model_name='kompetenzerwartung',
-            index=models.Index(fields=['stufe'], name='kompetenz_stufe'),
+            model_name="kompetenzerwartung",
+            index=models.Index(fields=["stufe"], name="kompetenz_stufe"),
         ),
         migrations.AddIndex(
-            model_name='kompetenzerwartung',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['suchtext'], name='kompetenz_suchtext_trgm', opclasses=['gin_trgm_ops']),
+            model_name="kompetenzerwartung",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["suchtext"], name="kompetenz_suchtext_trgm", opclasses=["gin_trgm_ops"]
+            ),
         ),
     ]

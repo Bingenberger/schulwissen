@@ -1,0 +1,58 @@
+{% extends "grundlage.html" %}
+{% block titel %}Prüfliste{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:76rem">
+  <div>
+    <p class="brotkrumen"><a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> › Prüfliste</p>
+    <h1>Prüfliste</h1>
+    <p class="leise">Was vor dem Beschluss noch zu klären ist (SPEC.md §7.5.7).</p>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Schulische Festlegung fehlt ({{ festlegung_fehlt|length }})</h2>
+      <p>Der Lehrplan sagt bei diesen Erwartungen „u. a.“. Die Schule muss
+        festlegen, welcher weitere Inhalt bei uns verbindlich ist. Das Feld
+        pflegen Redaktion und Administration in der Verwaltung.</p>
+      {% if festlegung_fehlt %}
+        <table class="tabelle">
+          <thead><tr><th>Kennung</th><th>Kompetenzerwartung</th><th>Klammerzusatz</th></tr></thead>
+          <tbody>
+            {% for erwartung in festlegung_fehlt %}
+              <tr>
+                <td><span class="kompetenz-kennung">{{ erwartung.pk }}</span></td>
+                <td>{{ erwartung.text }}</td>
+                <td class="klein">{{ erwartung.klammer }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="meldung meldung-success" style="margin:0">Alle Festlegungen sind getroffen.</p>
+      {% endif %}
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Stufenzuordnung prüfen ({{ stufe_pruefen|length }})</h2>
+      <p>Bei diesen Erwartungen wurde die Stufe rekonstruiert und ist am
+        Lehrplan-PDF zu prüfen.</p>
+      {% if stufe_pruefen %}
+        <table class="tabelle">
+          <thead><tr><th>Kennung</th><th>Kompetenzerwartung</th><th>Stufe</th><th>Partner</th></tr></thead>
+          <tbody>
+            {% for erwartung in stufe_pruefen %}
+              <tr>
+                <td><span class="kompetenz-kennung">{{ erwartung.pk }}</span></td>
+                <td>{{ erwartung.text }}</td>
+                <td class="klein">{{ erwartung.stufe }} – {{ erwartung.stufe_klartext }}</td>
+                <td class="klein">{{ erwartung.progressionspartner_id|default:"–" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="meldung meldung-success" style="margin:0">Alle Stufen sind geprüft.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

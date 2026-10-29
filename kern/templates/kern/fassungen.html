@@ -1,0 +1,40 @@
+{% extends "grundlage.html" %}
+{% block titel %}Fassungen von {{ eintrag.kennung }}{% endblock %}
+
+{% block inhalt %}
+<div class="geruest">
+  {% include "kern/_navigation.html" %}
+
+  <div>
+    <p class="brotkrumen">
+      <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> ›
+      <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a> › Fassungen
+    </p>
+    <h1>Fassungen von „{{ eintrag.titel }}“</h1>
+    <p class="leise">Jede Speicherung erzeugt eine Fassung. Beschlossene Fassungen
+      bleiben unverändert erhalten.</p>
+
+    <div class="karte">
+      <table class="tabelle">
+        <thead>
+          <tr><th>Fassung</th><th>Titel</th><th>Status</th><th>Autor</th><th>Zeitpunkt</th><th>Beschluss</th></tr>
+        </thead>
+        <tbody>
+          {% for version in versionen %}
+            <tr>
+              <td class="zahl">{{ version.versionsnummer }}</td>
+              <td>{{ version.titel }}</td>
+              <td><span class="schild schild-{{ version.status }}">{{ version.get_status_display }}</span></td>
+              <td class="klein">{{ version.autor.anzeigename|default:"–" }}</td>
+              <td class="klein">{{ version.zeitpunkt|date:"d.m.Y, H:i" }}</td>
+              <td class="klein">{% if version.beschluss %}{{ version.beschluss }}{% else %}–{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="leise klein">Die Gegenüberstellung zweier Fassungen (Diff-Ansicht)
+      kommt in Phase 2.</p>
+  </div>
+</div>
+{% endblock %}

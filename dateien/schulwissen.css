@@ -1,0 +1,807 @@
+/*
+ * Gestaltung der Schulwissen-Plattform.
+ *
+ * Leitlinien aus SPEC.md §12: ruhig, große Schrift (Grundgröße 17 px), große
+ * Klickflächen (mindestens 44 px), gut auf dem iPad bedienbar, ausreichende
+ * Kontraste, alles mit der Tastatur erreichbar.
+ */
+
+:root {
+  --schrift: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  --papier: #ffffff;
+  --flaeche: #f4f6f8;
+  --flaeche-tief: #e8ecf0;
+  --linie: #ccd4dc;
+  --linie-stark: #9aa7b4;
+
+  --text: #1b2229;
+  --text-leise: #566270;
+
+  --akzent: #1f5c8b;
+  --akzent-dunkel: #164463;
+  --akzent-leise: #e4eef6;
+
+  /* Der Block „Leistung" ist farbig abgesetzt (SPEC.md §7.4). */
+  --leistung: #f6eee4;
+  --leistung-linie: #c89a5e;
+
+  --gut: #1d6a3a;
+  --gut-flaeche: #e2f2e7;
+  --warnung: #8a5a00;
+  --warnung-flaeche: #fbf0d8;
+  --fehler: #a32020;
+  --fehler-flaeche: #fae6e6;
+
+  --radius: 8px;
+  --schatten: 0 1px 3px rgb(27 34 41 / 12%);
+  --klickflaeche: 44px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--schrift);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--flaeche);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* --- Sprungmarke für die Tastaturbedienung --- */
+
+.sprungmarke {
+  position: absolute;
+  left: -9999px;
+  padding: 0.75rem 1.25rem;
+  background: var(--papier);
+  z-index: 100;
+}
+
+.sprungmarke:focus {
+  left: 1rem;
+  top: 0.5rem;
+}
+
+/* --- Kopfzeile mit Suchfeld auf allen Seiten --- */
+
+.kopf {
+  background: var(--akzent-dunkel);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.kopf a {
+  color: #fff;
+}
+
+.kopf-marke {
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.kopf-suche {
+  flex: 1 1 18rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.kopf-suche input {
+  flex: 1;
+  min-height: var(--klickflaeche);
+  font-size: 1rem;
+  padding: 0 0.85rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+}
+
+.kopf-suche input:focus-visible {
+  outline: 3px solid #ffd27f;
+  outline-offset: 1px;
+}
+
+.kopf-konto {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+/* In der dunklen Kopfzeile muss auch der leise Knopf hell sein – die
+   Akzentfarbe hätte dort zu wenig Kontrast. */
+.kopf .knopf-leise {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.kopf .knopf-leise:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+/* --- Grundgerüst: Navigation links, Inhalt mittig, Nebenspalte rechts --- */
+
+.geruest {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 100rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+
+.geruest.mit-nebenspalte {
+  grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr) minmax(15rem, 20rem);
+}
+
+.geruest.ohne-navigation {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 62rem;
+}
+
+@media (max-width: 1100px) {
+  .geruest,
+  .geruest.mit-nebenspalte {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Karten --- */
+
+.karte {
+  background: var(--papier);
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  box-shadow: var(--schatten);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.karte > h2:first-child,
+.karte > h3:first-child {
+  margin-top: 0;
+}
+
+/* --- Gliederungsbaum --- */
+
+.navigation {
+  background: var(--papier);
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.navigation h2 {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-leise);
+  margin: 0.25rem 0.5rem 0.75rem;
+}
+
+.baum-zeile {
+  display: block;
+  padding: 0.6rem 0.6rem;
+  min-height: var(--klickflaeche);
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.35;
+}
+
+.baum-zeile:hover {
+  background: var(--flaeche-tief);
+}
+
+.baum-zeile.ist-hier {
+  background: var(--akzent-leise);
+  box-shadow: inset 3px 0 0 var(--akzent);
+  font-weight: 600;
+}
+
+.baum-nummer {
+  color: var(--text-leise);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.4rem;
+}
+
+.baum-tiefe-1 { padding-left: 1.5rem; }
+.baum-tiefe-2 { padding-left: 2.6rem; font-size: 0.97rem; }
+.baum-tiefe-3 { padding-left: 3.6rem; font-size: 0.95rem; }
+
+/* Einspaltig (Tablet, Handy) darf die Gliederung nicht kleben – sonst liegt
+   sie über dem Formular. Sie bekommt eine eigene Höhe und scrollt für sich.
+   Diese Regel muss NACH der .navigation-Regel oben stehen, sonst gewinnt die
+   spätere. */
+@media (max-width: 1100px) {
+  .navigation {
+    position: static;
+    max-height: 18rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* --- Überschriften --- */
+
+h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 0.5rem; }
+h2 { font-size: 1.35rem; line-height: 1.3; margin: 1.75rem 0 0.5rem; }
+h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
+
+.ueberschrift-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.kennung {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+  background: var(--flaeche-tief);
+  border-radius: 5px;
+  padding: 0.15rem 0.45rem;
+  color: var(--text-leise);
+}
+
+.brotkrumen {
+  font-size: 0.95rem;
+  color: var(--text-leise);
+  margin-bottom: 0.75rem;
+}
+
+.brotkrumen a { color: var(--akzent); }
+
+/* --- Schilder --- */
+
+.schild {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.schild-idee        { background: var(--flaeche-tief); color: var(--text-leise); }
+.schild-entwurf     { background: var(--warnung-flaeche); color: var(--warnung); }
+.schild-abgestimmt  { background: var(--akzent-leise); color: var(--akzent-dunkel); }
+.schild-beschlossen { background: var(--gut-flaeche); color: var(--gut); }
+.schild-archiviert  { background: var(--flaeche-tief); color: var(--text-leise); text-decoration: line-through; }
+
+.schild-klein { font-size: 0.78rem; padding: 0.1rem 0.45rem; }
+
+/* --- Knöpfe --- */
+
+.knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: var(--klickflaeche);
+  padding: 0 1.15rem;
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--linie-stark);
+  border-radius: var(--radius);
+  background: var(--papier);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.knopf:hover { background: var(--flaeche-tief); }
+
+.knopf-wichtig {
+  background: var(--akzent);
+  border-color: var(--akzent-dunkel);
+  color: #fff;
+}
+
+.knopf-wichtig:hover { background: var(--akzent-dunkel); }
+
+.knopf-leise {
+  border-color: transparent;
+  background: transparent;
+  color: var(--akzent);
+  padding: 0 0.5rem;
+}
+
+.knopf-leise:hover { background: var(--akzent-leise); }
+
+.knopf-reihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+:focus-visible {
+  outline: 3px solid var(--akzent);
+  outline-offset: 2px;
+}
+
+/* --- Formulare --- */
+
+.block {
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--papier);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.block-leistung {
+  background: var(--leistung);
+  border-left: 5px solid var(--leistung-linie);
+}
+
+.block > h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--linie);
+}
+
+.feld { margin-bottom: 1.5rem; }
+
+.feld > label,
+.feld-beschriftung {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.feld-pflicht {
+  color: var(--fehler);
+  margin-left: 0.2rem;
+}
+
+.feld-hilfe {
+  font-size: 0.93rem;
+  color: var(--text-leise);
+  margin: 0.15rem 0 0.4rem;
+}
+
+.feld input[type="text"],
+.feld input[type="url"],
+.feld input[type="email"],
+.feld input[type="password"],
+.feld input[type="number"],
+.feld select,
+.feld textarea {
+  width: 100%;
+  min-height: var(--klickflaeche);
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--linie-stark);
+  border-radius: 6px;
+  background: var(--papier);
+  color: var(--text);
+}
+
+.feld textarea { min-height: 6rem; resize: vertical; }
+
+.feld input[type="number"] { max-width: 10rem; }
+
+.feld select { max-width: 28rem; }
+
+.feld-berechnet {
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: var(--flaeche-tief);
+  border-radius: 6px;
+  padding: 0.55rem 0.8rem;
+  display: inline-block;
+  min-width: 6rem;
+}
+
+.feld-fehler {
+  color: var(--fehler);
+  font-weight: 600;
+  margin-top: 0.3rem;
+}
+
+/* --- Meldungen --- */
+
+.meldung {
+  border-radius: var(--radius);
+  padding: 0.9rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid;
+}
+
+.meldung-success { background: var(--gut-flaeche); border-color: var(--gut); color: var(--gut); }
+.meldung-warning { background: var(--warnung-flaeche); border-color: var(--warnung); color: var(--warnung); }
+.meldung-error   { background: var(--fehler-flaeche); border-color: var(--fehler); color: var(--fehler); }
+.meldung-info    { background: var(--akzent-leise); border-color: var(--akzent); color: var(--akzent-dunkel); }
+
+.hinweis-beschluss {
+  background: var(--gut-flaeche);
+  border: 1px solid var(--gut);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  color: var(--gut);
+}
+
+.hinweis-entwurf {
+  background: var(--warnung-flaeche);
+  border: 1px solid var(--warnung);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1.25rem;
+  color: var(--warnung);
+}
+
+/* --- Leseansicht --- */
+
+.lesefeld { margin-bottom: 1.5rem; }
+
+.lesefeld-inhalt > *:first-child { margin-top: 0; }
+.lesefeld-inhalt > *:last-child { margin-bottom: 0; }
+
+.lesefeld-inhalt table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.lesefeld-inhalt th,
+.lesefeld-inhalt td {
+  border: 1px solid var(--linie-stark);
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.lesefeld-inhalt th { background: var(--flaeche-tief); }
+
+/* --- Kompetenzen --- */
+
+.kompetenzliste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kompetenz {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+}
+
+.kompetenz-kennung {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: var(--akzent);
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.12rem 0.4rem;
+  white-space: nowrap;
+  margin-top: 0.15rem;
+}
+
+.kompetenz-text { flex: 1; line-height: 1.45; }
+
+.kompetenz-stufe {
+  font-size: 0.85rem;
+  color: var(--text-leise);
+  white-space: nowrap;
+}
+
+/* Auswahl-Widget */
+
+.auswahl { border: 1px solid var(--linie-stark); border-radius: var(--radius); overflow: hidden; }
+
+.auswahl-kopf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: var(--flaeche);
+  border-bottom: 1px solid var(--linie);
+}
+
+.auswahl-kopf input[type="search"] { flex: 1 1 12rem; min-height: var(--klickflaeche); }
+.auswahl-kopf select { min-height: var(--klickflaeche); }
+
+.auswahl-gewaehlt {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  min-height: 3.5rem;
+  background: var(--papier);
+}
+
+.auswahl-gewaehlt:empty::after {
+  content: "Noch keine Kompetenz gewählt.";
+  color: var(--text-leise);
+}
+
+.marke {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--akzent-leise);
+  border: 1px solid var(--akzent);
+  border-radius: 999px;
+  padding: 0.25rem 0.3rem 0.25rem 0.6rem;
+  font-size: 0.92rem;
+  max-width: 100%;
+}
+
+.marke-kennung { font-weight: 700; font-family: ui-monospace, Menlo, monospace; font-size: 0.82rem; }
+
+.marke-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 22rem;
+}
+
+.marke-weg {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  min-width: 1.9rem;
+  min-height: 1.9rem;
+  border-radius: 999px;
+  color: var(--akzent-dunkel);
+}
+
+.marke-weg:hover { background: #fff; }
+
+.auswahl-treffer { max-height: 20rem; overflow-y: auto; border-top: 1px solid var(--linie); }
+
+.treffer-knopf {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: var(--papier);
+  border: 0;
+  border-bottom: 1px solid var(--flaeche-tief);
+  padding: 0.65rem 0.7rem;
+  cursor: pointer;
+  min-height: var(--klickflaeche);
+}
+
+.treffer-knopf:hover { background: var(--akzent-leise); }
+.treffer-knopf[disabled] { opacity: 0.5; cursor: default; }
+
+/* --- Editor --- */
+
+.editor { border: 1px solid var(--linie-stark); border-radius: 6px; background: var(--papier); }
+
+.editor-leiste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.4rem;
+  background: var(--flaeche);
+  border-bottom: 1px solid var(--linie);
+}
+
+.editor-knopf {
+  min-height: 2.3rem;
+  min-width: 2.3rem;
+  padding: 0 0.6rem;
+  font: inherit;
+  font-size: 0.92rem;
+  border: 1px solid var(--linie);
+  border-radius: 5px;
+  background: var(--papier);
+  cursor: pointer;
+}
+
+.editor-knopf:hover { background: var(--flaeche-tief); }
+.editor-knopf.ist-aktiv { background: var(--akzent); border-color: var(--akzent-dunkel); color: #fff; }
+
+.editor-trenner { width: 1px; background: var(--linie); margin: 0.2rem 0.3rem; }
+
+.editor-flaeche .ProseMirror {
+  min-height: 9rem;
+  padding: 0.75rem 0.9rem;
+  outline: none;
+}
+
+.editor-flaeche .ProseMirror > *:first-child { margin-top: 0; }
+
+.editor-flaeche table { border-collapse: collapse; width: 100%; }
+
+.editor-flaeche th,
+.editor-flaeche td {
+  border: 1px solid var(--linie-stark);
+  padding: 0.4rem 0.55rem;
+  min-width: 4rem;
+}
+
+.editor-flaeche th { background: var(--flaeche-tief); }
+
+.editor-flaeche .selectedCell { background: var(--akzent-leise); }
+
+.editor-quelle { display: none; }
+
+/* Bedingte Felder (z. B. „Klassenarbeit") sind verborgen, bis Alpine geladen
+   ist – sonst blitzen sie beim Laden der Maske kurz auf. */
+[x-cloak] { display: none !important; }
+
+/* --- Tabellen --- */
+
+.tabelle { width: 100%; border-collapse: collapse; }
+
+.tabelle th,
+.tabelle td {
+  border-bottom: 1px solid var(--linie);
+  padding: 0.6rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabelle th { background: var(--flaeche-tief); font-size: 0.93rem; }
+
+.tabelle tbody tr:hover { background: var(--flaeche); }
+
+.tabelle .zahl { text-align: right; font-variant-numeric: tabular-nums; }
+
+.tabelle tr.summe td,
+.tabelle tr.summe th { font-weight: 700; border-top: 2px solid var(--linie-stark); background: var(--flaeche); }
+
+/* Abdeckungsmatrix: fehlt rot, nur berührt gelb, Schwerpunkt grün. */
+.abdeckung-schwerpunkt { background: var(--gut-flaeche); color: var(--gut); font-weight: 600; }
+.abdeckung-beruehrt    { background: var(--warnung-flaeche); color: var(--warnung); font-weight: 600; }
+.abdeckung-fehlt       { background: var(--fehler-flaeche); color: var(--fehler); font-weight: 600; }
+
+.balken {
+  display: block;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--flaeche-tief);
+  overflow: hidden;
+  min-width: 5rem;
+}
+
+.balken > span { display: block; height: 100%; background: var(--gut); }
+
+/* --- Nebenspalte --- */
+
+.nebenspalte { align-self: start; }
+
+@media (min-width: 1101px) {
+  .nebenspalte { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+}
+
+.nebenspalte .karte { padding: 1rem 1.15rem; }
+.nebenspalte h3 { font-size: 1rem; margin-top: 0; }
+
+.liste-schlicht { list-style: none; margin: 0; padding: 0; }
+.liste-schlicht > li { padding: 0.4rem 0; border-bottom: 1px solid var(--flaeche-tief); }
+.liste-schlicht > li:last-child { border-bottom: 0; }
+
+.kommentar { border-left: 3px solid var(--linie-stark); padding: 0.1rem 0 0.1rem 0.75rem; margin-bottom: 1rem; }
+.kommentar.ist-erledigt { opacity: 0.6; border-left-color: var(--gut); }
+.kommentar-kopf { font-size: 0.88rem; color: var(--text-leise); }
+
+.leise { color: var(--text-leise); }
+.klein { font-size: 0.93rem; }
+.nur-fuer-vorleser {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* --- Startseite --- */
+
+.start {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.start-suche { margin: 2rem 0 3rem; }
+
+.start-suche label {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.start-suche input {
+  width: 100%;
+  min-height: 3.6rem;
+  font-size: 1.25rem;
+  padding: 0 1rem;
+  border: 2px solid var(--linie-stark);
+  border-radius: var(--radius);
+}
+
+.start-suche input:focus-visible { border-color: var(--akzent); }
+
+.anmeldung { max-width: 26rem; margin: 4rem auto; padding: 0 1.25rem; }
+
+/* --- Dunkle Darstellung --- */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-thema="hell"]) {
+    --papier: #1b2129;
+    --flaeche: #14181e;
+    --flaeche-tief: #242c35;
+    --linie: #333d48;
+    --linie-stark: #4d5a68;
+
+    --text: #e7ecf1;
+    --text-leise: #a3afbb;
+
+    --akzent: #6fb2e0;
+    --akzent-dunkel: #11212e;
+    --akzent-leise: #1d3243;
+
+    --leistung: #2b2419;
+    --leistung-linie: #c89a5e;
+
+    --gut: #76d39b;
+    --gut-flaeche: #16301f;
+    --warnung: #e6bc6a;
+    --warnung-flaeche: #322713;
+    --fehler: #f08f8f;
+    --fehler-flaeche: #34191b;
+  }
+
+  :root:not([data-thema="hell"]) .kopf { background: #11212e; }
+  :root:not([data-thema="hell"]) .kompetenz-kennung { background: #2b5f87; }
+  :root:not([data-thema="hell"]) .editor-knopf.ist-aktiv { color: #0f1419; }
+}
+
+@media print {
+  .kopf,
+  .navigation,
+  .nebenspalte,
+  .knopf-reihe,
+  .sprungmarke { display: none !important; }
+
+  .geruest,
+  .geruest.mit-nebenspalte { grid-template-columns: 1fr; padding: 0; }
+
+  .karte,
+  .block { border: 0; box-shadow: none; padding: 0; }
+
+  body { background: #fff; font-size: 11pt; }
+}

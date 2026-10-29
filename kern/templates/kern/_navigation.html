@@ -1,0 +1,18 @@
+{# Gliederungsbaum des Dokuments – linke Spalte (SPEC.md §12). #}
+<nav class="navigation" aria-label="Gliederung des Dokuments">
+  <h2>{{ dokument.titel }}</h2>
+  {% for zeile in baum %}
+    <a class="baum-zeile baum-tiefe-{{ zeile.tiefe }}{% if eintrag and zeile.eintrag.pk == eintrag.pk %} ist-hier{% endif %}"
+       href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}"
+       {% if eintrag and zeile.eintrag.pk == eintrag.pk %}aria-current="page"{% endif %}>
+      <span class="baum-nummer">{{ zeile.eintrag.anzeige_nummer }}</span>{{ zeile.eintrag.titel }}
+      {% if zeile.eintrag.status != 'beschlossen' %}
+        <span class="schild schild-klein schild-{{ zeile.eintrag.status }}">{{ zeile.eintrag.get_status_display }}</span>
+      {% endif %}
+    </a>
+  {% endfor %}
+
+  <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
+  <a class="baum-zeile" href="{% url 'deutsch:abdeckung' dokument.schluessel %}">Abdeckungsmatrix</a>
+  <a class="baum-zeile" href="{% url 'deutsch:pruefliste' dokument.schluessel %}">Prüfliste</a>
+</nav>

@@ -1,0 +1,12 @@
+Hallo {{ user.anzeigename|default:user.email }},
+
+für dein Konto im Schulwissen der GGS Niederkassel wurde ein neues Passwort
+angefordert. Über diesen Link kannst du eines setzen:
+
+{{ protocol }}://{{ domain }}{% url 'kern:password_reset_confirm' uidb64=uid token=token %}
+
+Der Link gilt nur kurze Zeit. Hast du das nicht angefordert, kannst du diese
+Mail einfach löschen – dein Passwort bleibt dann unverändert.
+
+Viele Grüße
+Das Schulwissen der GGS Niederkassel

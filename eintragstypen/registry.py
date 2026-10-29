@@ -83,7 +83,12 @@ class Feld:
 
     #: Steuert, ob das Feld überhaupt gilt – z. B. „Klassenarbeit“ nur in Jg. 3/4.
     #: Ein unsichtbares Feld wird nie als Pflichtfeld verlangt.
-    sichtbar_wenn: Callable[[dict], bool] | None = None
+    #:
+    #: Absichtlich zwei schlichte Angaben statt einer Funktion: so kann auch
+    #: die Vorlage die Bedingung lesen und das Feld im Browser ein- und
+    #: ausblenden, während der Nutzer noch tippt.
+    sichtbar_wenn_feld: str = ""
+    sichtbar_wenn_werte: tuple = ()
 
     #: Alle Schreibweisen, unter denen dieses Feld in der Arbeitsmappe steht.
     xlsx_spalten: tuple[str, ...] = ()
@@ -100,10 +105,31 @@ class Feld:
     def ist_berechnet(self) -> bool:
         return self.berechnet is not None
 
+    @property
+    def ist_bedingt(self) -> bool:
+        return bool(self.sichtbar_wenn_feld)
+
     def gilt_fuer(self, daten: dict) -> bool:
-        if self.sichtbar_wenn is None:
+        """Gilt dieses Feld bei diesen Daten?"""
+        if not self.sichtbar_wenn_feld:
             return True
-        return bool(self.sichtbar_wenn(daten or {}))
+        wert = (daten or {}).get(self.sichtbar_wenn_feld)
+        if wert in (None, ""):
+            return False
+        return str(wert) in {str(erlaubt) for erlaubt in self.sichtbar_wenn_werte}
+
+    @property
+    def sichtbar_wenn_werte_js(self):
+        """Die erlaubten Werte als JavaScript-Liste für x-show in der Vorlage.
+
+        ``mark_safe`` ist hier richtig: die Werte stehen im Code dieser Datei,
+        nicht in einer Eingabe. Ohne das würden die Anführungszeichen zu
+        ``&#x27;`` und das Attribut wäre nicht mehr lesbar.
+        """
+        from django.utils.safestring import mark_safe
+
+        werte = ", ".join(f"'{wert}'" for wert in self.sichtbar_wenn_werte)
+        return mark_safe(f"[{werte}]")  # noqa: S308
 
     def auswahlwerte(self) -> tuple[object, ...]:
         return tuple(wert for wert, _ in self.auswahl)
@@ -179,15 +205,24 @@ class Eintragstyp:
     def verlinkungsfelder(self) -> tuple[Feld, ...]:
         return tuple(f for f in self.felder if f.ist_verlinkung)
 
-    def felder_im_block(self, block: str, daten: dict | None = None) -> tuple[Feld, ...]:
+    def felder_im_block(
+        self, block: str, daten: dict | None = None, alle: bool = False
+    ) -> tuple[Feld, ...]:
+        """Felder eines Blocks.
+
+        ``alle=True`` nimmt auch bedingte Felder mit, deren Bedingung noch
+        nicht erfüllt ist. Das braucht die Eingabemaske: „Klassenarbeit“ muss
+        im Formular stehen, bevor der Jahrgang gewählt ist – sonst erschiene
+        das Feld erst nach dem Speichern.
+        """
         return tuple(
-            f for f in self.felder if f.block == block and f.gilt_fuer(daten or {})
+            f for f in self.felder if f.block == block and (alle or f.gilt_fuer(daten or {}))
         )
 
-    def bloecke_mit_feldern(self, daten: dict | None = None):
+    def bloecke_mit_feldern(self, daten: dict | None = None, alle: bool = False):
         """Blöcke in Maskenreihenfolge, leere übersprungen."""
         for block in self.bloecke:
-            felder = self.felder_im_block(block, daten)
+            felder = self.felder_im_block(block, daten, alle=alle)
             if felder:
                 yield block, felder
 
@@ -266,9 +301,7 @@ class Eintragstyp:
 
     def mit_feldern(self, *zusatz: Feld) -> Eintragstyp:
         """Kopie mit weiteren Feldern – für verwandte Typen."""
-        return replace(
-            self, felder=self.felder + zusatz, _nach_schluessel={}, _nach_spalte={}
-        )
+        return replace(self, felder=self.felder + zusatz, _nach_schluessel={}, _nach_spalte={})
 
 
 def _wert_pruefen(feld: Feld, wert: object) -> tuple[object, str]:

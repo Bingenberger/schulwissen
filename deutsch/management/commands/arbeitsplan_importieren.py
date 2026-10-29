@@ -54,9 +54,7 @@ class Command(BaseCommand):
             return
 
         dokument = self._dokument_sichern(optionen["dokument"])
-        bericht = import_xlsx.uebernehmen(
-            pfad, dokument, mit_beispielen=optionen["mit_beispielen"]
-        )
+        bericht = import_xlsx.uebernehmen(pfad, dokument, mit_beispielen=optionen["mit_beispielen"])
         self.stdout.write(bericht.als_text())
         if not bericht.ok:
             raise CommandError(

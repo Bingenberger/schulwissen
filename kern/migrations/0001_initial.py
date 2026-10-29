@@ -4,315 +4,892 @@ import django.contrib.postgres.indexes
 import django.contrib.postgres.search
 import django.db.models.deletion
 import django.utils.timezone
-import kern.models
 from django.conf import settings
 from django.db import migrations, models
 
+import kern.models
+
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Nutzer',
+            name="Nutzer",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('email', models.EmailField(max_length=254, unique=True, verbose_name='E-Mail')),
-                ('anzeigename', models.CharField(max_length=120, verbose_name='Anzeigename')),
-                ('kuerzel', models.CharField(blank=True, help_text='Wie im Stundenplan, z. B. „FOE“.', max_length=10, verbose_name='Kürzel')),
-                ('is_active', models.BooleanField(default=True, verbose_name='aktiv')),
-                ('is_staff', models.BooleanField(default=False, help_text='Darf die Django-Verwaltung öffnen.', verbose_name='Zugang zur Verwaltung')),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='angelegt am')),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "last_login",
+                    models.DateTimeField(blank=True, null=True, verbose_name="last login"),
+                ),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
+                ("email", models.EmailField(max_length=254, unique=True, verbose_name="E-Mail")),
+                ("anzeigename", models.CharField(max_length=120, verbose_name="Anzeigename")),
+                (
+                    "kuerzel",
+                    models.CharField(
+                        blank=True,
+                        help_text="Wie im Stundenplan, z. B. „FOE“.",
+                        max_length=10,
+                        verbose_name="Kürzel",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="aktiv")),
+                (
+                    "is_staff",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Darf die Django-Verwaltung öffnen.",
+                        verbose_name="Zugang zur Verwaltung",
+                    ),
+                ),
+                (
+                    "date_joined",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="angelegt am"
+                    ),
+                ),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Nutzer',
-                'verbose_name_plural': 'Nutzer',
-                'ordering': ['anzeigename'],
+                "verbose_name": "Nutzer",
+                "verbose_name_plural": "Nutzer",
+                "ordering": ["anzeigename"],
             },
             managers=[
-                ('objects', kern.models.NutzerVerwaltung()),
+                ("objects", kern.models.NutzerVerwaltung()),
             ],
         ),
         migrations.CreateModel(
-            name='Dokument',
+            name="Dokument",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('schluessel', models.SlugField(help_text='Kurzname für Adresse und Import, z. B. „arbeitsplan-deutsch“.', max_length=80, unique=True, verbose_name='Schlüssel')),
-                ('titel', models.CharField(max_length=250, verbose_name='Titel')),
-                ('fach', models.CharField(blank=True, max_length=60, verbose_name='Fach')),
-                ('beschreibung', models.TextField(blank=True, verbose_name='Beschreibung')),
-                ('gueltig_ab_schuljahr', models.CharField(blank=True, help_text='z. B. „2027/28“.', max_length=12, verbose_name='gültig ab Schuljahr')),
-                ('einstellungen', models.JSONField(blank=True, default=dict, help_text='Dokumentweite Werte, z. B. Deutschstunden pro Woche je Jahrgang.', verbose_name='Einstellungen')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                (
+                    "schluessel",
+                    models.SlugField(
+                        help_text="Kurzname für Adresse und Import, z. B. „arbeitsplan-deutsch“.",
+                        max_length=80,
+                        unique=True,
+                        verbose_name="Schlüssel",
+                    ),
+                ),
+                ("titel", models.CharField(max_length=250, verbose_name="Titel")),
+                ("fach", models.CharField(blank=True, max_length=60, verbose_name="Fach")),
+                ("beschreibung", models.TextField(blank=True, verbose_name="Beschreibung")),
+                (
+                    "gueltig_ab_schuljahr",
+                    models.CharField(
+                        blank=True,
+                        help_text="z. B. „2027/28“.",
+                        max_length=12,
+                        verbose_name="gültig ab Schuljahr",
+                    ),
+                ),
+                (
+                    "einstellungen",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Dokumentweite Werte, z. B. Deutschstunden pro Woche je Jahrgang.",
+                        verbose_name="Einstellungen",
+                    ),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Dokument',
-                'verbose_name_plural': 'Dokumente',
-                'ordering': ['titel'],
+                "verbose_name": "Dokument",
+                "verbose_name_plural": "Dokumente",
+                "ordering": ["titel"],
             },
         ),
         migrations.CreateModel(
-            name='Anhang',
+            name="Anhang",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('datei', models.FileField(blank=True, upload_to=kern.models.anhang_pfad, verbose_name='Datei')),
-                ('nextcloud_pfad', models.CharField(blank=True, max_length=500, verbose_name='Nextcloud-Pfad')),
-                ('nextcloud_link', models.URLField(blank=True, max_length=500, verbose_name='Nextcloud-Link')),
-                ('dateiname', models.CharField(max_length=300, verbose_name='Dateiname')),
-                ('mimetype', models.CharField(blank=True, max_length=120, verbose_name='Dateityp')),
-                ('groesse', models.BigIntegerField(blank=True, null=True, verbose_name='Größe in Byte')),
-                ('beschreibung', models.CharField(blank=True, max_length=300, verbose_name='Beschreibung')),
-                ('extrahierter_text', models.TextField(blank=True, editable=False, verbose_name='extrahierter Text')),
-                ('index_stand', models.DateTimeField(blank=True, editable=False, null=True, verbose_name='indexiert am')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
-                ('dokument', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='anhaenge', to='kern.dokument', verbose_name='Dokument')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                (
+                    "datei",
+                    models.FileField(
+                        blank=True, upload_to=kern.models.anhang_pfad, verbose_name="Datei"
+                    ),
+                ),
+                (
+                    "nextcloud_pfad",
+                    models.CharField(blank=True, max_length=500, verbose_name="Nextcloud-Pfad"),
+                ),
+                (
+                    "nextcloud_link",
+                    models.URLField(blank=True, max_length=500, verbose_name="Nextcloud-Link"),
+                ),
+                ("dateiname", models.CharField(max_length=300, verbose_name="Dateiname")),
+                ("mimetype", models.CharField(blank=True, max_length=120, verbose_name="Dateityp")),
+                (
+                    "groesse",
+                    models.BigIntegerField(blank=True, null=True, verbose_name="Größe in Byte"),
+                ),
+                (
+                    "beschreibung",
+                    models.CharField(blank=True, max_length=300, verbose_name="Beschreibung"),
+                ),
+                (
+                    "extrahierter_text",
+                    models.TextField(blank=True, editable=False, verbose_name="extrahierter Text"),
+                ),
+                (
+                    "index_stand",
+                    models.DateTimeField(
+                        blank=True, editable=False, null=True, verbose_name="indexiert am"
+                    ),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
+                (
+                    "dokument",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="anhaenge",
+                        to="kern.dokument",
+                        verbose_name="Dokument",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Anhang',
-                'verbose_name_plural': 'Anhänge',
-                'ordering': ['dateiname'],
+                "verbose_name": "Anhang",
+                "verbose_name_plural": "Anhänge",
+                "ordering": ["dateiname"],
             },
         ),
         migrations.CreateModel(
-            name='Dokumenttyp',
+            name="Dokumenttyp",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('schluessel', models.SlugField(max_length=60, unique=True, verbose_name='Schlüssel')),
-                ('name', models.CharField(max_length=150, verbose_name='Name')),
-                ('beschreibung', models.TextField(blank=True, verbose_name='Beschreibung')),
-                ('eintragstypen', models.JSONField(blank=True, default=list, help_text='Schlüssel der Eintragstypen, die in diesem Dokumenttyp vorkommen dürfen.', verbose_name='erlaubte Eintragstypen')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                (
+                    "schluessel",
+                    models.SlugField(max_length=60, unique=True, verbose_name="Schlüssel"),
+                ),
+                ("name", models.CharField(max_length=150, verbose_name="Name")),
+                ("beschreibung", models.TextField(blank=True, verbose_name="Beschreibung")),
+                (
+                    "eintragstypen",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="Schlüssel der Eintragstypen, die in diesem Dokumenttyp vorkommen dürfen.",
+                        verbose_name="erlaubte Eintragstypen",
+                    ),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Dokumenttyp',
-                'verbose_name_plural': 'Dokumenttypen',
-                'ordering': ['name'],
+                "verbose_name": "Dokumenttyp",
+                "verbose_name_plural": "Dokumenttypen",
+                "ordering": ["name"],
             },
         ),
         migrations.AddField(
-            model_name='dokument',
-            name='dokumenttyp',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='dokumente', to='kern.dokumenttyp', verbose_name='Dokumenttyp'),
+            model_name="dokument",
+            name="dokumenttyp",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="dokumente",
+                to="kern.dokumenttyp",
+                verbose_name="Dokumenttyp",
+            ),
         ),
         migrations.CreateModel(
-            name='Eintrag',
+            name="Eintrag",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('eintragstyp', models.CharField(max_length=60, verbose_name='Eintragstyp')),
-                ('kennung', models.CharField(help_text='Lesbare, dauerhafte Nummer, z. B. „R-01“, „V-3-01“ oder „2.4“.', max_length=40, verbose_name='Kennung')),
-                ('titel', models.CharField(max_length=300, verbose_name='Titel')),
-                ('position', models.PositiveIntegerField(default=0, verbose_name='Position')),
-                ('status', models.CharField(choices=[('idee', 'Idee'), ('entwurf', 'Entwurf'), ('abgestimmt', 'abgestimmt in Gruppe'), ('beschlossen', 'beschlossen'), ('archiviert', 'archiviert')], default='entwurf', max_length=20, verbose_name='Status')),
-                ('daten', models.JSONField(blank=True, default=dict, verbose_name='Daten')),
-                ('verantwortlich_text', models.CharField(blank=True, help_text='Wird beim Import aus der Arbeitsmappe gefüllt, solange keine Gruppe passt.', max_length=200, verbose_name='Verantwortlich (Freitext)')),
-                ('fassung_stand', models.DateField(blank=True, null=True, verbose_name='Fassung / Stand')),
-                ('suchtext', models.TextField(blank=True, editable=False, verbose_name='Suchtext')),
-                ('suchvektor', django.contrib.postgres.search.SearchVectorField(editable=False, null=True)),
-                ('dokument', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='eintraege', to='kern.dokument', verbose_name='Dokument')),
-                ('eltern', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='kinder', to='kern.eintrag', verbose_name='übergeordneter Eintrag')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
-                ('verantwortlich_gruppe', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verantwortlich_fuer', to='auth.group', verbose_name='verantwortliche Arbeitsgruppe')),
-                ('verantwortlich_person', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verantwortlich_fuer', to=settings.AUTH_USER_MODEL, verbose_name='verantwortliche Person')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                ("eintragstyp", models.CharField(max_length=60, verbose_name="Eintragstyp")),
+                (
+                    "kennung",
+                    models.CharField(
+                        help_text="Lesbare, dauerhafte Nummer, z. B. „R-01“, „V-3-01“ oder „2.4“.",
+                        max_length=40,
+                        verbose_name="Kennung",
+                    ),
+                ),
+                ("titel", models.CharField(max_length=300, verbose_name="Titel")),
+                ("position", models.PositiveIntegerField(default=0, verbose_name="Position")),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("idee", "Idee"),
+                            ("entwurf", "Entwurf"),
+                            ("abgestimmt", "abgestimmt in Gruppe"),
+                            ("beschlossen", "beschlossen"),
+                            ("archiviert", "archiviert"),
+                        ],
+                        default="entwurf",
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
+                ("daten", models.JSONField(blank=True, default=dict, verbose_name="Daten")),
+                (
+                    "verantwortlich_text",
+                    models.CharField(
+                        blank=True,
+                        help_text="Wird beim Import aus der Arbeitsmappe gefüllt, solange keine Gruppe passt.",
+                        max_length=200,
+                        verbose_name="Verantwortlich (Freitext)",
+                    ),
+                ),
+                (
+                    "fassung_stand",
+                    models.DateField(blank=True, null=True, verbose_name="Fassung / Stand"),
+                ),
+                ("suchtext", models.TextField(blank=True, editable=False, verbose_name="Suchtext")),
+                (
+                    "suchvektor",
+                    django.contrib.postgres.search.SearchVectorField(editable=False, null=True),
+                ),
+                (
+                    "dokument",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="eintraege",
+                        to="kern.dokument",
+                        verbose_name="Dokument",
+                    ),
+                ),
+                (
+                    "eltern",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="kinder",
+                        to="kern.eintrag",
+                        verbose_name="übergeordneter Eintrag",
+                    ),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
+                (
+                    "verantwortlich_gruppe",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="verantwortlich_fuer",
+                        to="auth.group",
+                        verbose_name="verantwortliche Arbeitsgruppe",
+                    ),
+                ),
+                (
+                    "verantwortlich_person",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="verantwortlich_fuer",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="verantwortliche Person",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Eintrag',
-                'verbose_name_plural': 'Einträge',
-                'ordering': ['dokument', 'position', 'kennung'],
+                "verbose_name": "Eintrag",
+                "verbose_name_plural": "Einträge",
+                "ordering": ["dokument", "position", "kennung"],
             },
         ),
         migrations.CreateModel(
-            name='Beschluss',
+            name="Beschluss",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('datum', models.DateField(verbose_name='Datum')),
-                ('titel', models.CharField(max_length=250, verbose_name='Titel')),
-                ('text', models.TextField(blank=True, verbose_name='Beschlusstext')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
-                ('protokoll_anhang', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='protokollierte_beschluesse', to='kern.anhang', verbose_name='Protokoll (Anhang)')),
-                ('protokoll_eintrag', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='protokollierte_beschluesse', to='kern.eintrag', verbose_name='Protokoll (Eintrag)')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                ("datum", models.DateField(verbose_name="Datum")),
+                ("titel", models.CharField(max_length=250, verbose_name="Titel")),
+                ("text", models.TextField(blank=True, verbose_name="Beschlusstext")),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
+                (
+                    "protokoll_anhang",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="protokollierte_beschluesse",
+                        to="kern.anhang",
+                        verbose_name="Protokoll (Anhang)",
+                    ),
+                ),
+                (
+                    "protokoll_eintrag",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="protokollierte_beschluesse",
+                        to="kern.eintrag",
+                        verbose_name="Protokoll (Eintrag)",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Beschluss',
-                'verbose_name_plural': 'Beschlüsse',
-                'ordering': ['-datum', 'titel'],
+                "verbose_name": "Beschluss",
+                "verbose_name_plural": "Beschlüsse",
+                "ordering": ["-datum", "titel"],
             },
         ),
         migrations.AddField(
-            model_name='anhang',
-            name='eintrag',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='anhaenge', to='kern.eintrag', verbose_name='Eintrag'),
+            model_name="anhang",
+            name="eintrag",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="anhaenge",
+                to="kern.eintrag",
+                verbose_name="Eintrag",
+            ),
         ),
         migrations.CreateModel(
-            name='Eintragsversion',
+            name="Eintragsversion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('versionsnummer', models.PositiveIntegerField(verbose_name='Fassung')),
-                ('titel', models.CharField(max_length=300, verbose_name='Titel')),
-                ('status', models.CharField(choices=[('idee', 'Idee'), ('entwurf', 'Entwurf'), ('abgestimmt', 'abgestimmt in Gruppe'), ('beschlossen', 'beschlossen'), ('archiviert', 'archiviert')], max_length=20, verbose_name='Status')),
-                ('daten', models.JSONField(blank=True, default=dict, verbose_name='Daten')),
-                ('verlinkungen', models.JSONField(blank=True, default=list, verbose_name='Verlinkungen')),
-                ('zeitpunkt', models.DateTimeField(auto_now_add=True, verbose_name='Zeitpunkt')),
-                ('autor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Autor')),
-                ('beschluss', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='beschlossene_versionen', to='kern.beschluss', verbose_name='Beschluss')),
-                ('eintrag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='versionen', to='kern.eintrag', verbose_name='Eintrag')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("versionsnummer", models.PositiveIntegerField(verbose_name="Fassung")),
+                ("titel", models.CharField(max_length=300, verbose_name="Titel")),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("idee", "Idee"),
+                            ("entwurf", "Entwurf"),
+                            ("abgestimmt", "abgestimmt in Gruppe"),
+                            ("beschlossen", "beschlossen"),
+                            ("archiviert", "archiviert"),
+                        ],
+                        max_length=20,
+                        verbose_name="Status",
+                    ),
+                ),
+                ("daten", models.JSONField(blank=True, default=dict, verbose_name="Daten")),
+                (
+                    "verlinkungen",
+                    models.JSONField(blank=True, default=list, verbose_name="Verlinkungen"),
+                ),
+                ("zeitpunkt", models.DateTimeField(auto_now_add=True, verbose_name="Zeitpunkt")),
+                (
+                    "autor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Autor",
+                    ),
+                ),
+                (
+                    "beschluss",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="beschlossene_versionen",
+                        to="kern.beschluss",
+                        verbose_name="Beschluss",
+                    ),
+                ),
+                (
+                    "eintrag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="versionen",
+                        to="kern.eintrag",
+                        verbose_name="Eintrag",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Eintragsversion',
-                'verbose_name_plural': 'Eintragsversionen',
-                'ordering': ['eintrag', '-versionsnummer'],
+                "verbose_name": "Eintragsversion",
+                "verbose_name_plural": "Eintragsversionen",
+                "ordering": ["eintrag", "-versionsnummer"],
             },
         ),
         migrations.CreateModel(
-            name='Gremium',
+            name="Gremium",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('name', models.CharField(max_length=120, unique=True, verbose_name='Name')),
-                ('reihenfolge', models.PositiveIntegerField(default=100, verbose_name='Reihenfolge')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                ("name", models.CharField(max_length=120, unique=True, verbose_name="Name")),
+                (
+                    "reihenfolge",
+                    models.PositiveIntegerField(default=100, verbose_name="Reihenfolge"),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Gremium',
-                'verbose_name_plural': 'Gremien',
-                'ordering': ['reihenfolge', 'name'],
+                "verbose_name": "Gremium",
+                "verbose_name_plural": "Gremien",
+                "ordering": ["reihenfolge", "name"],
             },
         ),
         migrations.AddField(
-            model_name='beschluss',
-            name='gremium',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='beschluesse', to='kern.gremium', verbose_name='Gremium'),
+            model_name="beschluss",
+            name="gremium",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="beschluesse",
+                to="kern.gremium",
+                verbose_name="Gremium",
+            ),
         ),
         migrations.CreateModel(
-            name='Gruppenprofil',
+            name="Gruppenprofil",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('art', models.CharField(choices=[('rolle', 'Rolle'), ('arbeitsgruppe', 'Arbeitsgruppe')], max_length=20, verbose_name='Art')),
-                ('beschreibung', models.CharField(blank=True, max_length=250, verbose_name='Beschreibung')),
-                ('gruppe', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profil', to='auth.group', verbose_name='Gruppe')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "art",
+                    models.CharField(
+                        choices=[("rolle", "Rolle"), ("arbeitsgruppe", "Arbeitsgruppe")],
+                        max_length=20,
+                        verbose_name="Art",
+                    ),
+                ),
+                (
+                    "beschreibung",
+                    models.CharField(blank=True, max_length=250, verbose_name="Beschreibung"),
+                ),
+                (
+                    "gruppe",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profil",
+                        to="auth.group",
+                        verbose_name="Gruppe",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Gruppenprofil',
-                'verbose_name_plural': 'Gruppenprofile',
-                'ordering': ['art', 'gruppe__name'],
+                "verbose_name": "Gruppenprofil",
+                "verbose_name_plural": "Gruppenprofile",
+                "ordering": ["art", "gruppe__name"],
             },
         ),
         migrations.CreateModel(
-            name='Kommentar',
+            name="Kommentar",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('feld', models.CharField(blank=True, max_length=60, verbose_name='Feld')),
-                ('text', models.TextField(verbose_name='Kommentar')),
-                ('erledigt', models.BooleanField(default=False, verbose_name='erledigt')),
-                ('erledigt_am', models.DateTimeField(blank=True, null=True, verbose_name='erledigt am')),
-                ('autor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='kommentare', to=settings.AUTH_USER_MODEL, verbose_name='Autor')),
-                ('eintrag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='kommentare', to='kern.eintrag', verbose_name='Eintrag')),
-                ('erledigt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erledigt von')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                ("feld", models.CharField(blank=True, max_length=60, verbose_name="Feld")),
+                ("text", models.TextField(verbose_name="Kommentar")),
+                ("erledigt", models.BooleanField(default=False, verbose_name="erledigt")),
+                (
+                    "erledigt_am",
+                    models.DateTimeField(blank=True, null=True, verbose_name="erledigt am"),
+                ),
+                (
+                    "autor",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="kommentare",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Autor",
+                    ),
+                ),
+                (
+                    "eintrag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="kommentare",
+                        to="kern.eintrag",
+                        verbose_name="Eintrag",
+                    ),
+                ),
+                (
+                    "erledigt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erledigt von",
+                    ),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Kommentar',
-                'verbose_name_plural': 'Kommentare',
-                'ordering': ['erledigt', 'erstellt_am'],
+                "verbose_name": "Kommentar",
+                "verbose_name_plural": "Kommentare",
+                "ordering": ["erledigt", "erstellt_am"],
             },
         ),
         migrations.CreateModel(
-            name='PersoenlicherFortschritt',
+            name="PersoenlicherFortschritt",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('schuljahr', models.CharField(max_length=12, verbose_name='Schuljahr')),
-                ('klasse', models.CharField(blank=True, max_length=10, verbose_name='Klasse')),
-                ('erledigt', models.BooleanField(default=False, verbose_name='erledigt')),
-                ('erledigt_am', models.DateTimeField(blank=True, null=True, verbose_name='erledigt am')),
-                ('notiz', models.TextField(blank=True, verbose_name='Notiz')),
-                ('eintrag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fortschritt', to='kern.eintrag', verbose_name='Eintrag')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
-                ('nutzer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fortschritt', to=settings.AUTH_USER_MODEL, verbose_name='Nutzer')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                ("schuljahr", models.CharField(max_length=12, verbose_name="Schuljahr")),
+                ("klasse", models.CharField(blank=True, max_length=10, verbose_name="Klasse")),
+                ("erledigt", models.BooleanField(default=False, verbose_name="erledigt")),
+                (
+                    "erledigt_am",
+                    models.DateTimeField(blank=True, null=True, verbose_name="erledigt am"),
+                ),
+                ("notiz", models.TextField(blank=True, verbose_name="Notiz")),
+                (
+                    "eintrag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fortschritt",
+                        to="kern.eintrag",
+                        verbose_name="Eintrag",
+                    ),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
+                (
+                    "nutzer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fortschritt",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Nutzer",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'persönlicher Fortschritt',
-                'verbose_name_plural': 'persönlicher Fortschritt',
-                'ordering': ['schuljahr', 'klasse', 'eintrag'],
+                "verbose_name": "persönlicher Fortschritt",
+                "verbose_name_plural": "persönlicher Fortschritt",
+                "ordering": ["schuljahr", "klasse", "eintrag"],
             },
         ),
         migrations.CreateModel(
-            name='Verlinkung',
+            name="Verlinkung",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('erstellt_am', models.DateTimeField(auto_now_add=True, verbose_name='erstellt am')),
-                ('geaendert_am', models.DateTimeField(auto_now=True, verbose_name='geändert am')),
-                ('ziel_typ', models.CharField(choices=[('eintrag', 'Eintrag'), ('kompetenz', 'Kompetenzerwartung'), ('anhang', 'Anhang'), ('beschluss', 'Beschluss'), ('nextcloud', 'Nextcloud-Datei')], max_length=20, verbose_name='Zieltyp')),
-                ('ziel_id', models.CharField(max_length=250, verbose_name='Ziel')),
-                ('art', models.CharField(choices=[('verweist_auf', 'verweist auf'), ('nutzt', 'nutzt'), ('ersetzt', 'ersetzt'), ('kompetenz_schwerpunkt', 'Kompetenz: Schwerpunkt'), ('kompetenz_beruehrt', 'Kompetenz: berührt'), ('bezug_ritual', 'Bezug zu Ritual')], max_length=40, verbose_name='Art')),
-                ('feld', models.CharField(blank=True, help_text='Aus welchem Feld der Verweis stammt – für die Anzeige am Feld.', max_length=60, verbose_name='Feld')),
-                ('beschriftung', models.CharField(blank=True, max_length=250, verbose_name='Beschriftung')),
-                ('erstellt_von', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='erstellt von')),
-                ('von_eintrag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='verlinkungen', to='kern.eintrag', verbose_name='von Eintrag')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "erstellt_am",
+                    models.DateTimeField(auto_now_add=True, verbose_name="erstellt am"),
+                ),
+                ("geaendert_am", models.DateTimeField(auto_now=True, verbose_name="geändert am")),
+                (
+                    "ziel_typ",
+                    models.CharField(
+                        choices=[
+                            ("eintrag", "Eintrag"),
+                            ("kompetenz", "Kompetenzerwartung"),
+                            ("anhang", "Anhang"),
+                            ("beschluss", "Beschluss"),
+                            ("nextcloud", "Nextcloud-Datei"),
+                        ],
+                        max_length=20,
+                        verbose_name="Zieltyp",
+                    ),
+                ),
+                ("ziel_id", models.CharField(max_length=250, verbose_name="Ziel")),
+                (
+                    "art",
+                    models.CharField(
+                        choices=[
+                            ("verweist_auf", "verweist auf"),
+                            ("nutzt", "nutzt"),
+                            ("ersetzt", "ersetzt"),
+                            ("kompetenz_schwerpunkt", "Kompetenz: Schwerpunkt"),
+                            ("kompetenz_beruehrt", "Kompetenz: berührt"),
+                            ("bezug_ritual", "Bezug zu Ritual"),
+                        ],
+                        max_length=40,
+                        verbose_name="Art",
+                    ),
+                ),
+                (
+                    "feld",
+                    models.CharField(
+                        blank=True,
+                        help_text="Aus welchem Feld der Verweis stammt – für die Anzeige am Feld.",
+                        max_length=60,
+                        verbose_name="Feld",
+                    ),
+                ),
+                (
+                    "beschriftung",
+                    models.CharField(blank=True, max_length=250, verbose_name="Beschriftung"),
+                ),
+                (
+                    "erstellt_von",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="erstellt von",
+                    ),
+                ),
+                (
+                    "von_eintrag",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="verlinkungen",
+                        to="kern.eintrag",
+                        verbose_name="von Eintrag",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Verlinkung',
-                'verbose_name_plural': 'Verlinkungen',
-                'ordering': ['von_eintrag', 'art', 'ziel_id'],
+                "verbose_name": "Verlinkung",
+                "verbose_name_plural": "Verlinkungen",
+                "ordering": ["von_eintrag", "art", "ziel_id"],
             },
         ),
         migrations.AddIndex(
-            model_name='eintrag',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['suchvektor'], name='eintrag_suchvektor'),
+            model_name="eintrag",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["suchvektor"], name="eintrag_suchvektor"
+            ),
         ),
         migrations.AddIndex(
-            model_name='eintrag',
-            index=models.Index(fields=['dokument', 'eintragstyp'], name='eintrag_dokument_typ'),
+            model_name="eintrag",
+            index=models.Index(fields=["dokument", "eintragstyp"], name="eintrag_dokument_typ"),
         ),
         migrations.AddIndex(
-            model_name='eintrag',
-            index=models.Index(fields=['status'], name='eintrag_status'),
+            model_name="eintrag",
+            index=models.Index(fields=["status"], name="eintrag_status"),
         ),
         migrations.AddConstraint(
-            model_name='eintrag',
-            constraint=models.UniqueConstraint(fields=('dokument', 'kennung'), name='eintrag_kennung_je_dokument'),
+            model_name="eintrag",
+            constraint=models.UniqueConstraint(
+                fields=("dokument", "kennung"), name="eintrag_kennung_je_dokument"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='eintragsversion',
-            constraint=models.UniqueConstraint(fields=('eintrag', 'versionsnummer'), name='version_nummer_je_eintrag'),
+            model_name="eintragsversion",
+            constraint=models.UniqueConstraint(
+                fields=("eintrag", "versionsnummer"), name="version_nummer_je_eintrag"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='persoenlicherfortschritt',
-            constraint=models.UniqueConstraint(fields=('nutzer', 'eintrag', 'schuljahr', 'klasse'), name='fortschritt_eindeutig'),
+            model_name="persoenlicherfortschritt",
+            constraint=models.UniqueConstraint(
+                fields=("nutzer", "eintrag", "schuljahr", "klasse"), name="fortschritt_eindeutig"
+            ),
         ),
         migrations.AddIndex(
-            model_name='verlinkung',
-            index=models.Index(fields=['ziel_typ', 'ziel_id'], name='verlinkung_ziel'),
+            model_name="verlinkung",
+            index=models.Index(fields=["ziel_typ", "ziel_id"], name="verlinkung_ziel"),
         ),
         migrations.AddIndex(
-            model_name='verlinkung',
-            index=models.Index(fields=['art'], name='verlinkung_art'),
+            model_name="verlinkung",
+            index=models.Index(fields=["art"], name="verlinkung_art"),
         ),
         migrations.AddConstraint(
-            model_name='verlinkung',
-            constraint=models.UniqueConstraint(fields=('von_eintrag', 'ziel_typ', 'ziel_id', 'art'), name='verlinkung_eindeutig'),
+            model_name="verlinkung",
+            constraint=models.UniqueConstraint(
+                fields=("von_eintrag", "ziel_typ", "ziel_id", "art"), name="verlinkung_eindeutig"
+            ),
         ),
     ]

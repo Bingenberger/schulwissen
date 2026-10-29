@@ -46,6 +46,19 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 
+# HSTS: Der Browser merkt sich, dass diese Adresse nur über HTTPS kommt.
+# Erst einschalten, wenn HTTPS sicher läuft – die Festlegung gilt im Browser
+# für die eingestellte Dauer und lässt sich nicht zurücknehmen. Darum mit
+# SW_HSTS_TAGE=0 abschaltbar.
+_hsts_tage = int(umgebung.text("SW_HSTS_TAGE", "0" if DEBUG else "365"))
+SECURE_HSTS_SECONDS = _hsts_tage * 24 * 60 * 60
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
+# Die Umleitung von http auf https macht nginx (certbot trägt sie ein).
+# In Django eingeschaltet, gäbe es ohne HTTPS eine Endlosschleife.
+SECURE_SSL_REDIRECT = umgebung.schalter("SW_SSL_UMLEITUNG", False)
+
 # --- Anwendungen -----------------------------------------------------------
 
 INSTALLED_APPS = [
@@ -64,6 +77,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # whitenoise liefert die statischen Dateien aus – auch in der Entwicklung,
+    # denn hinter gunicorn tut das sonst niemand.
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -145,8 +160,22 @@ STATIC_ROOT = BASIS / "statisch"
 STATICFILES_DIRS = [BASIS / "dateien"]
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    "staticfiles": {
+        # Im Echtbetrieb mit Prüfsumme im Dateinamen, damit Browser zwischenspeichern
+        # dürfen. In der Entwicklung und in Tests ohne – dort gibt es kein
+        # collectstatic-Verzeichnis.
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
 }
+
+# In der Entwicklung nimmt whitenoise die Dateien direkt aus „dateien/“, ohne
+# dass vorher collectstatic laufen muss.
+WHITENOISE_USE_FINDERS = DEBUG
+WHITENOISE_AUTOREFRESH = DEBUG
 
 MEDIA_URL = "medien/"
 MEDIA_ROOT = Path(umgebung.text("SW_MEDIEN_VERZEICHNIS", str(BASIS / "medien")))

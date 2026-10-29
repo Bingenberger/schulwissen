@@ -19,9 +19,7 @@ def test_alle_117_erwartungen_werden_angelegt(kompetenz_json):
     assert bericht.angelegt == 117
     assert Kompetenzerwartung.objects.count() == 117
     assert Kompetenzerwartung.objects.values("bereich").distinct().count() == 4
-    assert (
-        Kompetenzerwartung.objects.values("bereich", "schwerpunkt_nr").distinct().count() == 14
-    )
+    assert Kompetenzerwartung.objects.values("bereich", "schwerpunkt_nr").distinct().count() == 14
 
 
 def test_zweiter_lauf_legt_nichts_doppelt_an(kompetenz_json):
@@ -45,9 +43,7 @@ def test_schulische_festlegung_bleibt_beim_erneuten_import_erhalten(kompetenz_js
     importieren(kompetenz_json)
 
     erwartung.refresh_from_db()
-    assert erwartung.schulische_festlegung == (
-        "Bei uns verbindlich: Streitschlichtungsgespräch"
-    )
+    assert erwartung.schulische_festlegung == ("Bei uns verbindlich: Streitschlichtungsgespräch")
 
 
 def test_progressionspartner_werden_verknuepft(kompetenz_json):

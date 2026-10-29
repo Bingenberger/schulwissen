@@ -1,7 +1,12 @@
-"""URL-Zuordnung der App „fachdaten“ – wird im nächsten Schritt gefüllt."""
+"""URL-Zuordnung der Fachdaten."""
 
 from django.urls import path
 
+from fachdaten import views
+
 app_name = "fachdaten"
 
-urlpatterns: list[path] = []
+urlpatterns = [
+    path("", views.kompetenz_uebersicht, name="uebersicht"),
+    path("suche", views.kompetenz_suche, name="suche"),
+]

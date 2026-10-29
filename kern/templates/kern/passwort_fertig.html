@@ -1,0 +1,11 @@
+{% extends "grundlage.html" %}
+{% block titel %}Passwort gesetzt{% endblock %}
+{% block inhalt %}
+<div class="anmeldung">
+  <h1>Passwort gesetzt</h1>
+  <div class="karte">
+    <p>Das neue Passwort ist gespeichert.</p>
+    <a class="knopf knopf-wichtig" href="{% url 'kern:anmelden' %}">Jetzt anmelden</a>
+  </div>
+</div>
+{% endblock %}

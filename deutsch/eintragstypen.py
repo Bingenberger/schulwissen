@@ -46,14 +46,6 @@ def _minuten_pro_woche(daten: dict) -> int | None:
     return int(einheiten) * int(minuten)
 
 
-def _nur_jahrgang_3_und_4(daten: dict) -> bool:
-    """Klassenarbeiten gibt es in der Grundschule erst ab Klasse 3."""
-    try:
-        return int(daten.get("jahrgang") or 0) in (3, 4)
-    except (TypeError, ValueError):
-        return False
-
-
 # --- Felder, die beide Typen teilen ---------------------------------------
 
 FELD_KOMPETENZEN_SCHWERPUNKT = Feld(
@@ -142,8 +134,7 @@ GRUNDLAGENKAPITEL = registry.registrieren(
         schluessel="grundlagenkapitel",
         name="Kapitel",
         name_plural="Kapitel",
-        beschreibung="Ein Kapitel des Arbeitsplans mit formatiertem Text, Anhängen "
-        "und Verweisen.",
+        beschreibung="Ein Kapitel des Arbeitsplans mit formatiertem Text, Anhängen und Verweisen.",
         bloecke=(Block.UEBERBLICK, Block.SONSTIGES),
         felder=(
             Feld(
@@ -392,7 +383,9 @@ VORHABEN = registry.registrieren(
                 block=Block.LEISTUNG,
                 pflicht=True,
                 hilfe="Kennzeichnet schriftliche Arbeiten. Nur in Jahrgang 3 und 4.",
-                sichtbar_wenn=_nur_jahrgang_3_und_4,
+                # Klassenarbeiten gibt es in der Grundschule erst ab Klasse 3.
+                sichtbar_wenn_feld="jahrgang",
+                sichtbar_wenn_werte=(3, 4),
             ),
             # --- Sonstiges ---
             FELD_DOKUMENTATION,

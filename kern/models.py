@@ -12,6 +12,8 @@ der App ``eintragstypen``.
 
 from __future__ import annotations
 
+import re
+
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import Group, PermissionsMixin
@@ -342,6 +344,10 @@ class Eintrag(Zeitstempel):
         behalten diese auch als Anzeige.
         """
         if self.eintragstyp != "grundlagenkapitel":
+            return self.kennung
+        if not re.fullmatch(r"\d+(\.\d+)*", self.kennung):
+            # Kapitel mit einer Kennung wie „A" (Anhang) werden nicht
+            # mitgezählt – sie heißen so, wie sie heißen.
             return self.kennung
         kette = []
         knoten = self

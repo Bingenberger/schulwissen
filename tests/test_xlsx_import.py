@@ -11,9 +11,7 @@ from kern.models import Eintrag, Status, Verlinkungsart
 pytestmark = pytest.mark.django_db
 
 
-def test_beispielzeilen_werden_standardmaessig_uebersprungen(
-    dokument, kompetenzen, arbeitsmappe
-):
+def test_beispielzeilen_werden_standardmaessig_uebersprungen(dokument, kompetenzen, arbeitsmappe):
     """SPEC.md §11: Zeilen mit „(Beispiel)“ im Titel überspringen."""
     bericht = pruefen_mappe(arbeitsmappe, dokument)
 
@@ -67,9 +65,9 @@ def test_kompetenzverlinkungen_aus_der_id_liste(importierter_arbeitsplan):
     vorhaben = importierter_arbeitsplan.eintraege.get(kennung="V-3-01")
 
     schwerpunkte = set(
-        vorhaben.verlinkungen.filter(
-            art=Verlinkungsart.KOMPETENZ_SCHWERPUNKT
-        ).values_list("ziel_id", flat=True)
+        vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_SCHWERPUNKT).values_list(
+            "ziel_id", flat=True
+        )
     )
     beruehrt = set(
         vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_BERUEHRT).values_list(

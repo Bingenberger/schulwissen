@@ -1,0 +1,56 @@
+{% load static %}<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titel %}Schulwissen{% endblock %} · Schulwissen GGS Niederkassel</title>
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'schulwissen.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
+  {% block kopf_zusatz %}{% endblock %}
+</head>
+<body>
+<a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+
+{% if user.is_authenticated %}
+<header class="kopf">
+  <a class="kopf-marke" href="{% url 'kern:startseite' %}">Schulwissen</a>
+
+  {# Das Suchfeld steht auf jeder Seite (SPEC.md §12). #}
+  <form class="kopf-suche" action="{% url 'kern:startseite' %}" method="get" role="search">
+    <label class="nur-fuer-vorleser" for="kopf-suchfeld">Schulwissen durchsuchen</label>
+    <input type="search" id="kopf-suchfeld" name="q" value="{{ request.GET.q|default:'' }}"
+           placeholder="Suchen, z. B. Märchen oder SC2.02D" autocomplete="off">
+    <button class="knopf" type="submit">Suchen</button>
+  </form>
+
+  <div class="kopf-konto">
+    <a href="{% url 'fachdaten:uebersicht' %}">Kompetenzen</a>
+    {% if ist_administration %}<a href="{% url 'admin:index' %}">Verwaltung</a>{% endif %}
+    <span class="klein">{{ user.anzeigename }}</span>
+    <form action="{% url 'kern:abmelden' %}" method="post">
+      {% csrf_token %}
+      <button class="knopf knopf-leise" type="submit">Abmelden</button>
+    </form>
+  </div>
+</header>
+{% endif %}
+
+<main id="inhalt">
+  {% block meldungen %}
+    {% if messages %}
+      <div style="max-width:100rem;margin:1rem auto 0;padding:0 1.25rem">
+        {% for meldung in messages %}
+          <div class="meldung meldung-{{ meldung.tags|default:'info' }}">{{ meldung }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endblock %}
+
+  {% block inhalt %}{% endblock %}
+</main>
+
+{% block ende %}{% endblock %}
+</body>
+</html>

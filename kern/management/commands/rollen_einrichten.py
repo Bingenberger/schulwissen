@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 
-from kern.models import Gremium, Gruppenart, Gruppenprofil, ROLLEN
+from kern.models import ROLLEN, Gremium, Gruppenart, Gruppenprofil
 
 #: Gremien, die es an einer Grundschule in NRW gibt. Weitere trägt die
 #: Administration in der Verwaltung nach.
@@ -31,9 +31,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"Rolle „{name}“ angelegt.")
 
         for name, reihenfolge in GREMIEN:
-            _, neu = Gremium.objects.get_or_create(
-                name=name, defaults={"reihenfolge": reihenfolge}
-            )
+            _, neu = Gremium.objects.get_or_create(name=name, defaults={"reihenfolge": reihenfolge})
             if neu:
                 self.stdout.write(f"Gremium „{name}“ angelegt.")
 

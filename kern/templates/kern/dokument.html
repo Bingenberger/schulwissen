@@ -1,0 +1,59 @@
+{% extends "grundlage.html" %}
+{% block titel %}{{ dokument.titel }}{% endblock %}
+
+{% block inhalt %}
+<div class="geruest">
+  {% include "kern/_navigation.html" %}
+
+  <div>
+    <h1>{{ dokument.titel }}</h1>
+    <p class="leise">{{ dokument.dokumenttyp.name }}
+      {% if dokument.gueltig_ab_schuljahr %} · gültig ab Schuljahr {{ dokument.gueltig_ab_schuljahr }}{% endif %}</p>
+    {% if dokument.beschreibung %}<p>{{ dokument.beschreibung }}</p>{% endif %}
+
+    {% if ist_lehrkraft %}
+      <div class="karte">
+        <h2 style="margin-top:0">Neu anlegen</h2>
+        <p class="klein leise">Die Nummer vergibt die App – du musst nichts erfinden.</p>
+        <div class="knopf-reihe">
+          {% for typ in eintragstypen %}
+            {% if typ.schluessel != 'grundlagenkapitel' %}
+              <a class="knopf knopf-wichtig"
+                 href="{% url 'kern:eintrag_neu' dokument.schluessel typ.schluessel %}">
+                {{ typ.name }} anlegen</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% for typ in eintragstypen %}
+          {% if typ.schluessel != 'grundlagenkapitel' %}
+            <p class="klein leise" style="margin:0.6rem 0 0">
+              <strong>{{ typ.name }}:</strong> {{ typ.beschreibung }}</p>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <h2>Gliederung</h2>
+    <div class="karte">
+      <table class="tabelle">
+        <thead>
+          <tr><th>Nr.</th><th>Kennung</th><th>Titel</th><th>Art</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for zeile in baum %}
+            <tr>
+              <td class="zahl">{{ zeile.eintrag.anzeige_nummer }}</td>
+              <td><span class="kennung">{{ zeile.eintrag.kennung }}</span></td>
+              <td style="padding-left:{{ zeile.tiefe }}.5rem">
+                <a href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.titel }}</a>
+              </td>
+              <td class="klein leise">{{ zeile.eintrag.typ.name }}</td>
+              <td><span class="schild schild-{{ zeile.eintrag.status }}">{{ zeile.eintrag.get_status_display }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

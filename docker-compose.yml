@@ -42,7 +42,10 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8000:8000"
+      # Nur auf 127.0.0.1 – nach draußen geht es über nginx (DEPLOYMENT.md).
+      # SW_PORT ändern, wenn auf dem Server schon etwas auf diesem Port läuft:
+      # die Fahrradprüfungs-App belegt zum Beispiel 8000.
+      - "127.0.0.1:${SW_PORT:-8001}:8000"
 
 volumes:
   pgdaten:

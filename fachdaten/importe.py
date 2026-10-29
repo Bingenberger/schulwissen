@@ -64,9 +64,7 @@ def saetze_lesen(pfad: Path) -> list[dict]:
         for schluessel in ("kompetenzerwartungen", "daten", "eintraege"):
             if isinstance(rohdaten.get(schluessel), list):
                 return rohdaten[schluessel]
-        raise ValueError(
-            "In der JSON-Datei ist keine Liste von Kompetenzerwartungen zu finden."
-        )
+        raise ValueError("In der JSON-Datei ist keine Liste von Kompetenzerwartungen zu finden.")
     if not isinstance(rohdaten, list):
         raise ValueError("Die JSON-Datei muss eine Liste von Kompetenzerwartungen enthalten.")
     return rohdaten
@@ -151,9 +149,11 @@ def importieren(pfad: Path, fach: str = "deutsch", nur_pruefen: bool = False) ->
                 f"{kennung}: Progressionspartner „{partner_kennung}“ gibt es nicht."
             )
             continue
-        anzahl = Kompetenzerwartung.objects.filter(pk=kennung).exclude(
-            progressionspartner_id=partner_kennung
-        ).update(progressionspartner_id=partner_kennung)
+        anzahl = (
+            Kompetenzerwartung.objects.filter(pk=kennung)
+            .exclude(progressionspartner_id=partner_kennung)
+            .update(progressionspartner_id=partner_kennung)
+        )
         bericht.partner_gesetzt += anzahl
 
     if nur_pruefen:

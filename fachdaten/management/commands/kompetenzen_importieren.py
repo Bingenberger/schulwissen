@@ -31,9 +31,7 @@ class Command(BaseCommand):
         if not pfad.exists():
             raise CommandError(f"Die Datei {pfad} gibt es nicht.")
 
-        bericht = importieren(
-            pfad, fach=optionen["fach"], nur_pruefen=optionen["vorschau"]
-        )
+        bericht = importieren(pfad, fach=optionen["fach"], nur_pruefen=optionen["vorschau"])
 
         if bericht.fehler:
             self.stderr.write(self.style.ERROR(bericht.als_text()))

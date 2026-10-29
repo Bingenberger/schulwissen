@@ -1,0 +1,71 @@
+{% comment %}
+  Kompetenzauswahl (SPEC.md §7.4): Suchfeld mit Autovervollständigung über
+  Kennung und Klartext, Filter nach Bereich und Stufe, Anzeige immer im Klartext
+  mit der Kennung als kleinem Schild.
+
+  Die gewählten Kennungen stehen in einem versteckten Feld, das der Server als
+  Liste liest. Alpine hält die Liste der Marken, HTMX holt die Treffer.
+{% endcomment %}
+{% with feld=zeile.feld gebunden=zeile.gebunden %}
+<div class="feld" x-data="kompetenzauswahl($refs.quelle_{{ feld.schluessel }})">
+  <span class="feld-beschriftung">
+    {{ feld.label }}{% if feld.pflicht %}<span class="feld-pflicht" title="Pflichtfeld">*</span>{% endif %}
+  </span>
+  {% if feld.hilfe %}<p class="feld-hilfe">{{ feld.hilfe }}</p>{% endif %}
+
+  <textarea x-ref="quelle_{{ feld.schluessel }}" name="{{ gebunden.name }}"
+            class="editor-quelle" aria-hidden="true" tabindex="-1">{{ gebunden.value|default:'' }}</textarea>
+
+  <div class="auswahl">
+    <div class="auswahl-kopf">
+      <label class="nur-fuer-vorleser" for="suche_{{ feld.schluessel }}">
+        {{ feld.label }} suchen</label>
+      <input type="search" id="suche_{{ feld.schluessel }}"
+             name="q" placeholder="Kennung oder Wort, z. B. SC2.02 oder Märchen"
+             autocomplete="off"
+             hx-get="{% url 'fachdaten:suche' %}"
+             hx-trigger="input changed delay:200ms, search"
+             hx-target="#treffer_{{ feld.schluessel }}"
+             hx-include="closest .auswahl-kopf"
+             hx-vals="js:{gewaehlt: document.getElementsByName('{{ gebunden.name }}')[0].value}">
+
+      <label class="nur-fuer-vorleser" for="bereich_{{ feld.schluessel }}">Bereich</label>
+      <select id="bereich_{{ feld.schluessel }}" name="bereich"
+              hx-get="{% url 'fachdaten:suche' %}" hx-trigger="change"
+              hx-target="#treffer_{{ feld.schluessel }}" hx-include="closest .auswahl-kopf">
+        <option value="">Alle Bereiche</option>
+        {% for wert, name in bereiche %}<option value="{{ wert }}">{{ wert }} – {{ name }}</option>{% endfor %}
+      </select>
+
+      <label class="nur-fuer-vorleser" for="stufe_{{ feld.schluessel }}">Stufe</label>
+      <select id="stufe_{{ feld.schluessel }}" name="stufe"
+              hx-get="{% url 'fachdaten:suche' %}" hx-trigger="change"
+              hx-target="#treffer_{{ feld.schluessel }}" hx-include="closest .auswahl-kopf">
+        <option value="">Alle Stufen</option>
+        {% for wert, name in stufen %}<option value="{{ wert }}">{{ wert }} – {{ name }}</option>{% endfor %}
+      </select>
+
+      {# Nach Jahrgang passende Stufen vorschlagen – nur ein Vorschlag. #}
+      <input type="hidden" name="jahrgang" :value="jahrgang">
+    </div>
+
+    <div class="auswahl-gewaehlt" role="list" aria-label="Gewählte Kompetenzerwartungen">
+      <template x-for="marke in marken" :key="marke.kennung">
+        <span class="marke" role="listitem">
+          <span class="marke-kennung" x-text="marke.kennung"></span>
+          <span class="marke-text" x-text="marke.text" :title="marke.text"></span>
+          <button type="button" class="marke-weg" @click="entfernen(marke.kennung)"
+                  :aria-label="'Entfernen: ' + marke.kennung">×</button>
+        </span>
+      </template>
+    </div>
+
+    {% comment %}„closest" sucht nur bei den Vorfahren – die Filterleiste ist
+    aber ein Geschwisterelement. „previous" findet sie.
+    {% endcomment %}
+    <div class="auswahl-treffer" id="treffer_{{ feld.schluessel }}"
+         hx-get="{% url 'fachdaten:suche' %}" hx-trigger="load"
+         hx-include="previous .auswahl-kopf"></div>
+  </div>
+</div>
+{% endwith %}

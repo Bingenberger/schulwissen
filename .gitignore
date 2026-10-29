@@ -1,9 +1,10 @@
 .env
+/medien/
+/node_modules/
+node_modules/
 *.pyc
 __pycache__/
-.venv/
 .pytest_cache/
 .ruff_cache/
-/medien/
 /statisch/
-/node_modules/
+.venv/

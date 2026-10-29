@@ -77,9 +77,7 @@ def test_beschluss_macht_eine_fassung_gueltig(ritual, gremium, admin_nutzer):
     ritual.refresh_from_db()
     assert ritual.beschlossene_version() == fassung
     assert beschluss.beschlossene_versionen.count() == 1
-    assert beschluss.herkunft == (
-        "Gilt seit Beschluss der Fachkonferenz Deutsch vom 09.11.2026"
-    )
+    assert beschluss.herkunft == ("Gilt seit Beschluss der Fachkonferenz Deutsch vom 09.11.2026")
 
 
 def test_beschlossene_fassung_ist_unveraenderlich(ritual, gremium):

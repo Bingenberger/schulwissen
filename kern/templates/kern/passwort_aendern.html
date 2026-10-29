@@ -1,0 +1,23 @@
+{% extends "grundlage.html" %}
+{% block titel %}Passwort ändern{% endblock %}
+{% block inhalt %}
+<div class="geruest ohne-navigation">
+  <div>
+    <h1>Passwort ändern</h1>
+    <div class="karte">
+      <form method="post">
+        {% csrf_token %}
+        {% for feld in form %}
+          <div class="feld">
+            <label for="{{ feld.id_for_label }}">{{ feld.label }}</label>
+            {% if feld.help_text %}<p class="feld-hilfe">{{ feld.help_text|safe }}</p>{% endif %}
+            {{ feld }}
+            {% for fehler in feld.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="knopf knopf-wichtig" type="submit">Speichern</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "grundlage.html" %}
+{% block titel %}Start{% endblock %}
+
+{% block inhalt %}
+<div class="start">
+  <h1>Schulwissen der GGS Niederkassel</h1>
+  <p class="leise">Arbeitspläne, Konzepte und Konferenzbeschlüsse – an einer Stelle,
+    durchsuchbar und verlinkt.</p>
+
+  {# Großes Suchfeld mit Fokus beim Laden (SPEC.md §9). #}
+  <form class="start-suche" action="{% url 'kern:startseite' %}" method="get" role="search">
+    <label for="start-suchfeld">Wonach suchst du?</label>
+    <input type="search" id="start-suchfeld" name="q" value="{{ request.GET.q|default:'' }}"
+           placeholder="z. B. Märchen, Lesezeit, Leistungsbewertung oder SC2.02D"
+           autocomplete="off" autofocus>
+  </form>
+
+  {% if request.GET.q %}
+    <div class="meldung meldung-info">
+      Die Suche kommt in Phase 2. Bis dahin führt der Weg über die Gliederung des
+      Dokuments – klicke unten auf den Arbeitsplan.
+    </div>
+  {% endif %}
+
+  <h2>Dokumente</h2>
+  {% for dokument in dokumente %}
+    <div class="karte">
+      <h3 style="margin-top:0">
+        <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a>
+      </h3>
+      <p class="leise klein" style="margin:0">
+        {{ dokument.dokumenttyp.name }}
+        {% if dokument.gueltig_ab_schuljahr %} · ab Schuljahr {{ dokument.gueltig_ab_schuljahr }}{% endif %}
+        · {{ dokument.anzahl }} Einträge
+      </p>
+      {% if dokument.beschreibung %}<p style="margin:0.5rem 0 0">{{ dokument.beschreibung }}</p>{% endif %}
+    </div>
+  {% empty %}
+    <div class="karte">
+      <p>Es gibt noch kein Dokument.</p>
+      {% if ist_administration %}
+        <p class="klein leise">Der Arbeitsplan Deutsch wird mit
+          <code>manage.py arbeitsplan_importieren</code> oder in der Verwaltung angelegt.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  {% if eigene_entwuerfe %}
+    <h2>Meine offenen Entwürfe</h2>
+    <div class="karte">
+      <ul class="liste-schlicht">
+        {% for entwurf in eigene_entwuerfe %}
+          <li>
+            <a href="{% url 'kern:eintrag' entwurf.dokument.schluessel entwurf.kennung %}">
+              <span class="kennung">{{ entwurf.kennung }}</span> {{ entwurf.titel }}</a>
+            <span class="schild schild-klein schild-{{ entwurf.status }}">{{ entwurf.get_status_display }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if zuletzt_beschlossen %}
+    <h2>Zuletzt beschlossen</h2>
+    <div class="karte">
+      <ul class="liste-schlicht">
+        {% for beschlossen in zuletzt_beschlossen %}
+          <li>
+            <a href="{% url 'kern:eintrag' beschlossen.dokument.schluessel beschlossen.kennung %}">
+              <span class="kennung">{{ beschlossen.kennung }}</span> {{ beschlossen.titel }}</a>
+            <span class="leise klein">· {{ beschlossen.dokument.titel }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

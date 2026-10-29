@@ -1,0 +1,167 @@
+# Schulwissen-Plattform der GGS Niederkassel
+
+Arbeitspläne, Konzepte und Konferenzbeschlüsse als **strukturierte, verlinkte und
+durchsuchbare Einträge** statt als Word-Dateien in der Nextcloud. Das Kollegium
+schreibt direkt in der App; Entwürfe werden erst per Konferenzbeschluss gültig.
+
+Erster Anwendungsfall ist der **Arbeitsplan Deutsch** inklusive Leistungskonzept,
+der ab dem pädagogischen Ganztag am 9.11.2026 erarbeitet wird.
+
+Die vollständige fachliche Beschreibung steht in [SPEC.md](SPEC.md).
+
+## Stand
+
+**Phase 1 ist umgesetzt** (SPEC.md §13): Kern, Rollen, Arbeitsplan Deutsch,
+Kompetenz-Stammdaten, Import aus der Arbeitsmappe, Eingabemasken.
+
+Was schon geht, obwohl es erst für Phase 2 geplant war: die Abdeckungsmatrix
+und die Prüfliste. Beides fällt aus dem Datenmodell praktisch von selbst ab und
+war der beste Weg zu prüfen, ob die Kompetenzverlinkung stimmt.
+
+Noch nicht da: die Volltextsuche, Beschlüsse über die Oberfläche, die übrigen
+fünf Auswertungen, Nextcloud, Export und „Meine Planung“ (Phasen 2 bis 4).
+
+## Schnellstart
+
+Voraussetzung: Docker mit Compose-Plugin (`docker compose version`).
+
+```bash
+cp .env.example .env
+nano .env                 # SW_SECRET_KEY und POSTGRES_PASSWORD setzen
+chmod 600 .env
+
+docker compose up -d --build
+docker compose exec app python manage.py admin_anlegen deine@adresse.de
+```
+
+Danach läuft die App auf <http://127.0.0.1:8001>. Zum Ausprobieren mit
+Beispieldaten und vier Demo-Konten:
+
+```bash
+docker compose exec app python manage.py seed_demo
+```
+
+Eine Klickanleitung zum Testen steht in [DEMO.md](DEMO.md), die Anleitung für
+den Server in [DEPLOYMENT.md](DEPLOYMENT.md).
+
+## Aufbau
+
+| Verzeichnis | Inhalt |
+| --- | --- |
+| `schulwissen/` | Einstellungen, URLs, WSGI |
+| `kern/` | Nutzer, Rollen, Dokument, Eintrag, Fassungen, Beschluss, Verlinkung, Anhang, Kommentar |
+| `eintragstypen/` | Registry der Feldschemata, Formular-Fabrik, gemeinsamer Schreibweg |
+| `fachdaten/` | Kompetenzerwartungen des Lehrplans und ihr Import |
+| `deutsch/` | Dokumenttyp „Arbeitsplan Deutsch“: Gliederung, Eintragstypen, XLSX-Import, Auswertungen |
+| `vorlagen/`, `dateien/` | Seitengerüst und statische Dateien |
+| `frontend/` | Quelle des Rich-Text-Editors (für den Betrieb **nicht** nötig) |
+
+Die Modulnamen folgen der Django-Konvention (`models.py`, `views.py`), die
+fachlichen Klassen- und Feldnamen sind deutsch wie in SPEC.md – damit Import,
+Export und Dokumentation zusammenpassen.
+
+### Der stabile Kern
+
+Der Kern weiß, dass ein Dokument aus Einträgen besteht, dass jede Speicherung
+eine Fassung erzeugt und dass ein Beschluss Fassungen gültig macht. *Welche*
+Felder ein Eintrag hat, steht nicht im Kern, sondern als Datenstruktur in
+`eintragstypen/registry.py`:
+
+```python
+Feld(
+    schluessel="zeitumfang_std",
+    label="Zeitumfang",
+    typ=Feldtyp.ZAHL,
+    block=Block.ZEIT,
+    pflicht=True,
+    hilfe="Grobe Orientierung.",
+    xlsx_spalten=("Zeitumfang (Std.)",),
+)
+```
+
+Aus dieser einen Beschreibung entstehen die Eingabemaske mit Block und
+Hilfetext, die Prüfung des Wertes, die Liste „was fehlt noch“ beim Statuswechsel,
+die Spaltenzuordnung des XLSX-Imports und später die Spalten des Exports.
+
+**Ein neuer Dokumenttyp ist damit eine neue Moduldatei, kein Umbau des Kerns.**
+Vorbild ist `deutsch/eintragstypen.py`.
+
+## Rollen
+
+| Rolle | Darf |
+| --- | --- |
+| Administration | alles: Nutzer, Stammdaten, Beschlüsse, Import und Export |
+| Redaktion | Einträge bearbeiten, Status bis „abgestimmt in Gruppe“ setzen, schulische Festlegungen pflegen |
+| Lehrkraft | alles lesen; Entwürfe anlegen und die eigenen und die der Arbeitsgruppe bearbeiten; kommentieren |
+| Lesend | nur beschlossene Inhalte lesen (OGS, Vertretungskräfte) |
+
+Rollen und Arbeitsgruppen sind beides Django-Gruppen; ein `Gruppenprofil`
+unterscheidet sie. Alle Zugriffsentscheidungen stehen an einer Stelle:
+`kern/rechte.py`.
+
+**Wer darf einen importierten Eintrag bearbeiten?** Beim Import übernimmt die
+Arbeitsgruppe „Jahrgang N“ die Verantwortung für ein Vorhaben dieses Jahrgangs,
+sonst die Gruppe aus der Spalte „Verantwortlich“. Findet sich keine, bleibt das
+Feld leer – dann kommt nur die Redaktion heran und ordnet zu.
+
+## Import
+
+```bash
+# Kompetenzerwartungen (idempotent; schulische Festlegungen bleiben erhalten)
+docker compose exec app python manage.py kompetenzen_importieren \
+    kompetenzerwartungen_lp2021.json
+
+# Rituale und Vorhaben: erst ansehen, dann übernehmen
+docker compose exec app python manage.py arbeitsplan_importieren \
+    Datenmodell_Arbeitsplan_Deutsch.xlsx --vorschau
+docker compose exec app python manage.py arbeitsplan_importieren \
+    Datenmodell_Arbeitsplan_Deutsch.xlsx
+```
+
+`--vorschau` schreibt garantiert nichts und meldet unbekannte
+Kompetenz-Kennungen, ungültige Wertelisten-Werte, doppelte Kennungen und
+fehlende Pflichtfelder. Ohne `--vorschau` gilt: **entweder alles oder nichts** –
+ein Fehler bricht den ganzen Import ab.
+
+Zeilen, deren Titel auf „(Beispiel)“ endet, werden übersprungen.
+`--mit-beispielen` nimmt sie mit und entfernt den Zusatz aus dem Titel.
+
+Beide Dateien liegen im Projektverzeichnis und sind im Abbild enthalten; die
+Kommandos finden sie ohne weitere Angabe.
+
+## Entwickeln
+
+```bash
+# Tests (eigenes Abbild mit pytest und ruff)
+docker compose -f docker-compose.yml -f docker-compose.test.yml \
+    run --rm werkzeug pytest
+
+# Linter und Formatierung
+docker compose -f docker-compose.yml -f docker-compose.test.yml \
+    run --rm werkzeug sh -c "ruff check . && ruff format --check ."
+```
+
+Der Rich-Text-Editor ist gebündelt und liegt als `dateien/vendor/editor.js` im
+Repository. Für den Betrieb wird kein npm gebraucht. Nur wenn der Editor
+geändert werden soll:
+
+```bash
+cd frontend && npm install && npm run build
+```
+
+## Was die App nicht tut
+
+- **Keine Schüler- oder Elterndaten.** Die App kennt nur Konten des Kollegiums.
+  Das Feld „Klasse“ in der persönlichen Planung ist Freitext wie „3b“; Felder,
+  die zu personenbezogenen Daten einladen, gibt es bewusst nicht.
+- Sie ersetzt die Nextcloud nicht als Dateiablage.
+- Sie bietet kein gleichzeitiges Bearbeiten wie Google Docs.
+
+## Hinweise zu den Daten
+
+- Die Datei `kompetenzerwartungen_lp2021.json` enthält **61** Erwartungen mit
+  `stufePruefen = true`; SPEC.md §16 nennt 58. Es gilt die Datei. Die Prüfliste
+  in der App zeigt alle 61.
+- Die Kompetenzerwartungen sind amtliche Vorgabe (Lehrplan Deutsch Primarstufe
+  NRW, RdErl. v. 01.07.2021) und werden nur importiert, nie in der App
+  geschrieben. Die einzige Ausnahme ist `schulische_festlegung`.

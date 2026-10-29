@@ -141,9 +141,7 @@ def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = Non
             )
 
     if roh.status not in Status.values:
-        ergebnis.befunde.append(
-            Befund(FEHLER, f"Unbekannter Status „{roh.status}“.", "status")
-        )
+        ergebnis.befunde.append(Befund(FEHLER, f"Unbekannter Status „{roh.status}“.", "status"))
     elif roh.status in (Status.BESCHLOSSEN, Status.ARCHIVIERT):
         ergebnis.befunde.append(
             Befund(
@@ -172,9 +170,7 @@ def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = Non
     if ergebnis.fehlende_pflichtfelder:
         namen = ", ".join(f.label for f in ergebnis.fehlende_pflichtfelder)
         # Kein Fehler: als Entwurf speichern muss immer gehen (SPEC.md §7.4).
-        ergebnis.befunde.append(
-            Befund(WARNUNG, f"Noch offene Pflichtfelder: {namen}.", "")
-        )
+        ergebnis.befunde.append(Befund(WARNUNG, f"Noch offene Pflichtfelder: {namen}.", ""))
 
     return ergebnis
 
@@ -193,7 +189,9 @@ def _verweise_pruefen(
         )
 
     for feld in typ.verlinkungsfelder:
-        ziele = [str(z).strip() for z in (roh.verweise.get(feld.schluessel) or []) if str(z).strip()]
+        ziele = [
+            str(z).strip() for z in (roh.verweise.get(feld.schluessel) or []) if str(z).strip()
+        ]
         if not ziele:
             aufgeloest[feld.schluessel] = []
             continue
@@ -277,6 +275,10 @@ def speichern(dokument, befundsatz: Befundsatz, nutzer=None, eltern=None) -> Ein
     eintrag.daten = befundsatz.daten
     if roh.verantwortlich_text:
         eintrag.verantwortlich_text = roh.verantwortlich_text
+    if eintrag.verantwortlich_gruppe_id is None:
+        gruppe = _arbeitsgruppe_erraten(eintrag, roh, befundsatz.daten)
+        if gruppe is not None:
+            eintrag.verantwortlich_gruppe = gruppe
     if roh.fassung_stand:
         eintrag.fassung_stand = roh.fassung_stand
     if eltern is not None and eintrag.eltern_id is None:
@@ -291,12 +293,42 @@ def speichern(dokument, befundsatz: Befundsatz, nutzer=None, eltern=None) -> Ein
     return eintrag
 
 
+def _arbeitsgruppe_erraten(eintrag, roh: Rohsatz, daten: dict):
+    """Welche Arbeitsgruppe ist für diesen Eintrag verantwortlich?
+
+    Ohne Zuordnung dürfte niemand aus dem Kollegium einen importierten Eintrag
+    bearbeiten – nur die Redaktion. Darum zwei Versuche:
+
+    1. Steht in der Spalte „Verantwortlich" der Name einer Arbeitsgruppe,
+       wird diese genommen.
+    2. Hat ein Vorhaben einen Jahrgang, übernimmt die Arbeitsgruppe
+       „Jahrgang N", sofern es sie gibt. So arbeitet die Schule auch.
+
+    Findet sich nichts, bleibt das Feld leer und die Redaktion ordnet zu.
+    """
+    from django.contrib.auth.models import Group
+
+    from kern.models import Gruppenart
+
+    arbeitsgruppen = Group.objects.filter(profil__art=Gruppenart.ARBEITSGRUPPE)
+
+    name = (roh.verantwortlich_text or "").strip()
+    if name:
+        treffer = arbeitsgruppen.filter(name__iexact=name).first()
+        if treffer is not None:
+            return treffer
+
+    jahrgang = daten.get("jahrgang")
+    if jahrgang:
+        return arbeitsgruppen.filter(name__iexact=f"Jahrgang {jahrgang}").first()
+
+    return None
+
+
 def _naechste_position(dokument, eltern) -> int:
     from django.db.models import Max
 
-    hoechste = (
-        dokument.eintraege.filter(eltern=eltern).aggregate(m=Max("position")).get("m") or 0
-    )
+    hoechste = dokument.eintraege.filter(eltern=eltern).aggregate(m=Max("position")).get("m") or 0
     return hoechste + 10
 
 

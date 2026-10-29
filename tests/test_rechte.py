@@ -149,3 +149,62 @@ def test_rollen_erben_aufwaerts(admin_nutzer, redaktion_nutzer, lehrkraft):
     assert rechte.ist_lehrkraft(redaktion_nutzer) is True
     assert rechte.ist_redaktion(lehrkraft) is False
     assert rechte.ist_administration(redaktion_nutzer) is False
+
+
+# --- Zuordnung der Arbeitsgruppe beim Import -------------------------------
+
+
+def test_import_ordnet_vorhaben_der_jahrgangsgruppe_zu(dokument, kompetenzen, arbeitsgruppe):
+    """Sonst könnte niemand aus dem Kollegium einen importierten Eintrag bearbeiten."""
+    roh = Rohsatz(
+        kennung="V-3-05",
+        eintragstyp="vorhaben",
+        titel="Aus der Arbeitsmappe",
+        daten={"jahrgang": 3},
+    )
+
+    eintrag = speichern(dokument, pruefen(dokument, roh))
+
+    assert eintrag.verantwortlich_gruppe == arbeitsgruppe
+
+
+def test_import_nutzt_die_spalte_verantwortlich(db, dokument, kompetenzen):
+    from django.contrib.auth.models import Group
+
+    from kern.models import Gruppenart, Gruppenprofil
+
+    gruppe = Group.objects.create(name="Steuergruppe")
+    Gruppenprofil.objects.create(gruppe=gruppe, art=Gruppenart.ARBEITSGRUPPE)
+    roh = Rohsatz(
+        kennung="R-05",
+        eintragstyp="ritual",
+        titel="Mit Verantwortlicher",
+        verantwortlich_text="steuergruppe",
+    )
+
+    eintrag = speichern(dokument, pruefen(dokument, roh))
+
+    assert eintrag.verantwortlich_gruppe == gruppe
+    assert eintrag.verantwortlich_text == "steuergruppe"
+
+
+def test_lehrkraft_bearbeitet_importiertes_vorhaben_ihres_jahrgangs(
+    dokument, kompetenzen, arbeitsgruppe, lehrkraft
+):
+    lehrkraft.groups.add(arbeitsgruppe)
+    roh = Rohsatz(
+        kennung="V-3-06", eintragstyp="vorhaben", titel="Importiert", daten={"jahrgang": 3}
+    )
+    eintrag = speichern(dokument, pruefen(dokument, roh))
+
+    assert rechte.darf_bearbeiten(lehrkraft, eintrag) is True
+
+
+def test_ohne_passende_gruppe_bleibt_das_feld_leer(dokument, kompetenzen):
+    roh = Rohsatz(
+        kennung="V-2-01", eintragstyp="vorhaben", titel="Jahrgang 2", daten={"jahrgang": 2}
+    )
+
+    eintrag = speichern(dokument, pruefen(dokument, roh))
+
+    assert eintrag.verantwortlich_gruppe_id is None

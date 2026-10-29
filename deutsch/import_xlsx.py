@@ -70,9 +70,7 @@ class Mappenbericht:
 
     @property
     def ok(self) -> bool:
-        return not any(b.ist_fehler for b in self.allgemein) and all(
-            s.ok for s in self.saetze
-        )
+        return not any(b.ist_fehler for b in self.allgemein) and all(s.ok for s in self.saetze)
 
     @property
     def anzahl_fehler(self) -> int:

@@ -1,0 +1,81 @@
+{% extends "grundlage.html" %}
+{% block titel %}Kompetenzerwartungen{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:76rem">
+  <div>
+    <h1>Kompetenzerwartungen Deutsch</h1>
+    <p class="leise">Lehrplan Deutsch Primarstufe NRW, RdErl. vom 01.07.2021.
+      Diese Daten sind amtliche Vorgabe und werden nur ausgewählt, nicht bearbeitet.</p>
+
+    <div class="karte">
+      <form method="get" class="auswahl-kopf" style="border:0;background:transparent;padding:0">
+        <label class="nur-fuer-vorleser" for="suche">Suchen</label>
+        <input type="search" id="suche" name="q" value="{{ begriff }}"
+               placeholder="Kennung oder Wort, z. B. SC2.02 oder Märchen">
+        <label class="nur-fuer-vorleser" for="bereich">Bereich</label>
+        <select id="bereich" name="bereich">
+          <option value="">Alle Bereiche</option>
+          {% for wert, name in bereiche %}
+            <option value="{{ wert }}" {% if wert == bereich %}selected{% endif %}>{{ wert }} – {{ name }}</option>
+          {% endfor %}
+        </select>
+        <label class="nur-fuer-vorleser" for="stufe">Stufe</label>
+        <select id="stufe" name="stufe">
+          <option value="">Alle Stufen</option>
+          {% for wert, name in stufen %}
+            <option value="{{ wert }}" {% if wert == stufe %}selected{% endif %}>{{ wert }} – {{ name }}</option>
+          {% endfor %}
+        </select>
+        <button class="knopf" type="submit">Filtern</button>
+      </form>
+    </div>
+
+    <p>{{ anzahl }} Erwartung{{ anzahl|pluralize:"en" }}.</p>
+
+    <div class="karte">
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th>Kennung</th><th>Kompetenzerwartung</th><th>Bereich / Schwerpunkt</th>
+            <th>Stufe</th><th>Hinweise</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for erwartung in erwartungen %}
+            <tr>
+              <td><span class="kompetenz-kennung">{{ erwartung.pk }}</span></td>
+              <td>
+                {{ erwartung.text }}
+                {% if erwartung.klammer %}<br><span class="leise klein">{{ erwartung.klammer }}</span>{% endif %}
+                {% if erwartung.schulische_festlegung %}
+                  <br><span class="klein"><strong>Bei uns verbindlich:</strong> {{ erwartung.schulische_festlegung }}</span>
+                {% endif %}
+              </td>
+              <td class="klein">{{ erwartung.bereich_name }}<br>{{ erwartung.schwerpunkt_voll }}</td>
+              <td class="klein">{{ erwartung.stufe }} – {{ erwartung.stufe_klartext }}
+                {% if erwartung.progressionspartner_id %}
+                  <br><span class="leise">Partner: {{ erwartung.progressionspartner_id }}</span>
+                {% endif %}
+              </td>
+              <td class="klein">
+                {% if erwartung.festlegung_fehlt %}
+                  <span class="schild schild-klein schild-entwurf">Festlegung fehlt</span>
+                {% endif %}
+                {% if erwartung.stufe_pruefen %}
+                  <span class="schild schild-klein schild-idee">Stufe prüfen</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">
+              Keine Treffer. Sind die Stammdaten importiert?
+              <code>manage.py kompetenzen_importieren kompetenzerwartungen_lp2021.json</code>
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

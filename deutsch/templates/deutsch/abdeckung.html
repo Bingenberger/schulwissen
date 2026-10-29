@@ -1,0 +1,108 @@
+{% extends "grundlage.html" %}
+{% load l10n %}
+{% block titel %}Abdeckungsmatrix{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:86rem">
+  <div>
+    <p class="brotkrumen"><a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> › Abdeckungsmatrix</p>
+    <h1>Abdeckungsmatrix</h1>
+    <p class="leise">Welche Kompetenzerwartung wird gezielt aufgebaut, welche nur
+      berührt, welche gar nicht? Grundlage sind die Verlinkungen der Rituale und Vorhaben.</p>
+
+    <div class="knopf-reihe" style="margin-bottom:1.5rem">
+      <a class="knopf {% if not nur_beschlossene %}knopf-wichtig{% endif %}"
+         href="?stand=entwurf">Inklusive Entwürfe</a>
+      <a class="knopf {% if nur_beschlossene %}knopf-wichtig{% endif %}"
+         href="?stand=beschlossen">Nur beschlossene</a>
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Je Schwerpunkt</h2>
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th>Bereich</th><th>Schwerpunkt</th>
+            <th class="zahl">Erwartungen</th><th class="zahl">mit Schwerpunkt</th>
+            <th class="zahl">nur berührt</th><th class="zahl">fehlt</th>
+            <th>Anteil abgedeckt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for zeile in matrix.schwerpunkte %}
+            <tr>
+              <td>{{ zeile.bereich }}</td>
+              <td>{{ zeile.beschriftung }}</td>
+              <td class="zahl">{{ zeile.erwartungen }}</td>
+              <td class="zahl {% if zeile.mit_schwerpunkt %}abdeckung-schwerpunkt{% endif %}">{{ zeile.mit_schwerpunkt }}</td>
+              <td class="zahl {% if zeile.nur_beruehrt %}abdeckung-beruehrt{% endif %}">{{ zeile.nur_beruehrt }}</td>
+              <td class="zahl {% if zeile.fehlt %}abdeckung-fehlt{% endif %}">{{ zeile.fehlt }}</td>
+              <td>
+                {% comment %}unlocalize: CSS versteht nur den Punkt als Dezimaltrenner.
+                {% endcomment %}
+                <span class="balken" role="img"
+                      aria-label="{{ zeile.anteil_prozent }} Prozent abgedeckt">
+                  <span style="width:{{ zeile.anteil_prozent|unlocalize }}%"></span></span>
+                <span class="klein leise">{{ zeile.anteil_prozent }} %</span>
+              </td>
+            </tr>
+          {% endfor %}
+          <tr class="summe">
+            <th colspan="2">Gesamt</th>
+            <td class="zahl">{{ matrix.erwartungen }}</td>
+            <td class="zahl">{{ matrix.mit_schwerpunkt }}</td>
+            <td class="zahl">{{ matrix.nur_beruehrt }}</td>
+            <td class="zahl">{{ matrix.fehlt }}</td>
+            <td>
+              <span class="balken" role="img"
+                    aria-label="{{ matrix.anteil_prozent }} Prozent abgedeckt">
+                <span style="width:{{ matrix.anteil_prozent|unlocalize }}%"></span></span>
+              <span class="klein leise">{{ matrix.anteil_prozent }} %</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Je Erwartung</h2>
+      <p class="klein leise">Die Zählungen sind getrennt nach Ritualen und Vorhaben.</p>
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th>Kennung</th><th>Kompetenzerwartung</th><th>Stufe</th>
+            <th>Abdeckung</th><th class="zahl">Rituale</th><th class="zahl">Vorhaben</th>
+            <th>Aufgebaut in</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for zeile in matrix.zeilen %}
+            <tr>
+              <td><span class="kompetenz-kennung">{{ zeile.erwartung.pk }}</span></td>
+              <td>{{ zeile.erwartung.text }}</td>
+              <td class="klein">{{ zeile.erwartung.stufe }}</td>
+              <td class="abdeckung-{{ zeile.abdeckung }}">{{ zeile.beschriftung }}</td>
+              <td class="zahl">{{ zeile.rituale_schwerpunkt }}{% if zeile.rituale_beruehrt %} <span class="leise">({{ zeile.rituale_beruehrt }})</span>{% endif %}</td>
+              <td class="zahl">{{ zeile.vorhaben_schwerpunkt }}{% if zeile.vorhaben_beruehrt %} <span class="leise">({{ zeile.vorhaben_beruehrt }})</span>{% endif %}</td>
+              <td class="klein">
+                {% for eintrag in zeile.als_schwerpunkt %}
+                  <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                {% if zeile.nur_beruehrt %}
+                  <span class="leise">
+                    {% for eintrag in zeile.nur_beruehrt %}
+                      <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    (berührt)</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="klein leise">In den Spalten „Rituale“ und „Vorhaben“ steht die Zahl
+        der Einträge mit Schwerpunkt; in Klammern die, die nur berühren.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

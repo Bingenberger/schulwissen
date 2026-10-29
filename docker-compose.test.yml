@@ -18,6 +18,10 @@ services:
       SW_SECRET_KEY: nur-fuer-tests
       SW_DATABASE_URL: postgresql://schulwissen:${POSTGRES_PASSWORD}@db:5432/schulwissen
       SW_MEDIEN_VERZEICHNIS: /tmp/medien
+      # Das Arbeitsverzeichnis gehoert dem Host-Nutzer; die Zwischenspeicher
+      # von ruff und pytest gehen darum nach /tmp.
+      RUFF_CACHE_DIR: /tmp/ruff-cache
+      PYTEST_ADDOPTS: -p no:cacheprovider
     volumes:
       - .:/app
     depends_on:

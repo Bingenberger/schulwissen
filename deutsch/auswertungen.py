@@ -184,8 +184,14 @@ def abdeckungsmatrix(
             ),
         )
         .select_related("von_eintrag")
-        .only("ziel_id", "art", "von_eintrag__eintragstyp", "von_eintrag__kennung",
-              "von_eintrag__titel", "von_eintrag__status")
+        .only(
+            "ziel_id",
+            "art",
+            "von_eintrag__eintragstyp",
+            "von_eintrag__kennung",
+            "von_eintrag__titel",
+            "von_eintrag__status",
+        )
     )
 
     schwerpunkt_je_kennung: dict[str, list] = {}

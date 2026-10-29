@@ -38,9 +38,7 @@ def ist_administration(nutzer) -> bool:
 
 
 def ist_redaktion(nutzer) -> bool:
-    return ist_administration(nutzer) or (
-        _angemeldet(nutzer) and nutzer.hat_rolle(ROLLE_REDAKTION)
-    )
+    return ist_administration(nutzer) or (_angemeldet(nutzer) and nutzer.hat_rolle(ROLLE_REDAKTION))
 
 
 def ist_lehrkraft(nutzer) -> bool:

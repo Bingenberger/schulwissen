@@ -34,8 +34,7 @@ GLIEDERUNG: tuple[Kapitel, ...] = (
     Kapitel(
         "1",
         "Rahmenbedingungen der fachlichen Arbeit",
-        "Lage der Schule, Ausstattung, Stundentafel, Lehrwerke, Zusammensetzung der "
-        "Fachkonferenz.",
+        "Lage der Schule, Ausstattung, Stundentafel, Lehrwerke, Zusammensetzung der Fachkonferenz.",
     ),
     Kapitel(
         "2",

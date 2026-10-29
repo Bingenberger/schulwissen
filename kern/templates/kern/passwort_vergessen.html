@@ -1,0 +1,20 @@
+{% extends "grundlage.html" %}
+{% block titel %}Passwort vergessen{% endblock %}
+{% block inhalt %}
+<div class="anmeldung">
+  <h1>Passwort vergessen</h1>
+  <p class="leise">Wir schicken einen Link zum Neusetzen an die angegebene Adresse.</p>
+  <div class="karte">
+    <form method="post">
+      {% csrf_token %}
+      <div class="feld">
+        <label for="{{ form.email.id_for_label }}">E-Mail-Adresse</label>
+        {{ form.email }}
+        {% for fehler in form.email.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+      </div>
+      <button class="knopf knopf-wichtig" type="submit" style="width:100%">Link schicken</button>
+    </form>
+    <p class="klein" style="margin-bottom:0"><a href="{% url 'kern:anmelden' %}">Zurück zur Anmeldung</a></p>
+  </div>
+</div>
+{% endblock %}

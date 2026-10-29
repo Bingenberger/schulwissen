@@ -1,0 +1,34 @@
+{% comment %}
+  Trefferliste der Kompetenzsuche – wird von HTMX nachgeladen.
+  Immer Klartext, die Kennung als kleines Schild (SPEC.md §7.4).
+{% endcomment %}
+{% if zu_kurz %}
+  <p class="leise klein" style="padding:0.75rem">Bitte mindestens zwei Zeichen eingeben.</p>
+{% elif not treffer %}
+  <p class="leise klein" style="padding:0.75rem">
+    {% if begriff %}Zu „{{ begriff }}“ wurde nichts gefunden.
+    {% else %}Tippe eine Kennung oder ein Wort aus der Kompetenzerwartung.{% endif %}
+  </p>
+{% else %}
+  {% if vorgeschlagene_stufen and not begriff %}
+    <p class="leise klein" style="padding:0.6rem 0.75rem;margin:0;background:var(--flaeche)">
+      Vorschlag für diesen Jahrgang: Stufe
+      {% for stufe in vorgeschlagene_stufen %}{{ stufe }}{% if not forloop.last %} und {% endif %}{% endfor %}.
+      Du kannst jede andere Erwartung ebenso wählen.
+    </p>
+  {% endif %}
+  {% for erwartung in treffer %}
+    <button type="button" class="treffer-knopf"
+            data-kennung="{{ erwartung.pk }}"
+            data-text="{{ erwartung.text }}"
+            {% if erwartung.pk in bereits %}disabled title="Schon gewählt"{% endif %}>
+      <span class="kompetenz-kennung">{{ erwartung.pk }}</span>
+      <span class="kompetenz-text">
+        {{ erwartung.text }}
+        {% if erwartung.klammer %}<br><span class="leise klein">{{ erwartung.klammer }}</span>{% endif %}
+        <br><span class="leise klein">{{ erwartung.bereich_name }} · {{ erwartung.schwerpunkt_voll }}</span>
+      </span>
+      <span class="kompetenz-stufe">{{ erwartung.stufe }}</span>
+    </button>
+  {% endfor %}
+{% endif %}

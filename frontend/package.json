@@ -1,0 +1,20 @@
+{
+  "name": "schulwissen-editor",
+  "private": true,
+  "description": "Baut den Rich-Text-Editor zu einer Datei. Für den Betrieb nicht nötig – das Ergebnis liegt gebündelt in dateien/vendor/.",
+  "scripts": {
+    "build": "esbuild editor.js --bundle --minify --format=iife --target=es2019 --outfile=../dateien/vendor/editor.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
+  "dependencies": {
+    "@tiptap/core": "^2.11.0",
+    "@tiptap/starter-kit": "^2.11.0",
+    "@tiptap/extension-link": "^2.11.0",
+    "@tiptap/extension-table": "^2.11.0",
+    "@tiptap/extension-table-cell": "^2.11.0",
+    "@tiptap/extension-table-header": "^2.11.0",
+    "@tiptap/extension-table-row": "^2.11.0"
+  }
+}
