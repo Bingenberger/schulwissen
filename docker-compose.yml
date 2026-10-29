@@ -1,0 +1,49 @@
+# Schulwissen-Plattform – Betrieb mit Docker Compose.
+#
+#   cp .env.example .env      # SW_SECRET_KEY und POSTGRES_PASSWORD setzen
+#   docker compose up -d --build
+#   docker compose exec app python manage.py admin_anlegen deine@adresse.de
+#
+# Die App lauscht nur auf 127.0.0.1 – davor gehört nginx mit HTTPS
+# (Beispiel: deploy/nginx-schulwissen.conf). Details: DEPLOYMENT.md.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: schulwissen
+      POSTGRES_USER: schulwissen
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}
+    volumes:
+      - pgdaten:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schulwissen -d schulwissen"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    image: schulwissen:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Überschreibt .env: im Compose-Netz heißt die Datenbank „db".
+      SW_DATABASE_URL: postgresql://schulwissen:${POSTGRES_PASSWORD}@db:5432/schulwissen
+      SW_MEDIEN_VERZEICHNIS: /medien
+      # X-Forwarded-For nur von nginx glauben. „*" ist unbedenklich, solange der
+      # Port auf 127.0.0.1 liegt. Wird der Port geöffnet, MUSS hier die Adresse
+      # des Proxys stehen (SW_PROXY_IPS).
+      FORWARDED_ALLOW_IPS: "${SW_PROXY_IPS:-*}"
+    volumes:
+      - medien:/medien
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+volumes:
+  pgdaten:
+  medien:

@@ -1,0 +1,27 @@
+# Zusatz für Tests und Werkzeuge auf dem Entwicklungsrechner.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm werkzeug pytest
+#
+# „werkzeug“ nutzt dasselbe Abbild wie „app“, startet aber keinen Webserver und
+# hängt das Arbeitsverzeichnis ein, damit Änderungen ohne Neubauen wirken.
+
+services:
+  werkzeug:
+    build:
+      context: .
+      args:
+        MIT_DEV: "true"
+    image: schulwissen-werkzeug:latest
+    env_file: .env
+    environment:
+      SW_DEBUG: "true"
+      SW_SECRET_KEY: nur-fuer-tests
+      SW_DATABASE_URL: postgresql://schulwissen:${POSTGRES_PASSWORD}@db:5432/schulwissen
+      SW_MEDIEN_VERZEICHNIS: /tmp/medien
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: []
+    command: ["python", "manage.py", "check"]

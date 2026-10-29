@@ -1,0 +1,140 @@
+"""Fachliche Stammdaten: die Kompetenzerwartungen des Lehrplans.
+
+Diese Tabelle ist amtliche Vorgabe (Lehrplan Deutsch Primarstufe NRW, RdErl. v.
+01.07.2021) und wird importiert, nicht in der App geschrieben. Lehrkräfte wählen
+Erwartungen nur aus. Die einzige Ausnahme ist ``schulische_festlegung``: dort
+legt die Schule fest, welcher weitere Inhalt bei einem „u. a.“ verbindlich ist
+(SPEC.md §7.3).
+"""
+
+from __future__ import annotations
+
+from django.contrib.postgres.indexes import GinIndex
+from django.db import models
+
+from kern.models import Zeitstempel
+
+
+class Bereich(models.TextChoices):
+    SZ = "SZ", "Sprechen und Zuhören"
+    SC = "SC", "Schreiben"
+    LE = "LE", "Lesen – mit Texten und Medien umgehen"
+    SP = "SP", "Sprache und Sprachgebrauch untersuchen"
+
+
+class Stufe(models.TextChoices):
+    S = "S", "Ende der Schuleingangsphase"
+    K = "K", "Ende der Klasse 4"
+    D = "D", "durchgängig"
+
+
+#: Welche Stufen bei einem Vorhaben dieses Jahrgangs vorgeschlagen werden
+#: (SPEC.md §7.4 „Kompetenzauswahl“). Ein Vorschlag, keine Einschränkung.
+STUFEN_JE_JAHRGANG: dict[int, tuple[str, ...]] = {
+    1: (Stufe.S, Stufe.D),
+    2: (Stufe.S, Stufe.D),
+    3: (Stufe.K, Stufe.D),
+    4: (Stufe.K, Stufe.D),
+}
+
+
+class Kompetenzerwartung(Zeitstempel):
+    """Eine Kompetenzerwartung, z. B. ``SC1.02S``.
+
+    Die Kennung ist der Primärschlüssel: sie steht im Lehrplan, in der
+    Arbeitsmappe, in den Verlinkungen und in jedem Export. Damit bleibt sie
+    auch für eine spätere Verknüpfung mit dem KompetenzKompass brauchbar
+    (SPEC.md §14.7).
+    """
+
+    id = models.CharField(
+        "Kennung",
+        max_length=20,
+        primary_key=True,
+        help_text="Bereich + Schwerpunkt-Nr. + „.“ + laufende Nr. + Stufe, z. B. „SZ1.03S“.",
+    )
+    fach = models.CharField("Fach", max_length=40, default="deutsch")
+
+    bereich = models.CharField("Bereich", max_length=4, choices=Bereich)
+    bereich_name = models.CharField("Bereich (Name)", max_length=80)
+    schwerpunkt_nr = models.PositiveSmallIntegerField("Schwerpunkt-Nr.")
+    schwerpunkt = models.CharField("Schwerpunkt", max_length=120)
+    stufe = models.CharField("Stufe", max_length=1, choices=Stufe)
+
+    text = models.TextField("Kompetenzerwartung", help_text="„Die Schülerinnen und Schüler …“")
+    klammer = models.TextField(
+        "Klammerzusatz", blank=True, help_text="Verbindliche Inhalte laut Lehrplan."
+    )
+    ua_weiterer_inhalt = models.BooleanField(
+        "„u. a.“ – weiterer Inhalt verbindlich",
+        default=False,
+        help_text="Wenn ja, muss die Schule mindestens einen weiteren Inhalt festlegen.",
+    )
+    schulische_festlegung = models.TextField(
+        "schulische Festlegung",
+        blank=True,
+        help_text="Welcher weitere Inhalt ist bei uns verbindlich? "
+        "Pflicht, wenn der Lehrplan „u. a.“ sagt.",
+    )
+    progressionspartner = models.ForeignKey(
+        "self",
+        verbose_name="Progressionspartner",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="Erwartung gleicher Nummer der anderen Stufe.",
+    )
+    stufe_pruefen = models.BooleanField(
+        "Stufe prüfen",
+        default=False,
+        help_text="Die Stufenzuordnung wurde rekonstruiert und ist am Lehrplan-PDF zu prüfen.",
+    )
+
+    suchtext = models.TextField("Suchtext", blank=True, editable=False)
+
+    class Meta:
+        verbose_name = "Kompetenzerwartung"
+        verbose_name_plural = "Kompetenzerwartungen"
+        ordering = ["fach", "bereich", "schwerpunkt_nr", "id"]
+        indexes = [
+            models.Index(fields=["fach", "bereich", "schwerpunkt_nr"], name="kompetenz_schwerpunkt"),
+            models.Index(fields=["stufe"], name="kompetenz_stufe"),
+            GinIndex(
+                name="kompetenz_suchtext_trgm",
+                fields=["suchtext"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.text[:60]}"
+
+    @property
+    def schwerpunkt_voll(self) -> str:
+        """Wie im Blatt „Übersicht“: „1 Mit anderen sprechen“."""
+        return f"{self.schwerpunkt_nr} {self.schwerpunkt}"
+
+    @property
+    def stufe_klartext(self) -> str:
+        return Stufe(self.stufe).label
+
+    @property
+    def festlegung_fehlt(self) -> bool:
+        """Für die Prüfliste (Auswertung 7.5.7)."""
+        return self.ua_weiterer_inhalt and not self.schulische_festlegung.strip()
+
+    def suchtext_bauen(self) -> str:
+        teile = [
+            self.id,
+            self.text,
+            self.klammer,
+            self.schwerpunkt,
+            self.bereich_name,
+            self.schulische_festlegung,
+        ]
+        return " ".join(teil for teil in teile if teil)
+
+    def save(self, *args, **kwargs):
+        self.suchtext = self.suchtext_bauen()
+        return super().save(*args, **kwargs)
