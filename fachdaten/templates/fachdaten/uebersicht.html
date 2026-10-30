@@ -2,14 +2,14 @@
 {% block titel %}Kompetenzerwartungen{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:76rem">
+<div class="geruest ohne-navigation">
   <div>
     <h1>Kompetenzerwartungen · {{ fachname }}</h1>
     <p class="leise">Importierte Lehrplandaten für {{ fachname }}.
       Diese Daten sind amtliche Vorgabe und werden nur ausgewählt, nicht bearbeitet.</p>
 
     <div class="karte">
-      <form method="get" class="auswahl-kopf" style="border:0;background:transparent;padding:0">
+      <form method="get" class="auswahl-kopf filter-ohne-rahmen">
         <label class="nur-fuer-vorleser" for="fach">Fach</label>
         <select id="fach" name="fach">
           <option value="">Alle Fächer</option>
@@ -39,7 +39,7 @@
     <p>{{ anzahl }} Erwartung{{ anzahl|pluralize:"en" }}.</p>
 
     <div class="karte">
-      <table class="tabelle">
+      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
         <thead>
           <tr>
             <th>Kennung</th><th>Kompetenzerwartung</th><th>Bereich / Schwerpunkt</th>
@@ -74,12 +74,11 @@
             </tr>
           {% empty %}
             <tr><td colspan="5">
-              Keine Treffer. Sind die Stammdaten importiert?
-              <code>manage.py kompetenzen_importieren kompetenzerwartungen_lp2021.json</code>
+              Keine passenden Kompetenzen gefunden. Versuche ein anderes Wort oder wähle ein anderes Fach.
             </td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
   </div>
 </div>

@@ -3,15 +3,15 @@
   Immer Klartext, die Kennung als kleines Schild (SPEC.md §7.4).
 {% endcomment %}
 {% if zu_kurz %}
-  <p class="leise klein" style="padding:0.75rem">Bitte mindestens zwei Zeichen eingeben.</p>
+  <p class="leise klein innenabstand">Bitte mindestens zwei Zeichen eingeben.</p>
 {% elif not treffer %}
-  <p class="leise klein" style="padding:0.75rem">
+  <p class="leise klein innenabstand">
     {% if begriff %}Zu „{{ begriff }}“ wurde nichts gefunden.
     {% else %}Tippe eine Kennung oder ein Wort aus der Kompetenzerwartung.{% endif %}
   </p>
 {% else %}
   {% if vorgeschlagene_stufen and not begriff %}
-    <p class="leise klein" style="padding:0.6rem 0.75rem;margin:0;background:var(--flaeche)">
+    <p class="leise klein auswahl-hinweis">
       Vorschlag für diesen Jahrgang: Stufe
       {% for stufe in vorgeschlagene_stufen %}{{ stufe }}{% if not forloop.last %} und {% endif %}{% endfor %}.
       Du kannst jede andere Erwartung ebenso wählen.

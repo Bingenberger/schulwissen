@@ -2,7 +2,7 @@
 {% block titel %}Ritual-Progression{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:88rem">
+<div class="geruest ohne-navigation">
   <div>
     {% include "deutsch/_auswertungsnavigation.html" %}
 
@@ -15,7 +15,7 @@
       <div class="karte">
         <div class="ueberschrift-zeile">
           <span class="kennung">{{ progression.ritual.kennung }}</span>
-          <h2 style="margin:0">
+          <h2>
             <a href="{% url 'kern:eintrag' dokument.schluessel progression.ritual.kennung %}">{{ progression.ritual.titel }}</a>
           </h2>
           {% if progression.vollstaendig %}
@@ -41,7 +41,7 @@
               {% if spalte.gefuellt %}
                 <div class="lesefeld-inhalt">{{ spalte.auspraegung|safe }}</div>
               {% else %}
-                <p class="abdeckung-fehlt" style="padding:0.4rem 0.6rem;border-radius:6px">
+                <p class="abdeckung-fehlt datenluecke">
                   noch nicht ausgefüllt</p>
               {% endif %}
             </section>

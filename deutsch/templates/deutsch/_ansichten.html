@@ -1,0 +1,9 @@
+<nav class="auswertungen-navigation" aria-label="Auswertungen">
+  <a href="{% url 'deutsch:abdeckung' dokument.schluessel %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Abdeckung</a>
+  {% for jg in "1234" %}<a href="{% url 'deutsch:fahrplan' dokument.schluessel jg %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Fahrplan {{ jg }}</a>{% endfor %}
+  <a href="{% url 'deutsch:ritualprogression' dokument.schluessel %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Rituale</a>
+  <a href="{% url 'deutsch:zeitbudget' dokument.schluessel %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Zeitbudget</a>
+  <a href="{% url 'deutsch:leistung' dokument.schluessel %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Leistung</a>
+  <a href="{% url 'deutsch:progressionspaare' dokument.schluessel %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Progression</a>
+  <a href="{% url 'deutsch:pruefliste' dokument.schluessel %}{% if nur_beschlossene %}?stand=beschlossen{% endif %}">Prüfliste</a>
+</nav>

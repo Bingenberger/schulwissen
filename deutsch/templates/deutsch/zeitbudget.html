@@ -3,7 +3,7 @@
 {% block titel %}Zeitbudget{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:68rem">
+<div class="geruest ohne-navigation">
   <div>
     {% include "deutsch/_auswertungsnavigation.html" %}
 
@@ -12,8 +12,8 @@
       Was übrig bleibt, steht für die Unterrichtsvorhaben zur Verfügung.</p>
 
     <div class="karte">
-      <h2 style="margin-top:0">Je Jahrgang</h2>
-      <table class="tabelle">
+      <h2>Je Jahrgang</h2>
+      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
         <thead>
           <tr>
             <th>Jahrgang</th>
@@ -40,7 +40,7 @@
             </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
 
       <p class="klein leise">
         Eine Unterrichtsstunde zählt {{ stunde_minuten }} Minuten. Die
@@ -59,8 +59,8 @@
     </div>
 
     <div class="karte">
-      <h2 style="margin-top:0">Die Rituale im Einzelnen</h2>
-      <table class="tabelle">
+      <h2>Die Rituale im Einzelnen</h2>
+      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
         <thead>
           <tr><th>Kennung</th><th>Ritual</th><th class="zahl">Einheiten/Woche</th>
             <th class="zahl">Minuten je Einheit</th><th class="zahl">Minuten/Woche</th></tr>
@@ -84,7 +84,7 @@
             </tr>
           {% endif %}
         </tbody>
-      </table>
+      </table></div>
 
       {% if budget.ohne_angabe %}
         <p class="meldung meldung-warning">

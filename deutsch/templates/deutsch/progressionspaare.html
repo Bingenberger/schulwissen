@@ -2,7 +2,7 @@
 {% block titel %}Progressionspaare{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:82rem">
+<div class="geruest ohne-navigation">
   <div>
     {% include "deutsch/_auswertungsnavigation.html" %}
 
@@ -23,7 +23,7 @@
     {% endif %}
 
     <div class="karte">
-      <table class="tabelle">
+      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
         <thead>
           <tr>
             <th>Schuleingangsphase</th><th>aufgebaut in</th>
@@ -63,7 +63,7 @@
             <tr><td colspan="5">Es gibt keine Progressionspaare – sind die Stammdaten importiert?</td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
   </div>
 </div>

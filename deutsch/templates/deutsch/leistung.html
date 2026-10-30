@@ -2,7 +2,7 @@
 {% block titel %}Leistungsübersicht{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:82rem">
+<div class="geruest ohne-navigation">
   <div>
     {% include "deutsch/_auswertungsnavigation.html" %}
 
@@ -13,8 +13,8 @@
       aus dem, was in den Steckbriefen steht.</p>
 
     {% for spalte in uebersicht.jahrgaenge %}
-      <div class="karte block-leistung" style="border-left:5px solid var(--leistung-linie)">
-        <h2 style="margin-top:0">
+      <div class="karte block-leistung">
+        <h2>
           Jahrgang {{ spalte.jahrgang }}
           <span class="leise klein">
             {{ spalte.zeilen|length }} Vorhaben ·
@@ -23,7 +23,7 @@
           </span>
         </h2>
         {% if spalte.zeilen %}
-          <table class="tabelle">
+          <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
             <thead>
               <tr><th>Quartal</th><th>Vorhaben</th><th>Beurteilungsbereich</th>
                 <th>Form der Überprüfung</th><th>Kriterien</th><th>KA</th></tr>
@@ -39,20 +39,20 @@
                   <td class="klein">{{ zeile.bereich|default:"–" }}</td>
                   <td class="klein">{% if zeile.form %}<div class="lesefeld-inhalt">{{ zeile.form|safe }}</div>{% else %}–{% endif %}</td>
                   <td class="klein">{% if zeile.kriterien %}<div class="lesefeld-inhalt">{{ zeile.kriterien|safe }}</div>{% else %}<span class="abdeckung-fehlt">fehlt</span>{% endif %}</td>
-                  <td>{% if zeile.klassenarbeit %}<span class="schild schild-klein schild-abgestimmt">ja</span>{% else %}–{% endif %}</td>
+                  <td>{% if zeile.klassenarbeit %}<span class="schild schild-klein schild-abgestimmt">Klassenarbeit</span>{% else %}–{% endif %}</td>
                 </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table></div>
         {% else %}
-          <p class="leise" style="margin:0">Für diesen Jahrgang ist noch nichts erfasst.</p>
+          <p class="leise">Für diesen Jahrgang ist noch nichts erfasst.</p>
         {% endif %}
       </div>
     {% endfor %}
 
     <div class="karte">
-      <h2 style="margin-top:0">Rituale: laufende Beobachtung</h2>
-      <table class="tabelle">
+      <h2>Rituale: laufende Beobachtung</h2>
+      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
         <thead><tr><th>Kennung</th><th>Ritual</th><th>Beurteilungsbereich</th><th>Feststellung und Kriterien</th></tr></thead>
         <tbody>
           {% for zeile in uebersicht.rituale %}
@@ -66,7 +66,7 @@
             <tr><td colspan="4">Es gibt noch keine Rituale.</td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
 
     {% if uebersicht.ohne_angabe %}
