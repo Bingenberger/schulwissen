@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from fachdaten.models import Fach
 from kern.models import Dokument, Status
 from suche import dienste
 
@@ -32,6 +33,7 @@ def suchen(request):
             "zu_kurz": 0 < len(begriff) < dienste.MINDESTLAENGE,
             "dokumente": Dokument.objects.order_by("titel"),
             "statuswerte": Status.choices,
+            "faecher": Fach.objects.all(),
             "filter": filter_werte,
             "hat_filter": any(filter_werte.values()),
         },

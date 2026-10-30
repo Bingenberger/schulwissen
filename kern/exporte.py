@@ -203,7 +203,7 @@ def beschlossener_stand(dokument):
     return ergebnis
 
 
-def abdeckung_des_stands(zeilen):
+def abdeckung_des_stands(zeilen, fach="deutsch"):
     from deutsch.auswertungen import Erwartungszeile
     from fachdaten.models import Kompetenzerwartung
 
@@ -227,7 +227,7 @@ def abdeckung_des_stands(zeilen):
             als_schwerpunkt=schwerpunkt.get(k.pk, []),
             nur_beruehrt=beruehrt.get(k.pk, []) if k.pk not in schwerpunkt else [],
         )
-        for k in Kompetenzerwartung.objects.filter(fach="deutsch").order_by(
+        for k in Kompetenzerwartung.objects.filter(fach=fach).order_by(
             "bereich", "schwerpunkt_nr", "id"
         )
     ]
@@ -251,8 +251,8 @@ def dokument_pdf(dokument):
             "titel": dokument.titel,
             "dokument": dokument,
             "zeilen": zeilen,
-            "matrix": abdeckung_des_stands(zeilen)
-            if dokument.dokumenttyp.schluessel == "arbeitsplan_deutsch"
+            "matrix": abdeckung_des_stands(zeilen, dokument.fach or "deutsch")
+            if dokument.ist_arbeitsplan
             else [],
         }
     )

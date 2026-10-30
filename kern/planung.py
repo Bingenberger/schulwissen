@@ -18,7 +18,9 @@ from kern.models import Dokument, PersoenlicherFortschritt, Status
 class Planwahl(forms.Form):
     dokument = forms.ModelChoiceField(
         label="Arbeitsplan",
-        queryset=Dokument.objects.filter(dokumenttyp__schluessel="arbeitsplan_deutsch"),
+        queryset=Dokument.objects.filter(
+            dokumenttyp__schluessel__in=["arbeitsplan_deutsch", "arbeitsplan"]
+        ),
         to_field_name="schluessel",
     )
     schuljahr = forms.RegexField(

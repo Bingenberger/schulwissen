@@ -15,7 +15,9 @@ def abdeckung(request, schluessel: str):
     """Auswertung 7.5.1: Abdeckungsmatrix."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
     nur_beschlossene = request.GET.get("stand") == "beschlossen"
-    matrix = abdeckungsmatrix(dokument, nur_beschlossene=nur_beschlossene)
+    matrix = abdeckungsmatrix(
+        dokument, nur_beschlossene=nur_beschlossene, fach=dokument.fach or "deutsch"
+    )
 
     return render(
         request,
@@ -120,7 +122,9 @@ def progressionspaare(request, schluessel: str):
     """Auswertung 7.5.6: S- und K-Erwartung nebeneinander."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
     nur_beschlossene = request.GET.get("stand") == "beschlossen"
-    paare = auswertungen.progressionspaare(dokument, nur_beschlossene)
+    paare = auswertungen.progressionspaare(
+        dokument, nur_beschlossene, fach=dokument.fach or "deutsch"
+    )
 
     return render(
         request,

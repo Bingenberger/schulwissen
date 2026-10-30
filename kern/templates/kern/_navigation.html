@@ -22,7 +22,7 @@
   {% endfor %}
 
   <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
-  {% if dokument.dokumenttyp.schluessel == "arbeitsplan_deutsch" %}
+  {% if dokument.ist_arbeitsplan %}
   <h2>Auswertungen</h2>
   <a class="baum-zeile" href="{% url 'deutsch:abdeckung' dokument.schluessel %}">Abdeckungsmatrix</a>
   <a class="baum-zeile" href="{% url 'deutsch:fahrplan' dokument.schluessel 1 %}">Fahrplan je Jahrgang</a>

@@ -26,7 +26,11 @@ Schuljahr, PDF des beschlossenen Dokumentstands und ausgewählter
 Beschlussvorlagen, JSON-/XLSX-Export, Dokumenttypen „Konzept“ und
 „Konferenzprotokoll“ sowie generischer JSON-Import mit Vorschau.
 
-Noch nicht da (Phase 4): Nextcloud-Indexierung, OIDC und weitere Fächer.
+Phase 4: ETag-basierte Nextcloud-Indexierung, konfigurierbare OIDC-Anmeldung
+über Nextcloud und Fachverwaltung für alle neun benötigten Fächer. Die
+Live-Verbindungen benötigen die Nextcloud-Konfiguration; weitere amtliche
+Kompetenzdaten müssen fachweise importiert werden.
+Einrichtung und Abnahme stehen in [PHASE4.md](PHASE4.md).
 Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPORT.md).
 
 ## Schnellstart

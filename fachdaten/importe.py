@@ -14,7 +14,8 @@ from pathlib import Path
 
 from django.db import transaction
 
-from fachdaten.models import Bereich, Kompetenzerwartung, Stufe
+from fachdaten.faecher import bereiche_fuer
+from fachdaten.models import Fach, Kompetenzerwartung, Stufe
 
 #: Schlüssel der JSON-Datei (SPEC.md §11) auf Modellfelder.
 JSON_FELDER = {
@@ -70,26 +71,46 @@ def saetze_lesen(pfad: Path) -> list[dict]:
     return rohdaten
 
 
-def _satz_pruefen(satz: dict, nummer: int) -> list[str]:
+def _satz_pruefen(satz: dict, nummer: int, bereiche) -> list[str]:
     fehler = []
+    if not isinstance(satz, dict):
+        return [f"Satz {nummer}: ein JSON-Objekt wird erwartet."]
     kennung = satz.get("id")
-    if not kennung:
+    if not isinstance(kennung, str) or not kennung.strip() or len(kennung) > 20:
         fehler.append(f"Satz {nummer}: ohne „id“.")
         return fehler
-    if satz.get("bereich") not in Bereich.values:
+    if not isinstance(satz.get("bereich"), str) or satz.get("bereich") not in bereiche:
         fehler.append(
             f"{kennung}: unbekannter Bereich „{satz.get('bereich')}“ "
-            f"(erlaubt: {', '.join(Bereich.values)})."
+            f"(erlaubt: {', '.join(bereiche)})."
         )
     if satz.get("stufe") not in Stufe.values:
         fehler.append(
             f"{kennung}: unbekannte Stufe „{satz.get('stufe')}“ "
             f"(erlaubt: {', '.join(Stufe.values)})."
         )
-    if not satz.get("text"):
-        fehler.append(f"{kennung}: ohne Kompetenzerwartung („text“).")
+    for feld, grenze in (("bereichName", 80), ("schwerpunkt", 120), ("text", None)):
+        wert = satz.get(feld)
+        if not isinstance(wert, str) or not wert.strip() or (grenze and len(wert) > grenze):
+            fehler.append(f"{kennung}: „{feld}“ fehlt oder ist ungültig.")
+    for feld in ("uaWeitererInhalt", "stufePruefen"):
+        if feld in satz and not isinstance(satz[feld], bool):
+            fehler.append(f"{kennung}: „{feld}“ muss true oder false sein.")
+    if satz.get("progressionspartner") is not None and not isinstance(
+        satz["progressionspartner"], str
+    ):
+        fehler.append(f"{kennung}: ungültige Progressionspartner-Kennung.")
+    if satz.get("klammer") is not None and not isinstance(satz["klammer"], str):
+        fehler.append(f"{kennung}: ungültiger Klammerzusatz.")
     try:
-        int(satz.get("schwerpunktNr"))
+        nummer_wert = satz.get("schwerpunktNr")
+        if (
+            isinstance(nummer_wert, bool)
+            or str(int(nummer_wert)) != str(nummer_wert)
+            or not 0 <= int(nummer_wert) <= 32767
+        ):
+            raise ValueError
+
     except (TypeError, ValueError):
         fehler.append(f"{kennung}: „schwerpunktNr“ ist keine Zahl.")
     return fehler
@@ -98,10 +119,28 @@ def _satz_pruefen(satz: dict, nummer: int) -> list[str]:
 @transaction.atomic
 def importieren(pfad: Path, fach: str = "deutsch", nur_pruefen: bool = False) -> Importbericht:
     bericht = Importbericht()
-    saetze = saetze_lesen(Path(pfad))
+    try:
+        saetze = saetze_lesen(Path(pfad))
+    except (ValueError, OSError) as fehler:
+        bericht.fehler.append(f"Datei nicht lesbar: {fehler}")
+        return bericht
+    bereiche = dict(bereiche_fuer(fach))
+    if not Fach.objects.filter(schluessel=fach).exists() and fach != "deutsch":
+        bericht.fehler.append("Das Fach muss zuerst in der Verwaltung angelegt werden.")
+        return bericht
+    gesehen = set()
+    for satz in saetze:
+        if not isinstance(satz, dict) or not isinstance(satz.get("id"), str):
+            continue
+        kennung = satz["id"]
+        if kennung in gesehen:
+            bericht.fehler.append(f"Doppelte Kompetenzkennung: {kennung}.")
+        gesehen.add(kennung)
+        if Kompetenzerwartung.objects.filter(pk=kennung).exclude(fach=fach).exists():
+            bericht.fehler.append(f"{kennung}: Diese Kennung gehört bereits zu einem anderen Fach.")
 
     for nummer, satz in enumerate(saetze, start=1):
-        bericht.fehler.extend(_satz_pruefen(satz, nummer))
+        bericht.fehler.extend(_satz_pruefen(satz, nummer, bereiche))
     if bericht.fehler:
         # Lehrplandaten sind amtlich: lieber gar nicht importieren als halb.
         transaction.set_rollback(True)
@@ -142,7 +181,7 @@ def importieren(pfad: Path, fach: str = "deutsch", nur_pruefen: bool = False) ->
 
     # Zweiter Durchgang: jetzt sind alle Kennungen vorhanden und die
     # Progressionspaare lassen sich verknüpfen.
-    bekannt = set(Kompetenzerwartung.objects.values_list("pk", flat=True))
+    bekannt = set(Kompetenzerwartung.objects.filter(fach=fach).values_list("pk", flat=True))
     for kennung, partner_kennung in partner.items():
         if partner_kennung not in bekannt:
             bericht.fehler.append(
@@ -156,6 +195,6 @@ def importieren(pfad: Path, fach: str = "deutsch", nur_pruefen: bool = False) ->
         )
         bericht.partner_gesetzt += anzahl
 
-    if nur_pruefen:
+    if bericht.fehler or nur_pruefen:
         transaction.set_rollback(True)
     return bericht

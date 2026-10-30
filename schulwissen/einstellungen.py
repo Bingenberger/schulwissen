@@ -204,3 +204,13 @@ LOGGING = {
     "root": {"handlers": ["konsole"], "level": "INFO"},
     "loggers": {"django.request": {"level": "WARNING"}},
 }
+
+# Nextcloud als OpenID-Connect-Anbieter (optional).
+OIDC_ISSUER = umgebung.text("SW_OIDC_ISSUER", "")
+OIDC_DISCOVERY_URL = umgebung.text(
+    "SW_OIDC_DISCOVERY_URL",
+    OIDC_ISSUER.rstrip("/") + "/.well-known/openid-configuration" if OIDC_ISSUER else "",
+)
+OIDC_CLIENT_ID = umgebung.text("SW_OIDC_CLIENT_ID", "")
+OIDC_CLIENT_SECRET = umgebung.text("SW_OIDC_CLIENT_SECRET", "")
+NEXTCLOUD_MAX_BYTES = int(umgebung.text("SW_NEXTCLOUD_MAX_MB", "25")) * 1024 * 1024

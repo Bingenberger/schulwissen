@@ -13,6 +13,7 @@
       </div>
     {% endif %}
 
+    {% if oidc_eingerichtet %}<p><a class="knopf knopf-wichtig" href="{% url 'kern:oidc_anmelden' %}">Mit Nextcloud anmelden</a></p>{% endif %}
     <form method="post">
       {% csrf_token %}
       <div class="feld">

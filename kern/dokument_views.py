@@ -7,22 +7,43 @@ from django.db import transaction
 from django.shortcuts import redirect, render
 
 from deutsch import gliederung
+from fachdaten.models import Fach
 from kern import rechte
 from kern.dokumenttypen import typen_sichern
 from kern.models import Dokument, Dokumenttyp
 
 
 class DokumentFormular(forms.ModelForm):
+    fach = forms.ChoiceField(label="Fach", required=False)
+
     class Meta:
         model = Dokument
-        fields = ["titel", "schluessel", "dokumenttyp", "beschreibung", "gueltig_ab_schuljahr"]
+        fields = [
+            "titel",
+            "schluessel",
+            "dokumenttyp",
+            "fach",
+            "beschreibung",
+            "gueltig_ab_schuljahr",
+        ]
         help_texts = {"schluessel": "Dauerhafter Kurzname, z. B. medienkonzept."}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["fach"].choices = [
+            ("", "Ohne Fach"),
+            *Fach.objects.values_list("schluessel", "name"),
+        ]
         self.fields["dokumenttyp"].queryset = Dokumenttyp.objects.filter(
-            schluessel__in=["arbeitsplan_deutsch", "konzept", "protokoll"]
+            schluessel__in=["arbeitsplan_deutsch", "arbeitsplan", "konzept", "protokoll"]
         )
+
+    def clean(self):
+        daten = super().clean()
+        typ = daten.get("dokumenttyp")
+        if typ and typ.schluessel == "arbeitsplan" and not daten.get("fach"):
+            self.add_error("fach", "Bitte ein Fach für den Arbeitsplan wählen.")
+        return daten
 
 
 @login_required

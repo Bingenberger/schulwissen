@@ -14,7 +14,8 @@ from django.views.decorators.http import require_POST
 from eintragstypen import dienste
 from eintragstypen.formulare import AnhangFormular, EintragFormular, KommentarFormular
 from eintragstypen.registry import registry
-from fachdaten.models import Bereich, Stufe
+from fachdaten.faecher import bereiche_fuer
+from fachdaten.models import Stufe
 from kern import rechte
 from kern.models import (
     Anhang,
@@ -337,7 +338,7 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
             "formular": formular,
             "baum": _gliederungsbaum(eintrag.dokument, request.user),
             # Filter der Kompetenzauswahl.
-            "bereiche": Bereich.choices,
+            "bereiche": bereiche_fuer(eintrag.dokument.fach or "deutsch"),
             "stufen": Stufe.choices,
         },
     )
@@ -378,7 +379,7 @@ def eintrag_neu(request, schluessel: str, eintragstyp: str):
             "typ": typ,
             "formular": formular,
             "baum": _gliederungsbaum(dokument, request.user),
-            "bereiche": Bereich.choices,
+            "bereiche": bereiche_fuer(dokument.fach or "deutsch"),
             "stufen": Stufe.choices,
         },
     )

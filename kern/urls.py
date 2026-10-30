@@ -3,12 +3,15 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from kern import beschluss_views, dokument_views, export_views, import_views, planung, views
+from kern import beschluss_views, dokument_views, export_views, import_views, oidc, planung, views
 
 app_name = "kern"
 
 urlpatterns = [
     path("", views.startseite, name="startseite"),
+    path("anmelden/nextcloud", oidc.anmelden, name="oidc_anmelden"),
+    path("anmelden/nextcloud/callback", oidc.callback, name="oidc_callback"),
+    path("konto/nextcloud-verbinden", oidc.verbinden, name="oidc_verbinden"),
     path("meine-planung", planung.planung, name="planung"),
     path("dokument-neu", dokument_views.dokument_neu, name="dokument_neu"),
     path("d/<slug:schluessel>/export/<str:format>", export_views.export, name="export"),

@@ -45,7 +45,9 @@
           </div>
           <div>
             <label for="f-fach">Fach</label>
-            <input type="text" id="f-fach" name="fach" value="{{ filter.fach }}" placeholder="z. B. deutsch">
+            <select id="f-fach" name="fach"><option value="">Alle Fächer</option>
+              {% for f in faecher %}<option value="{{ f.schluessel }}" {% if f.schluessel == filter.fach %}selected{% endif %}>{{ f.name }}</option>{% endfor %}
+            </select>
           </div>
           <div style="align-self:end">
             <button class="knopf" type="submit">Anwenden</button>

@@ -5,7 +5,8 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from fachdaten.models import STUFEN_JE_JAHRGANG, Bereich, Stufe
+from fachdaten.faecher import bereiche_fuer
+from fachdaten.models import STUFEN_JE_JAHRGANG, Fach, Stufe
 from fachdaten.suche import kompetenzen_finden
 
 #: Ab so vielen Zeichen wird gesucht (SPEC.md §9).
@@ -66,16 +67,21 @@ def kompetenz_uebersicht(request):
     stufe = (request.GET.get("stufe") or "").strip()
     begriff = (request.GET.get("q") or "").strip()
 
-    erwartungen = kompetenzen_finden(begriff, bereich=bereich, stufe=stufe).select_related(
-        "progressionspartner"
-    )
+    fach = request.GET.get("fach", "deutsch")
+    erwartungen = kompetenzen_finden(
+        begriff, bereich=bereich, stufe=stufe, fach=fach
+    ).select_related("progressionspartner")
 
     return render(
         request,
         "fachdaten/uebersicht.html",
         {
             "erwartungen": erwartungen,
-            "bereiche": Bereich.choices,
+            "bereiche": bereiche_fuer(fach),
+            "faecher": Fach.objects.all(),
+            "fach": fach,
+            "fachname": Fach.objects.filter(schluessel=fach).values_list("name", flat=True).first()
+            or "alle Fächer",
             "stufen": Stufe.choices,
             "bereich": bereich,
             "stufe": stufe,

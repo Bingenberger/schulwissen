@@ -26,6 +26,11 @@
     <div class="vorschlaege" id="start-vorschlaege" x-show="offen" x-cloak></div>
   </form>
 
+  {% if oidc_eingerichtet %}
+  <form method="post" action="{% url 'kern:oidc_verbinden' %}">
+    {% csrf_token %}<button class="knopf" type="submit">Mein Konto mit Nextcloud verbinden</button>
+  </form>
+  {% endif %}
   <h2>Dokumente</h2>
   {% if ist_administration %}<p><a class="knopf" href="{% url 'kern:dokument_neu' %}">Dokument anlegen</a></p>{% endif %}
   {% for dokument in dokumente %}

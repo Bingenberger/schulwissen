@@ -325,7 +325,18 @@ Die Zahl ist vor und nach der Vorschau gleich.
 7. Eine JSON-Datei nach [JSON-IMPORT.md](JSON-IMPORT.md) mit unbekannter Kompetenz
    oder zyklischer Gliederung hochladen: der gesamte Import wird abgewiesen.
 
-## 12. Tests
+## 12. Phase 4 ausprobieren
+
+1. Als Administration **Dokument anlegen** öffnen: „Arbeitsplan“ wählen und
+   die Fachauswahl mit allen neun Fächern prüfen.
+2. **Kompetenzen** öffnen und das Fach umschalten. Für Deutsch stehen die
+   vorhandenen Erwartungen zur Verfügung; andere Fächer werden erst nach
+   ihrem Lehrplanimport gefüllt.
+3. Die echte Nextcloud-Anmeldung und Indexierung benötigen die Einrichtung
+   aus [PHASE4.md](PHASE4.md). Ohne Konfiguration bleibt die lokale Anmeldung
+   verfügbar und es wird keine Verbindung zur Nextcloud aufgebaut.
+
+## 13. Tests
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml \

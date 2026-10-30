@@ -24,7 +24,7 @@ def export(request, schluessel, format):
         return download(exporte.dokument_json(dokument), "application/json", f"{schluessel}.json")
     if format == "pdf":
         return download(exporte.dokument_pdf(dokument), "application/pdf", f"{schluessel}.pdf")
-    if format == "xlsx" and dokument.dokumenttyp.schluessel == "arbeitsplan_deutsch":
+    if format == "xlsx" and dokument.ist_arbeitsplan:
         return download(
             exporte.dokument_xlsx(dokument),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

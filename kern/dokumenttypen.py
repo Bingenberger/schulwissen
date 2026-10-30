@@ -29,6 +29,7 @@ registry.registrieren(
 )
 
 DOKUMENTTYPEN = {
+    "arbeitsplan": ("Arbeitsplan", ["grundlagenkapitel", "ritual", "vorhaben"]),
     "konzept": ("Konzept", ["grundlagenkapitel"]),
     "protokoll": ("Konferenzprotokoll", ["protokollkopf", "tagesordnungspunkt"]),
 }

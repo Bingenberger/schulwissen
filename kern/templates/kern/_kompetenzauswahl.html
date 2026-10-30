@@ -18,6 +18,7 @@
 
   <div class="auswahl">
     <div class="auswahl-kopf">
+      <input type="hidden" name="fach" value="{{ dokument.fach|default:'deutsch' }}">
       <label class="nur-fuer-vorleser" for="suche_{{ feld.schluessel }}">
         {{ feld.label }} suchen</label>
       <input type="search" id="suche_{{ feld.schluessel }}"

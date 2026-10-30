@@ -4,12 +4,17 @@
 {% block inhalt %}
 <div class="geruest ohne-navigation" style="max-width:76rem">
   <div>
-    <h1>Kompetenzerwartungen Deutsch</h1>
-    <p class="leise">Lehrplan Deutsch Primarstufe NRW, RdErl. vom 01.07.2021.
+    <h1>Kompetenzerwartungen · {{ fachname }}</h1>
+    <p class="leise">Importierte Lehrplandaten für {{ fachname }}.
       Diese Daten sind amtliche Vorgabe und werden nur ausgewählt, nicht bearbeitet.</p>
 
     <div class="karte">
       <form method="get" class="auswahl-kopf" style="border:0;background:transparent;padding:0">
+        <label class="nur-fuer-vorleser" for="fach">Fach</label>
+        <select id="fach" name="fach">
+          <option value="">Alle Fächer</option>
+          {% for f in faecher %}<option value="{{ f.schluessel }}" {% if fach == f.schluessel %}selected{% endif %}>{{ f.name }}</option>{% endfor %}
+        </select>
         <label class="nur-fuer-vorleser" for="suche">Suchen</label>
         <input type="search" id="suche" name="q" value="{{ begriff }}"
                placeholder="Kennung oder Wort, z. B. SC2.02 oder Märchen">

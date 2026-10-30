@@ -7,7 +7,10 @@ from kern import rechte
 
 def oberflaeche(request) -> dict:
     nutzer = getattr(request, "user", None)
+    from kern.oidc import ist_eingerichtet
+
     return {
+        "oidc_eingerichtet": ist_eingerichtet(),
         "ist_administration": rechte.ist_administration(nutzer),
         "ist_redaktion": rechte.ist_redaktion(nutzer),
         "ist_lehrkraft": rechte.ist_lehrkraft(nutzer),

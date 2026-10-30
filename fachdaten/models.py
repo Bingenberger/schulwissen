@@ -15,6 +15,42 @@ from django.db import models
 from kern.models import Zeitstempel
 
 
+class Fach(Zeitstempel):
+    schluessel = models.SlugField("Schlüssel", max_length=40, unique=True)
+    name = models.CharField("Name", max_length=100, unique=True)
+    bereiche = models.JSONField(
+        "Kompetenzbereiche",
+        default=dict,
+        blank=True,
+        help_text='Objekt aus Kürzel und Name, z. B. {"ZA": "Zahlen"}.',
+    )
+    quelle = models.URLField("Lehrplanquelle", max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = "Fach"
+        verbose_name_plural = "Fächer"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        import re
+
+        from django.core.exceptions import ValidationError
+
+        if not isinstance(self.bereiche, dict) or any(
+            not re.fullmatch(r"[A-Z][A-Z0-9_]{0,19}", key)
+            or not isinstance(wert, str)
+            or not wert.strip()
+            or len(wert) > 80
+            for key, wert in self.bereiche.items()
+        ):
+            raise ValidationError(
+                {"bereiche": "Bitte Bereichskürzel (bis 20 Zeichen) und Namen angeben."}
+            )
+
+
 class Bereich(models.TextChoices):
     SZ = "SZ", "Sprechen und Zuhören"
     SC = "SC", "Schreiben"
@@ -55,7 +91,7 @@ class Kompetenzerwartung(Zeitstempel):
     )
     fach = models.CharField("Fach", max_length=40, default="deutsch")
 
-    bereich = models.CharField("Bereich", max_length=4, choices=Bereich)
+    bereich = models.CharField("Bereich", max_length=20)
     bereich_name = models.CharField("Bereich (Name)", max_length=80)
     schwerpunkt_nr = models.PositiveSmallIntegerField("Schwerpunkt-Nr.")
     schwerpunkt = models.CharField("Schwerpunkt", max_length=120)

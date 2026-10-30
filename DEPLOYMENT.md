@@ -361,3 +361,15 @@ Der generische Import ist über die Dokumentseite oder
 `manage.py eintraege_importieren DATEI --vorschau` erreichbar.
 Schema, Rundlauf und Archivgrenzen beschreibt [JSON-IMPORT.md](JSON-IMPORT.md).
 PostgreSQL und Medienverzeichnis bleiben die Grundlage vollständiger Sicherungen.
+
+
+## 13. Nextcloud-Anmeldung, Dateiindex und weitere Fächer
+
+Die Anleitung in [PHASE4.md](PHASE4.md) beschreibt den OIDC-Client der
+Nextcloud, die sichere Zuordnung zu bestehenden Schulkonten, den zusätzlichen
+Indexierungstimer und den Kompetenzimport je Fach. OIDC und WebDAV werden
+unabhängig konfiguriert. Ohne Zugangsdaten bleiben beide Verbindungen deaktiviert.
+
+Nach dem Neubau werden die Fachverwaltung, alle neun Fächer, der allgemeine
+Dokumenttyp „Arbeitsplan“ und die Metadaten zur Nextcloud-Indexierung migriert.
+Bestehende Deutschkennungen und Schulkonten bleiben erhalten.

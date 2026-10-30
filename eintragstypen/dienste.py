@@ -222,7 +222,9 @@ def _verweise_pruefen(
 
         if feld.zieltyp == Zieltyp.KOMPETENZ:
             bekannt = set(
-                Kompetenzerwartung.objects.filter(pk__in=gesehen).values_list("pk", flat=True)
+                Kompetenzerwartung.objects.filter(
+                    pk__in=gesehen, **({"fach": dokument.fach} if dokument.fach else {})
+                ).values_list("pk", flat=True)
             )
             for ziel in gesehen:
                 if ziel not in bekannt:

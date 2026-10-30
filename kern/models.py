@@ -233,6 +233,10 @@ class Dokument(Zeitstempel):
     def __str__(self) -> str:
         return self.titel
 
+    @property
+    def ist_arbeitsplan(self):
+        return self.dokumenttyp.schluessel in ("arbeitsplan_deutsch", "arbeitsplan")
+
     def naechste_kennung(self, muster: str, **teile) -> str:
         """Nächste freie Kennung für ein Muster wie ``R-{nr:02d}``.
 
@@ -696,6 +700,9 @@ class Anhang(Zeitstempel):
     )
     datei = models.FileField("Datei", upload_to=anhang_pfad, blank=True)
     nextcloud_pfad = models.CharField("Nextcloud-Pfad", max_length=500, blank=True)
+    nextcloud_etag = models.CharField("Nextcloud-ETag", max_length=500, blank=True)
+    nextcloud_geprueft_am = models.DateTimeField("Nextcloud geprüft am", null=True, blank=True)
+    index_fehler = models.CharField("Indexierung: letzter Fehler", max_length=500, blank=True)
     nextcloud_link = models.URLField("Nextcloud-Link", max_length=500, blank=True)
 
     dateiname = models.CharField("Dateiname", max_length=300)
@@ -803,3 +810,24 @@ class PersoenlicherFortschritt(Zeitstempel):
 
     def __str__(self) -> str:
         return f"{self.nutzer} – {self.eintrag.kennung} ({self.schuljahr})"
+
+
+class OIDCIdentitaet(Zeitstempel):
+    """Feste Zuordnung einer externen Identität zu einem bestehenden Schulkonto."""
+
+    nutzer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="oidc_identitaeten"
+    )
+    issuer = models.URLField("Anbieter (Issuer)", max_length=500)
+    subject = models.CharField("Externe Kennung (sub)", max_length=255)
+
+    class Meta:
+        verbose_name = "Nextcloud-Anmeldung"
+        verbose_name_plural = "Nextcloud-Anmeldungen"
+        constraints = [
+            models.UniqueConstraint(fields=["issuer", "subject"], name="oidc_identitaet_eindeutig"),
+            models.UniqueConstraint(fields=["nutzer", "issuer"], name="oidc_konto_je_anbieter"),
+        ]
+
+    def __str__(self):
+        return f"{self.nutzer} · {self.issuer}"

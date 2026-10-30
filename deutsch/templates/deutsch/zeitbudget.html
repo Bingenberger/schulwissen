@@ -8,7 +8,7 @@
     {% include "deutsch/_auswertungsnavigation.html" %}
 
     <h1>Zeitbudget der Rituale</h1>
-    <p class="leise">Wie viel der wöchentlichen Deutschzeit binden die Rituale?
+    <p class="leise">Wie viel der wöchentlichen Unterrichtszeit binden die Rituale?
       Was übrig bleibt, steht für die Unterrichtsvorhaben zur Verfügung.</p>
 
     <div class="karte">
@@ -17,7 +17,7 @@
         <thead>
           <tr>
             <th>Jahrgang</th>
-            <th class="zahl">Deutschstunden/Woche</th>
+            <th class="zahl">Unterrichtsstunden/Woche</th>
             <th class="zahl">Minuten/Woche</th>
             <th class="zahl">durch Rituale</th>
             <th class="zahl">frei</th>
@@ -44,7 +44,7 @@
 
       <p class="klein leise">
         Eine Unterrichtsstunde zählt {{ stunde_minuten }} Minuten. Die
-        Deutschstunden je Jahrgang stehen in den Einstellungen des Dokuments und
+        Unterrichtsstunden je Jahrgang stehen in den Einstellungen des Dokuments und
         lassen sich in der Verwaltung ändern.
       </p>
       {% for zeile in budget.zeilen %}

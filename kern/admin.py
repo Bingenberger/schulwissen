@@ -19,6 +19,7 @@ from kern.models import (
     Gruppenprofil,
     Kommentar,
     Nutzer,
+    OIDCIdentitaet,
     Status,
     Verlinkung,
 )
@@ -219,3 +220,10 @@ class VerlinkungAdmin(admin.ModelAdmin):
     list_display = ["von_eintrag", "art", "ziel_typ", "ziel_id", "beschriftung"]
     list_filter = ["art", "ziel_typ"]
     search_fields = ["ziel_id", "beschriftung"]
+
+
+@admin.register(OIDCIdentitaet)
+class OIDCIdentitaetAdmin(admin.ModelAdmin):
+    list_display = ["nutzer", "issuer", "subject"]
+    search_fields = ["nutzer__email", "subject"]
+    autocomplete_fields = ["nutzer"]

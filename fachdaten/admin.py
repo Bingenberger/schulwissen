@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from fachdaten.models import Kompetenzerwartung
+from fachdaten.models import Fach, Kompetenzerwartung
 from kern import rechte
 
 
@@ -91,4 +91,14 @@ class KompetenzerwartungAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(Fach)
+class FachAdmin(admin.ModelAdmin):
+    list_display = ["name", "schluessel", "quelle"]
+    prepopulated_fields = {"schluessel": ("name",)}
+    search_fields = ["name"]
+
+    def has_delete_permission(self, request, obj=None):
         return False

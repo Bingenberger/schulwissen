@@ -85,7 +85,7 @@ def ist_eingerichtet() -> bool:
 
 def _dav_wurzel() -> str:
     basis = settings.NEXTCLOUD_URL.rstrip("/") + "/"
-    return urljoin(basis, f"remote.php/dav/files/{quote(settings.NEXTCLOUD_NUTZER)}/")
+    return urljoin(basis, f"remote.php/dav/files/{quote(settings.NEXTCLOUD_NUTZER, safe='')}/")
 
 
 def weblink(pfad: str) -> str:
@@ -202,3 +202,54 @@ def brotkrumen(pfad: str) -> list[tuple[str, str]]:
         gesammelt.append(teil)
         weg.append((teil, "/".join(gesammelt)))
     return weg
+
+
+@dataclass
+class Download:
+    status: int
+    etag: str = ""
+    mimetype: str = ""
+    groesse: int = 0
+
+
+def herunterladen(pfad, ziel, etag=""):
+    """Lädt eine verlinkte Datei begrenzt und ohne Weiterleitungen per WebDAV."""
+    import httpx
+
+    if not ist_eingerichtet():
+        raise NextcloudFehler("Es ist kein Nextcloud-Zugang eingerichtet.")
+    adresse = _dav_wurzel() + quote(_pfad_saeubern(pfad), safe="/")
+    headers = {"If-None-Match": etag} if etag else {}
+    try:
+        with httpx.stream(
+            "GET",
+            adresse,
+            auth=(settings.NEXTCLOUD_NUTZER, settings.NEXTCLOUD_PASSWORT),
+            headers=headers,
+            timeout=30,
+            follow_redirects=False,
+        ) as antwort:
+            if antwort.status_code in (304, 403, 404, 410):
+                return Download(antwort.status_code)
+            if antwort.status_code != 200:
+                raise NextcloudFehler(f"Nextcloud antwortet mit Status {antwort.status_code}.")
+            laenge = antwort.headers.get("Content-Length", "")
+            if laenge.isdigit() and int(laenge) > settings.NEXTCLOUD_MAX_BYTES:
+                raise NextcloudFehler("Die Datei überschreitet die eingestellte Größenbegrenzung.")
+            groesse = 0
+            with ziel.open("wb") as datei:
+                for teil in antwort.iter_bytes():
+                    groesse += len(teil)
+                    if groesse > settings.NEXTCLOUD_MAX_BYTES:
+                        raise NextcloudFehler(
+                            "Die Datei überschreitet die eingestellte Größenbegrenzung."
+                        )
+                    datei.write(teil)
+            return Download(
+                200,
+                antwort.headers.get("ETag", "")[:500],
+                antwort.headers.get("Content-Type", "").split(";")[0][:120],
+                groesse,
+            )
+    except httpx.HTTPError as fehler:
+        raise NextcloudFehler("Die Nextcloud ist vorübergehend nicht erreichbar.") from fehler

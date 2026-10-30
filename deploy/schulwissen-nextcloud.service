@@ -1,0 +1,9 @@
+[Unit]
+Description=Schulwissen: verlinkte Nextcloud-Dateien indexieren
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/schulwissen
+ExecStart=/usr/bin/docker compose exec -T app python manage.py nextcloud_indexieren --anzahl 50

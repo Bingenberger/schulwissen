@@ -37,10 +37,10 @@
       {% if ist_administration %}
         <a class="knopf" href="{% url 'kern:export' dokument.schluessel 'pdf' %}">Beschlossenen Stand als PDF</a>
         <a class="knopf" href="{% url 'kern:export' dokument.schluessel 'json' %}">JSON exportieren</a>
-        {% if dokument.dokumenttyp.schluessel == 'arbeitsplan_deutsch' %}<a class="knopf" href="{% url 'kern:export' dokument.schluessel 'xlsx' %}">Excel exportieren</a>{% endif %}
+        {% if dokument.ist_arbeitsplan %}<a class="knopf" href="{% url 'kern:export' dokument.schluessel 'xlsx' %}">Excel exportieren</a>{% endif %}
         <a class="knopf" href="{% url 'kern:json_import' dokument.schluessel %}">JSON importieren</a>
       {% endif %}
-      {% if ist_lehrkraft and dokument.dokumenttyp.schluessel == 'arbeitsplan_deutsch' %}<a class="knopf" href="{% url 'kern:planung' %}?dokument={{ dokument.schluessel }}">Meine Planung</a>{% endif %}
+      {% if ist_lehrkraft and dokument.ist_arbeitsplan %}<a class="knopf" href="{% url 'kern:planung' %}?dokument={{ dokument.schluessel }}">Meine Planung</a>{% endif %}
     </p>
     <h2>Gliederung</h2>
     <div class="karte">

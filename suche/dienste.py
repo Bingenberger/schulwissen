@@ -322,14 +322,14 @@ def _beschluesse_suchen(begriff: str, wortlaut: bool = False) -> Gruppe:
 def _kompetenzen_suchen(begriff: str, fach: str = "") -> Gruppe:
     from fachdaten.suche import kompetenzen_finden
 
-    treffer = kompetenzen_finden(begriff, fach=fach or "deutsch")
+    treffer = kompetenzen_finden(begriff, fach=fach)
 
     gruppe = Gruppe("kompetenzen", "Kompetenzerwartungen", gesamt=treffer.count())
     for erwartung in treffer[:TREFFER_JE_GRUPPE]:
         gruppe.treffer.append(
             Treffer(
                 titel=erwartung.text,
-                url=f"{reverse('fachdaten:uebersicht')}?q={erwartung.pk}",
+                url=f"{reverse('fachdaten:uebersicht')}?q={erwartung.pk}&fach={erwartung.fach}",
                 kontext=f"{erwartung.bereich_name} › {erwartung.schwerpunkt_voll}",
                 ausschnitt=escape(erwartung.klammer),
                 kennung=erwartung.pk,
@@ -491,7 +491,7 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
             gefunden.append(
                 Treffer(
                     titel=erwartung.text,
-                    url=f"{reverse('fachdaten:uebersicht')}?q={erwartung.pk}",
+                    url=f"{reverse('fachdaten:uebersicht')}?q={erwartung.pk}&fach={erwartung.fach}",
                     kontext=erwartung.schwerpunkt_voll,
                     kennung=erwartung.pk,
                     zusatz="Kompetenz",

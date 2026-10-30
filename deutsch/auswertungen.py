@@ -422,7 +422,11 @@ def zeitbudget(dokument, nur_beschlossene: bool = False) -> Zeitbudget:
     budget.rituale = [r for r in rituale if r.daten.get("minuten_pro_woche")]
     budget.ohne_angabe = [r for r in rituale if not r.daten.get("minuten_pro_woche")]
 
-    stundentafel = (dokument.einstellungen or {}).get("deutschstunden_pro_woche") or {}
+    stundentafel = (
+        (dokument.einstellungen or {}).get("stunden_pro_woche")
+        or (dokument.einstellungen or {}).get("deutschstunden_pro_woche")
+        or {}
+    )
     gebunden = budget.minuten_durch_rituale
 
     for jahrgang in (1, 2, 3, 4):
