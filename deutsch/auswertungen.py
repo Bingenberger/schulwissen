@@ -13,7 +13,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from fachdaten.models import Kompetenzerwartung
-from kern.models import Status, Verlinkung, Verlinkungsart, Zieltyp
+from kern.models import Verlinkungsart, Zieltyp
+from kern.staende import auswertungsstaende
 
 SCHWERPUNKT = "schwerpunkt"
 BERUEHRT = "beruehrt"
@@ -156,10 +157,6 @@ class Abdeckungsmatrix:
         )
 
 
-#: Status, die in die Auswertung einfließen, wenn Entwürfe mitzählen.
-STATUS_MIT_ENTWUERFEN = (Status.IDEE, Status.ENTWURF, Status.ABGESTIMMT, Status.BESCHLOSSEN)
-
-
 def abdeckungsmatrix(
     dokument, nur_beschlossene: bool = False, fach: str = "deutsch"
 ) -> Abdeckungsmatrix:
@@ -171,38 +168,19 @@ def abdeckungsmatrix(
     Archivierte Einträge zählen nie mit: sie sind von einem neueren Beschluss
     abgelöst worden.
     """
-    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
-
-    verlinkungen = (
-        Verlinkung.objects.filter(
-            von_eintrag__dokument=dokument,
-            von_eintrag__status__in=status,
-            ziel_typ=Zieltyp.KOMPETENZ,
-            art__in=(
-                Verlinkungsart.KOMPETENZ_SCHWERPUNKT,
-                Verlinkungsart.KOMPETENZ_BERUEHRT,
-            ),
-        )
-        .select_related("von_eintrag")
-        .only(
-            "ziel_id",
-            "art",
-            "von_eintrag__eintragstyp",
-            "von_eintrag__kennung",
-            "von_eintrag__titel",
-            "von_eintrag__status",
-        )
-    )
-
     schwerpunkt_je_kennung: dict[str, list] = {}
     beruehrt_je_kennung: dict[str, list] = {}
-    for verlinkung in verlinkungen:
-        ziel = (
-            schwerpunkt_je_kennung
-            if verlinkung.art == Verlinkungsart.KOMPETENZ_SCHWERPUNKT
-            else beruehrt_je_kennung
-        )
-        ziel.setdefault(verlinkung.ziel_id, []).append(verlinkung.von_eintrag)
+    for stand in auswertungsstaende(dokument, nur_beschlossene):
+        for verweis in stand.verweise:
+            if verweis.get("ziel_typ") != Zieltyp.KOMPETENZ:
+                continue
+            if verweis.get("art") == Verlinkungsart.KOMPETENZ_SCHWERPUNKT:
+                ziel = schwerpunkt_je_kennung
+            elif verweis.get("art") == Verlinkungsart.KOMPETENZ_BERUEHRT:
+                ziel = beruehrt_je_kennung
+            else:
+                continue
+            ziel.setdefault(verweis["ziel_id"], []).append(stand)
 
     matrix = Abdeckungsmatrix(nur_beschlossene=nur_beschlossene)
     nach_schwerpunkt: dict[tuple[str, int], Schwerpunktzeile] = {}
@@ -286,12 +264,16 @@ def fahrplan(dokument, jahrgang: int, nur_beschlossene: bool = False) -> Fahrpla
     """
     from deutsch.eintragstypen import QUARTALE
 
-    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
-    eintraege = dokument.eintraege.filter(status__in=status)
+    eintraege = auswertungsstaende(dokument, nur_beschlossene)
 
     plan = Fahrplan(jahrgang=jahrgang)
-    vorhaben = eintraege.filter(eintragstyp="vorhaben", daten__jahrgang=jahrgang).order_by(
-        "kennung"
+    vorhaben = sorted(
+        [
+            e
+            for e in eintraege
+            if e.eintragstyp == "vorhaben" and e.daten.get("jahrgang") == jahrgang
+        ],
+        key=lambda e: e.kennung,
     )
 
     for schluessel, name in QUARTALE:
@@ -299,7 +281,9 @@ def fahrplan(dokument, jahrgang: int, nur_beschlossene: bool = False) -> Fahrpla
         spalte.vorhaben = [v for v in vorhaben if v.daten.get("quartal") == schluessel]
         plan.quartale.append(spalte)
 
-    for ritual in eintraege.filter(eintragstyp="ritual").order_by("kennung"):
+    for ritual in sorted(
+        [e for e in eintraege if e.eintragstyp == "ritual"], key=lambda e: e.kennung
+    ):
         plan.rituale.append(
             {
                 "eintrag": ritual,
@@ -343,11 +327,11 @@ def ritualprogressionen(dokument, nur_beschlossene: bool = False) -> list[Ritual
 
     Zeigt zugleich, welche Jahrgangsgruppe ihr Feld noch nicht gefüllt hat.
     """
-    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
     ergebnis = []
-    for ritual in dokument.eintraege.filter(eintragstyp="ritual", status__in=status).order_by(
-        "kennung"
-    ):
+    rituale = [
+        e for e in auswertungsstaende(dokument, nur_beschlossene) if e.eintragstyp == "ritual"
+    ]
+    for ritual in sorted(rituale, key=lambda e: e.kennung):
         progression = Ritualprogression(ritual=ritual)
         for jahrgang in (1, 2, 3, 4):
             progression.spalten.append(
@@ -413,11 +397,11 @@ def zeitbudget(dokument, nur_beschlossene: bool = False) -> Zeitbudget:
     (``einstellungen["deutschstunden_pro_woche"]``) und lassen sich in der
     Verwaltung ändern.
     """
-    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
     budget = Zeitbudget()
 
-    rituale = list(
-        dokument.eintraege.filter(eintragstyp="ritual", status__in=status).order_by("kennung")
+    rituale = sorted(
+        [e for e in auswertungsstaende(dokument, nur_beschlossene) if e.eintragstyp == "ritual"],
+        key=lambda e: e.kennung,
     )
     budget.rituale = [r for r in rituale if r.daten.get("minuten_pro_woche")]
     budget.ohne_angabe = [r for r in rituale if not r.daten.get("minuten_pro_woche")]
@@ -489,14 +473,18 @@ def leistungsuebersicht(dokument, nur_beschlossene: bool = False) -> Leistungsue
     Das ist die Sicht „Leistungskonzept": sie entsteht aus den Leistungsfeldern
     der Vorhaben und Rituale, nicht aus einem eigenen Dokument.
     """
-    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
-    eintraege = dokument.eintraege.filter(status__in=status)
+    eintraege = auswertungsstaende(dokument, nur_beschlossene)
     uebersicht = Leistungsuebersicht()
 
     for jahrgang in (1, 2, 3, 4):
         spalte = Leistungsjahrgang(jahrgang=jahrgang)
-        for vorhaben in eintraege.filter(eintragstyp="vorhaben", daten__jahrgang=jahrgang).order_by(
-            "daten__quartal", "kennung"
+        passende_vorhaben = [
+            e
+            for e in eintraege
+            if e.eintragstyp == "vorhaben" and e.daten.get("jahrgang") == jahrgang
+        ]
+        for vorhaben in sorted(
+            passende_vorhaben, key=lambda e: (e.daten.get("quartal") or "", e.kennung)
         ):
             daten = vorhaben.daten
             spalte.zeilen.append(
@@ -511,7 +499,9 @@ def leistungsuebersicht(dokument, nur_beschlossene: bool = False) -> Leistungsue
             )
         uebersicht.jahrgaenge.append(spalte)
 
-    for ritual in eintraege.filter(eintragstyp="ritual").order_by("kennung"):
+    for ritual in sorted(
+        [e for e in eintraege if e.eintragstyp == "ritual"], key=lambda e: e.kennung
+    ):
         uebersicht.rituale.append(
             Leistungszeile(
                 eintrag=ritual,
@@ -522,7 +512,8 @@ def leistungsuebersicht(dokument, nur_beschlossene: bool = False) -> Leistungsue
 
     uebersicht.ohne_angabe = [
         e
-        for e in eintraege.filter(eintragstyp__in=("ritual", "vorhaben"))
+        for e in eintraege
+        if e.eintragstyp in ("ritual", "vorhaben")
         if not e.daten.get("leistung_bereich")
     ]
     return uebersicht

@@ -336,7 +336,29 @@ Die Zahl ist vor und nach der Vorschau gleich.
    aus [PHASE4.md](PHASE4.md). Ohne Konfiguration bleibt die lokale Anmeldung
    verfügbar und es wird keine Verbindung zur Nextcloud aufgebaut.
 
-## 13. Tests
+## 13. Freigabegrenzen prüfen
+
+1. Einen beschlossenen Eintrag als Redaktion weiterbearbeiten. In einer
+   getrennten Sitzung als Lesend die Fassungsübersicht öffnen: Entwurfstitel
+   und Entwurfsinhalt dürfen nicht erscheinen.
+2. Die direkte URL der neuen Fassung sowie einen Vergleich mit deren Nummer
+   als Lesend aufrufen: beide werden abgewiesen. Freigegebene historische
+   Fassungen bleiben lesbar und miteinander vergleichbar.
+3. „Änderungen seit Beschluss“ als Lesend aufrufen: der Zugriff wird verweigert.
+4. In allen Auswertungen als Lesend auch mit `?stand=entwurf` prüfen:
+   Es erscheint weiterhin der gültige Stand.
+5. Als Redaktion den neuen Entwurf in Jahrgang, Quartal, Zeitbedarf und
+   Kompetenzen ändern. Unter „Nur beschlossene“ müssen Fahrplan,
+   Zeitbudget, Leistungsübersicht und Abdeckung die bisherigen Werte behalten.
+6. Als Administration den Eintrag in der Verwaltung ändern. Es entsteht genau
+   eine neue Fassung mit Autor; die bisher gültige Fassung bleibt bestehen.
+   Unbekannte Datenfelder oder ein direktes Setzen auf „beschlossen“ werden
+   zurückgewiesen.
+7. In der Verwaltung eine Fassung oder einen Beschluss öffnen: Die Daten sind
+   lesbar, aber dort nicht direkt änderbar oder löschbar. Verweise werden über
+   die verlinkte Eingabemaske gepflegt.
+
+## 14. Tests
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml \

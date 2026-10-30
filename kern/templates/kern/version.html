@@ -56,7 +56,7 @@
 
     <p class="knopf-reihe">
       <a class="knopf" href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Alle Fassungen</a>
-      <a class="knopf" href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ version.versionsnummer }}">Mit dem aktuellen Stand vergleichen</a>
+      {% if not ist_nur_lesend %}<a class="knopf" href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ version.versionsnummer }}">Mit dem aktuellen Stand vergleichen</a>{% endif %}
     </p>
   </div>
 </div>

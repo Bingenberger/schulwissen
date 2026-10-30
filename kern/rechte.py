@@ -17,7 +17,6 @@ from __future__ import annotations
 from kern.models import (
     ROLLE_ADMINISTRATION,
     ROLLE_LEHRKRAFT,
-    ROLLE_LESEND,
     ROLLE_REDAKTION,
     STATUS_VOR_BESCHLUSS,
     Status,
@@ -55,7 +54,7 @@ def ist_nur_lesend(nutzer) -> bool:
         return True
     if ist_lehrkraft(nutzer):
         return False
-    return nutzer.hat_rolle(ROLLE_LESEND) or not nutzer.rollen
+    return True
 
 
 # --- Lesen -----------------------------------------------------------------
@@ -178,3 +177,17 @@ def darf_schulische_festlegung_bearbeiten(nutzer) -> bool:
 
 def darf_eigene_planung(nutzer) -> bool:
     return ist_lehrkraft(nutzer)
+
+
+def sichtbare_versionen(nutzer, menge):
+    """Lesende sehen ausschließlich tatsächlich freigegebene Fassungen."""
+    if not _angemeldet(nutzer):
+        return menge.none()
+    if ist_nur_lesend(nutzer):
+        return menge.filter(status__in=OEFFENTLICHE_STATUS, beschluss__isnull=False)
+    return menge
+
+
+def darf_arbeitsstand_lesen(nutzer):
+    """Arbeitsvergleiche und Änderungen gehören zum internen Arbeitsstand."""
+    return _angemeldet(nutzer) and not ist_nur_lesend(nutzer)

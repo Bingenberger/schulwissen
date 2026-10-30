@@ -10,7 +10,7 @@
       <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> ›
       <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a> › Fassungen
     </p>
-    <h1>Fassungen von „{{ eintrag.titel }}“</h1>
+    <h1>Fassungen von „{{ angezeigter_titel }}“</h1>
     <p class="leise">Jede Speicherung erzeugt eine Fassung. Beschlossene Fassungen
       bleiben unverändert erhalten.</p>
 
@@ -33,8 +33,7 @@
         </tbody>
       </table>
     </div>
-    <p class="leise klein">Die Gegenüberstellung zweier Fassungen (Diff-Ansicht)
-      kommt in Phase 2.</p>
+
   </div>
 </div>
 {% endblock %}

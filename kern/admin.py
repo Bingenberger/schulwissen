@@ -7,7 +7,12 @@ from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.urls import reverse
+from django.utils.html import format_html
 
+from eintragstypen import dienste
+from kern import rechte
+from kern.admin_formulare import EintragAdminFormular
 from kern.models import (
     Anhang,
     Beschluss,
@@ -20,7 +25,6 @@ from kern.models import (
     Kommentar,
     Nutzer,
     OIDCIdentitaet,
-    Status,
     Verlinkung,
 )
 
@@ -119,22 +123,97 @@ class DokumentAdmin(admin.ModelAdmin):
         return dokument.eintraege.count()
 
 
+class InterneInhalteAdmin(admin.ModelAdmin):
+    def has_view_permission(self, request, obj=None):
+        return rechte.darf_arbeitsstand_lesen(request.user) and super().has_view_permission(
+            request, obj
+        )
+
+    def get_queryset(self, request):
+        menge = super().get_queryset(request)
+        return menge if rechte.darf_arbeitsstand_lesen(request.user) else menge.none()
+
+
 class VerlinkungInline(admin.TabularInline):
     model = Verlinkung
     fk_name = "von_eintrag"
     extra = 0
     fields = ["art", "ziel_typ", "ziel_id", "feld", "beschriftung"]
+    readonly_fields = fields
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Eintrag)
-class EintragAdmin(admin.ModelAdmin):
+class EintragAdmin(InterneInhalteAdmin):
+    form = EintragAdminFormular
     list_display = ["kennung", "titel", "dokument", "typ_spalte", "status", "geaendert_am"]
     list_filter = ["dokument", "eintragstyp", "status"]
     search_fields = ["kennung", "titel", "suchtext"]
-    readonly_fields = ["suchtext", "erstellt_am", "geaendert_am"]
+    readonly_fields = ["suchtext", "erstellt_am", "geaendert_am", "erstellt_von", "eingabemaske"]
     inlines = [VerlinkungInline]
     autocomplete_fields = ["eltern"]
     ordering = ["dokument", "position", "kennung"]
+
+    def get_readonly_fields(self, request, obj=None):
+        return [*self.readonly_fields, *(["kennung", "dokument", "eintragstyp"] if obj else [])]
+
+    def get_form(self, request, obj=None, **kwargs):
+        basis = super().get_form(request, obj, **kwargs)
+
+        class Formular(basis):
+            def __init__(self, *args, **optionen):
+                super().__init__(*args, nutzer=request.user, **optionen)
+
+        return Formular
+
+    def has_add_permission(self, request):
+        return rechte.darf_anlegen(request.user) and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        erlaubt = (
+            rechte.darf_bearbeiten(request.user, obj) if obj else rechte.ist_lehrkraft(request.user)
+        )
+        return erlaubt and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        gespeichert = dienste.speichern(
+            obj.dokument,
+            form.befundsatz,
+            nutzer=request.user,
+            metadaten={
+                name: getattr(obj, name)
+                for name in (
+                    "eltern",
+                    "position",
+                    "verantwortlich_gruppe",
+                    "verantwortlich_person",
+                    "verantwortlich_text",
+                    "fassung_stand",
+                )
+            },
+        )
+        obj.__dict__.update(gespeichert.__dict__)
+
+    @admin.display(description="Eingabemaske")
+    def eingabemaske(self, obj):
+        if not obj or not obj.pk:
+            return (
+                "Kompetenzen und Verweise lassen sich nach dem Anlegen "
+                "in der Eingabemaske bearbeiten."
+            )
+        return format_html(
+            '<a href="{}">Eintrag mit Kompetenzen und Verweisen bearbeiten</a>',
+            reverse("kern:eintrag_bearbeiten", args=[obj.dokument.schluessel, obj.kennung]),
+        )
 
     @admin.display(description="Eintragstyp", ordering="eintragstyp")
     def typ_spalte(self, eintrag: Eintrag) -> str:
@@ -156,7 +235,7 @@ class EintragsversionInline(admin.TabularInline):
 
 
 @admin.register(Eintragsversion)
-class EintragsversionAdmin(admin.ModelAdmin):
+class EintragsversionAdmin(InterneInhalteAdmin):
     list_display = [
         "eintrag",
         "versionsnummer",
@@ -175,10 +254,13 @@ class EintragsversionAdmin(admin.ModelAdmin):
         return False
 
     def get_readonly_fields(self, request, obj=None):
-        if obj is not None and obj.status == Status.BESCHLOSSEN:
-            # Beschlossene Fassungen sind unveränderlich (SPEC.md §6).
-            return [feld.name for feld in self.model._meta.fields]
-        return self.readonly_fields
+        return [feld.name for feld in self.model._meta.fields]
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Gremium)
@@ -188,12 +270,26 @@ class GremiumAdmin(admin.ModelAdmin):
 
 
 @admin.register(Beschluss)
-class BeschlussAdmin(admin.ModelAdmin):
+class BeschlussAdmin(InterneInhalteAdmin):
     list_display = ["datum", "gremium", "titel", "anzahl_fassungen"]
     list_filter = ["gremium", "datum"]
     search_fields = ["titel", "text"]
     date_hierarchy = "datum"
     inlines = [EintragsversionInline]
+
+    change_list_template = "kern/admin_beschluesse.html"
+
+    def get_readonly_fields(self, request, obj=None):
+        return [feld.name for feld in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     @admin.display(description="freigegebene Fassungen")
     def anzahl_fassungen(self, beschluss: Beschluss) -> int:
@@ -216,10 +312,22 @@ class KommentarAdmin(admin.ModelAdmin):
 
 
 @admin.register(Verlinkung)
-class VerlinkungAdmin(admin.ModelAdmin):
+class VerlinkungAdmin(InterneInhalteAdmin):
     list_display = ["von_eintrag", "art", "ziel_typ", "ziel_id", "beschriftung"]
     list_filter = ["art", "ziel_typ"]
     search_fields = ["ziel_id", "beschriftung"]
+
+    def get_readonly_fields(self, request, obj=None):
+        return [feld.name for feld in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(OIDCIdentitaet)

@@ -11,7 +11,7 @@ Die vollständige fachliche Beschreibung steht in [SPEC.md](SPEC.md).
 
 ## Stand
 
-**Phase 1 bis Phase 3 sind umgesetzt** (SPEC.md §13).
+**Die Hauptbausteine der Phasen 1 bis 3 sind vorhanden** (SPEC.md §13).
 
 Phase 1: Kern, Rollen, Arbeitsplan Deutsch, Kompetenz-Stammdaten, Import aus
 der Arbeitsmappe, Eingabemasken.
@@ -172,10 +172,35 @@ beschlossene Fassung bleibt gültig, und **Lesende sehen weiterhin sie**, nicht
 den Entwurf. Bearbeitende sehen den Arbeitsstand mit einem Hinweis und einem
 Link auf die Unterschiede.
 
+### Fassungen und Verwaltung
+
+Lesende sehen in der Historie nur tatsächlich freigegebene Fassungen. Auch
+gezielte Aufrufe einer Entwurfsfassung oder ein Vergleich mit deren Nummer
+geben keinen Entwurf frei. Vergleiche zwischen freigegebenen historischen
+Fassungen sind möglich; „Änderungen seit Beschluss“ bleibt dem Kollegium
+vorbehalten. Konten ohne Kollegiumsrolle erhalten keine Entwurfsrechte allein
+durch die Mitgliedschaft in einer Arbeitsgruppe.
+
+In der Verwaltung bleiben Einträge und ihre Zuständigkeit, Position und
+Kapitelzuordnung bearbeitbar. Jede Speicherung verwendet dieselbe fachliche
+Prüfung, HTML-Bereinigung, Suchindexierung und Versionierung wie die Eingabemaske.
+Eine Bearbeitung beschlossener Inhalte erzeugt einen neuen Entwurf.
+
+Fassungen, Beschlüsse und Verweise werden in der Verwaltung nur angezeigt.
+Verweise bearbeitet man über den Link zur Eingabemaske; Beschlüsse werden über
+die Beschlussvorlage erfasst und gegebenenfalls dort zurückgenommen.
+Direkte Statusfreigaben sowie das Löschen von Einträgen oder Historie sind in
+der Verwaltung gesperrt.
+
 ## Auswertungen
 
 Alle sieben aus SPEC.md §7.5, jeweils umschaltbar zwischen „inklusive
 Entwürfe“ und „nur beschlossene“:
+
+„Nur beschlossene“ verwendet Titel, Inhalte und Verweise aus den gültigen
+Fassungen, auch wenn daneben neue Entwürfe existieren. Für Lesende ist dieser
+Stand verbindlich; ein URL-Parameter kann keine Entwürfe einschalten.
+Die Prüfliste behandelt die gemeinsamen Kompetenz-Stammdaten.
 
 Abdeckungsmatrix · Fahrplan je Jahrgang · Ritual-Progression · Zeitbudget ·
 Leistungsübersicht (die Sicht „Leistungskonzept“) · Progressionspaare ·

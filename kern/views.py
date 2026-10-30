@@ -537,7 +537,16 @@ def fassungen(request, schluessel: str, kennung: str):
             "dokument": eintrag.dokument,
             "eintrag": eintrag,
             "typ": eintrag.typ,
-            "versionen": eintrag.versionen.select_related("autor", "beschluss").all(),
+            "versionen": rechte.sichtbare_versionen(
+                request.user, eintrag.versionen.select_related("autor", "beschluss")
+            ),
+            "angezeigter_titel": (
+                eintrag.titel
+                if rechte.zeigt_entwurf(request.user)
+                else eintrag.beschlossene_version().titel
+                if eintrag.beschlossene_version()
+                else "Freigegebene Fassungen"
+            ),
             "baum": _gliederungsbaum(eintrag.dokument, request.user),
         },
     )

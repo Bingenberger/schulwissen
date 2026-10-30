@@ -17,6 +17,6 @@ Sichten und zwischen beschlossenem Stand und Entwürfen.{% endcomment %}
 </nav>
 
 <div class="knopf-reihe" style="margin-bottom:1.5rem">
-  <a class="knopf {% if not nur_beschlossene %}knopf-wichtig{% endif %}" href="?stand=entwurf">Inklusive Entwürfe</a>
+  {% if not ist_nur_lesend %}<a class="knopf {% if not nur_beschlossene %}knopf-wichtig{% endif %}" href="?stand=entwurf">Inklusive Entwürfe</a>{% endif %}
   <a class="knopf {% if nur_beschlossene %}knopf-wichtig{% endif %}" href="?stand=beschlossen">Nur beschlossene</a>
 </div>

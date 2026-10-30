@@ -34,6 +34,6 @@
   {% endif %}
 
   <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
-  <a class="baum-zeile" href="{% url 'kern:aenderungen' dokument.schluessel %}">Änderungen seit Beschluss</a>
+  {% if not ist_nur_lesend %}<a class="baum-zeile" href="{% url 'kern:aenderungen' dokument.schluessel %}">Änderungen seit Beschluss</a>{% endif %}
   <a class="baum-zeile" href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a>
 </nav>

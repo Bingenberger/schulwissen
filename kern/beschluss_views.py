@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from kern import beschluesse, rechte, vergleich, views
-from kern.models import Beschluss, Dokument, Eintrag, Eintragsversion, Gremium
+from kern.models import Beschluss, Dokument, Eintrag, Gremium
 
 
 class BeschlussFormular(forms.ModelForm):
@@ -54,9 +54,11 @@ def beschluesse_liste(request):
 @login_required
 def beschluss_ansehen(request, beschluss_id: int):
     beschluss = get_object_or_404(Beschluss.objects.select_related("gremium"), pk=beschluss_id)
-    versionen = beschluss.beschlossene_versionen.select_related(
-        "eintrag", "eintrag__dokument"
-    ).order_by("eintrag__kennung")
+    versionen = (
+        rechte.sichtbare_versionen(request.user, beschluss.beschlossene_versionen.all())
+        .select_related("eintrag", "eintrag__dokument")
+        .order_by("eintrag__kennung")
+    )
 
     return render(
         request,
@@ -156,7 +158,15 @@ def fassungen_vergleichen(request, schluessel: str, kennung: str):
     if not rechte.darf_lesen(request.user, eintrag):
         raise PermissionDenied("Dieser Eintrag ist noch nicht freigegeben.")
 
-    alle = list(eintrag.versionen.select_related("autor", "beschluss").order_by("versionsnummer"))
+    sichtbare = rechte.sichtbare_versionen(
+        request.user, eintrag.versionen.select_related("autor", "beschluss")
+    )
+    # Auch gezielt angefragte Entwurfsnummern werden nicht stillschweigend ersetzt.
+    for name in ("alt", "neu"):
+        nummer = request.GET.get(name)
+        if nummer and not rechte.zeigt_entwurf(request.user):
+            get_object_or_404(sichtbare, versionsnummer=nummer if nummer.isdigit() else -1)
+    alle = list(sichtbare.order_by("versionsnummer"))
     if len(alle) < 2:
         messages.info(request, "Für einen Vergleich braucht es mindestens zwei Fassungen.")
         return redirect("kern:fassungen", schluessel=schluessel, kennung=kennung)
@@ -172,7 +182,8 @@ def fassungen_vergleichen(request, schluessel: str, kennung: str):
     # Vorgabe: die beschlossene Fassung gegen den aktuellen Stand – das ist die
     # Frage, die vor einer Konferenz zählt.
     beschlossen = eintrag.beschlossene_version()
-    alt = version_holen("alt", beschlossen or alle[-2])
+    vorgabe_alt = (beschlossen or alle[-2]) if rechte.zeigt_entwurf(request.user) else alle[-2]
+    alt = version_holen("alt", vorgabe_alt)
     neu = version_holen("neu", alle[-1])
 
     return render(
@@ -192,6 +203,8 @@ def fassungen_vergleichen(request, schluessel: str, kennung: str):
 @login_required
 def aenderungen(request, schluessel: str):
     """Was hat sich seit dem letzten Beschluss getan? (SPEC.md §8.6)"""
+    if not rechte.darf_arbeitsstand_lesen(request.user):
+        raise PermissionDenied("Änderungen am Arbeitsstand sind dem Kollegium vorbehalten.")
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
     uebersicht = beschluesse.aenderungen_seit_beschluss(dokument)
 
@@ -218,7 +231,9 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
     )
     if not rechte.darf_lesen(request.user, eintrag):
         raise PermissionDenied("Dieser Eintrag ist noch nicht freigegeben.")
-    version = get_object_or_404(Eintragsversion, eintrag=eintrag, versionsnummer=nummer)
+    version = get_object_or_404(
+        rechte.sichtbare_versionen(request.user, eintrag.versionen.all()), versionsnummer=nummer
+    )
 
     verweise = views.verweise_aus_schnappschuss(version)
 

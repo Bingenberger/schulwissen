@@ -9,7 +9,7 @@
       <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a> › Vergleich
     </p>
     <h1>Was hat sich geändert?</h1>
-    <p class="leise">„{{ eintrag.titel }}“ – Fassung {{ alt.versionsnummer }} gegen
+    <p class="leise">„{{ neu.titel }}“ – Fassung {{ alt.versionsnummer }} gegen
       Fassung {{ neu.versionsnummer }}.</p>
 
     <form method="get" class="karte" style="padding:0.9rem 1.1rem">

@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render
 
 from deutsch import auswertungen
 from deutsch.auswertungen import abdeckungsmatrix, pruefliste
+from kern import rechte
 from kern.models import Dokument
 
 
@@ -14,7 +15,9 @@ from kern.models import Dokument
 def abdeckung(request, schluessel: str):
     """Auswertung 7.5.1: Abdeckungsmatrix."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
-    nur_beschlossene = request.GET.get("stand") == "beschlossen"
+    nur_beschlossene = (
+        rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
+    )
     matrix = abdeckungsmatrix(
         dokument, nur_beschlossene=nur_beschlossene, fach=dokument.fach or "deutsch"
     )
@@ -51,7 +54,9 @@ def pruefen(request, schluessel: str):
 def fahrplan(request, schluessel: str, jahrgang: int):
     """Auswertung 7.5.2: Fahrplan je Jahrgang."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
-    nur_beschlossene = request.GET.get("stand") == "beschlossen"
+    nur_beschlossene = (
+        rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
+    )
 
     return render(
         request,
@@ -69,7 +74,9 @@ def fahrplan(request, schluessel: str, jahrgang: int):
 def ritualprogression(request, schluessel: str):
     """Auswertung 7.5.3: ein Ritual mit Jahrgang 1 bis 4 nebeneinander."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
-    nur_beschlossene = request.GET.get("stand") == "beschlossen"
+    nur_beschlossene = (
+        rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
+    )
 
     return render(
         request,
@@ -86,7 +93,9 @@ def ritualprogression(request, schluessel: str):
 def zeitbudget(request, schluessel: str):
     """Auswertung 7.5.4: Zeitbudget der Rituale."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
-    nur_beschlossene = request.GET.get("stand") == "beschlossen"
+    nur_beschlossene = (
+        rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
+    )
 
     return render(
         request,
@@ -104,7 +113,9 @@ def zeitbudget(request, schluessel: str):
 def leistungsuebersicht(request, schluessel: str):
     """Auswertung 7.5.5: die Sicht „Leistungskonzept“."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
-    nur_beschlossene = request.GET.get("stand") == "beschlossen"
+    nur_beschlossene = (
+        rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
+    )
 
     return render(
         request,
@@ -121,7 +132,9 @@ def leistungsuebersicht(request, schluessel: str):
 def progressionspaare(request, schluessel: str):
     """Auswertung 7.5.6: S- und K-Erwartung nebeneinander."""
     dokument = get_object_or_404(Dokument, schluessel=schluessel)
-    nur_beschlossene = request.GET.get("stand") == "beschlossen"
+    nur_beschlossene = (
+        rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
+    )
     paare = auswertungen.progressionspaare(
         dokument, nur_beschlossene, fach=dokument.fach or "deutsch"
     )

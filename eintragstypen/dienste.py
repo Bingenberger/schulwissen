@@ -264,7 +264,9 @@ def _verweise_pruefen(
 
 
 @transaction.atomic
-def speichern(dokument, befundsatz: Befundsatz, nutzer=None, eltern=None) -> Eintrag:
+def speichern(
+    dokument, befundsatz: Befundsatz, nutzer=None, eltern=None, metadaten=None
+) -> Eintrag:
     """Schreibt einen geprüften Datensatz und legt eine neue Fassung an."""
     if not befundsatz.ok:
         meldungen = "; ".join(b.text for b in befundsatz.fehler)
@@ -302,6 +304,19 @@ def speichern(dokument, befundsatz: Befundsatz, nutzer=None, eltern=None) -> Ein
         eintrag.eltern = eltern
     if not eintrag.position:
         eintrag.position = _naechste_position(dokument, eintrag.eltern)
+    erlaubte_metadaten = {
+        "eltern",
+        "position",
+        "verantwortlich_gruppe",
+        "verantwortlich_person",
+        "verantwortlich_text",
+        "fassung_stand",
+    }
+    if metadaten:
+        if set(metadaten) - erlaubte_metadaten:
+            raise ValueError("Unbekannte Metadaten im gemeinsamen Schreibweg.")
+        for name, wert in metadaten.items():
+            setattr(eintrag, name, wert)
     eintrag.save()
 
     _verlinkungen_setzen(eintrag, typ, befundsatz.verweise)
