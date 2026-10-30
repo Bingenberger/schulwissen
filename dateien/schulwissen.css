@@ -979,3 +979,9 @@ del {
 .gueltigkeitsbanner p { margin:var(--abstand-1) 0 0; }
 .gueltigkeitsbanner-beschlossen { background:var(--gut-flaeche); color:var(--gut); border-color:var(--gut); }
 .gueltigkeitsbanner-entwurf { background:var(--warnung-flaeche); color:var(--warnung); border-color:var(--warnung); }
+
+.vorschlagsliste [role="group"]>ul { list-style:none; margin:0; padding:0; }
+.vorschlag-gruppe { display:block; padding:var(--abstand-3) var(--abstand-4) var(--abstand-1); font-size:var(--schrift-klein); font-weight:600; color:var(--text-leise); background:var(--flaeche); }
+.vorschlagsliste { max-height:60vh; overflow:auto; }
+.vorschlagsliste [role="option"] a { min-height:var(--klickflaeche); }
+.vorschlagsliste .vorschlag-titel { display:block; }

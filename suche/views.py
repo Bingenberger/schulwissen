@@ -44,12 +44,29 @@ def suchen(request):
 def vorschlaege(request):
     """Autovervollständigung – liefert ein HTML-Schnipsel für HTMX."""
     begriff = (request.GET.get("q") or "").strip()
+    gefunden = dienste.vorschlaege(request.user, begriff)
+    gruppen = []
+    for zusatz, name in (
+        ("", "Arbeitspläne & Konzepte"),
+        ("Beschluss", "Beschlüsse"),
+        ("Kompetenz", "Kompetenzen"),
+    ):
+        treffer = [t for t in gefunden if t.zusatz == zusatz]
+        if treffer:
+            gruppen.append({"name": name, "treffer": treffer})
+    if len(begriff) >= dienste.MINDESTLAENGE and len(gefunden) < 8:
+        dateien = dienste.suchen(request.user, begriff, gruppe="dateien").gefuellte_gruppen
+        if dateien:
+            treffer = dateien[0].treffer[: 8 - len(gefunden)]
+            gruppen.append({"name": "Dateien", "treffer": treffer})
+            gefunden.extend(treffer)
     return render(
         request,
         "suche/_vorschlaege.html",
         {
             "begriff": begriff,
-            "vorschlaege": dienste.vorschlaege(request.user, begriff),
+            "vorschlaege": gefunden,
+            "vorschlagsgruppen": gruppen,
             "zu_kurz": 0 < len(begriff) < dienste.MINDESTLAENGE,
         },
     )

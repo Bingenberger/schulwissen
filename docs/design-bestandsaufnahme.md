@@ -74,4 +74,10 @@ Der Lighthouse-Lauf erfolgte mit Lighthouse 13.6.0, Desktop-Ansicht 1440 × 1000
 
 ## Freigabegrenze
 
-Das erste Paket ist zur Sichtprüfung vorbereitet. Die weiteren Seiten sind noch offen. DESIGN.md verlangt nach diesem Schritt ausdrücklich: „Screenshots an mich, Freigabe abwarten.“ Erst nach dieser Freigabe wird die Gestaltung auf die übrigen Ansichten übertragen.
+Das erste Paket wurde vom Nutzer freigegeben („das sieht super aus. Fahre fort“). Die weiteren Schritte werden in der dokumentierten Reihenfolge umgesetzt. DESIGN.md verlangt nach diesem Schritt ausdrücklich: „Screenshots an mich, Freigabe abwarten.“ Diese Freigabe liegt vor; eine weitere Zwischenfreigabe ist nicht verlangt.
+
+## Schritt 2: Suche
+
+Treffergruppen mit Anzahl, Klartext vor Kennung, Status auch für beschlossene Inhalte, Datei-Symbole und markierte Ausschnitte. Filter sind einzeln aufklappbare Chips. Filter bleiben beim Wechsel der Treffergruppe erhalten. Vorschläge sind nach Inhaltstyp gruppiert; vorhandene Dateitreffer werden über dieselbe zugriffsgeschützte Suche ergänzt, insgesamt weiterhin höchstens acht Vorschläge.
+
+32 Suchtests bestanden, einschließlich des neuen Nachweises, dass Dateivorschläge für lesende Konten keine Entwurfsanhänge anzeigen. Ergebnisse und leerer Zustand bei 390/768/1024/1440 Pixeln ohne Überlauf, axe AA ohne Befund, Filterbedienung geprüft. Screenshots: `02-suche-*` und `02-suche-leer-*`.

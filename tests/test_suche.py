@@ -376,3 +376,13 @@ def test_filter_nach_dokument_schliesst_fremde_dateien_aus(lehrkraft, pdf_anhang
     ergebnis = dienste.suchen(lehrkraft, "Märchen", dokument="anderes")
 
     assert ergebnis.leer
+
+
+def test_dateivorschlaege_beachten_leserechte(client, lehrkraft, lesend_nutzer, pdf_anhang):
+    client.force_login(lehrkraft)
+    antwort = client.get(reverse("suche:vorschlaege"), {"q": "Märchen"})
+    assert pdf_anhang.dateiname in antwort.content.decode()
+    assert 'aria-label="Dateien"' in antwort.content.decode()
+    client.force_login(lesend_nutzer)
+    antwort = client.get(reverse("suche:vorschlaege"), {"q": "Märchen"})
+    assert pdf_anhang.dateiname not in antwort.content.decode()

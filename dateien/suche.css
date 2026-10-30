@@ -1,0 +1,30 @@
+.suchseite { max-width:960px; margin:auto; padding:var(--abstand-7) var(--abstand-6); }
+.suchseite-kopf { margin-bottom:var(--abstand-5); }
+.suchseite-kopf h1 { margin:0; }
+.suchseite-kopf p { color:var(--text-leise); margin:var(--abstand-2) 0; }
+.suchseite .start-suche .suchfeld { min-height:64px; }
+.suchfilter { margin:var(--abstand-5) 0 var(--abstand-6); }
+.filter-chips { display:flex; align-items:center; flex-wrap:wrap; gap:var(--abstand-2); }
+.filter-beschriftung { color:var(--text-leise); font-size:var(--schrift-klein); margin-right:var(--abstand-2); }
+.filter-chip { position:relative; font-size:var(--schrift-klein); }
+.filter-chip summary { display:flex; align-items:center; min-height:var(--klickflaeche); padding:0 var(--abstand-4); border:1px solid var(--linie-stark); border-radius:var(--radius-rund); cursor:pointer; background:var(--papier); }
+.filter-chip summary::after { content:'⌄'; margin-left:var(--abstand-3); }
+.filter-chip summary::-webkit-details-marker { display:none; }
+.filter-chip.ist-aktiv summary,.filter-chip[open] summary { color:var(--akzent); background:var(--akzent-leise); border-color:var(--akzent); }
+.filter-chip>div { position:absolute; top:calc(100% + var(--abstand-2)); left:0; z-index:25; width:260px; padding:var(--abstand-4); border:1px solid var(--linie); border-radius:var(--radius); background:var(--papier); box-shadow:var(--schatten-menue); }
+.filter-chip label { display:block; font-weight:600; margin-bottom:var(--abstand-2); }
+.filter-chip select { width:100%; min-height:var(--klickflaeche); padding:var(--abstand-2); background:var(--papier); color:var(--text); border:1px solid var(--linie-stark); border-radius:var(--radius-feld); font:inherit; margin-bottom:var(--abstand-3); }
+.suchergebnis-zahl { color:var(--text-leise); font-size:var(--schrift-klein); }
+.suchgruppe { margin:var(--abstand-6) 0; }
+.suchgruppe h2 { display:flex; align-items:center; gap:var(--abstand-3); margin:0; padding-bottom:var(--abstand-4); border-bottom:1px solid var(--linie); }
+.trefferzahl { font-size:var(--schrift-klein); color:var(--text-leise); padding:var(--abstand-1) var(--abstand-2); background:var(--flaeche-tief); border-radius:var(--radius-rund); }
+.suchgruppe .treffer { padding:var(--abstand-5) 0; }
+.treffer-kopf { display:flex; align-items:baseline; justify-content:space-between; gap:var(--abstand-3); }
+.treffer-kopf h3 { margin:0; font-size:var(--schrift-normal); }
+.treffer-kopf a { display:inline-flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); }
+.suchgruppe .treffer-kontext { margin:0 0 var(--abstand-2); font-size:var(--schrift-klein); overflow-wrap:anywhere; }
+.suchgruppe .treffer-ausschnitt { max-width:var(--lesebreite); margin:var(--abstand-2) 0; font-size:var(--schrift-normal); }
+.treffer-metainfo { display:flex; flex-wrap:wrap; align-items:center; gap:var(--abstand-3); color:var(--text-leise); font-size:var(--schrift-klein); }
+.treffer-mehr { font-size:var(--schrift-klein); }
+@media(max-width:550px) { .suchseite { padding:var(--abstand-6) var(--abstand-4); } .treffer-kopf { flex-wrap:wrap; gap:0; } .filter-chip>div { position:static; margin-top:var(--abstand-2); width:100%; } .filter-chip[open] { flex-basis:100%; } }
+.suchgruppe .treffer-ausschnitt { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }

@@ -4,6 +4,7 @@
       @keydown.arrow-down.prevent="bewegen(1)" @keydown.arrow-up.prevent="bewegen(-1)"
       @keydown.escape.prevent="schliessen()" @keydown.enter="auswaehlen($event)"
       >
+  {% for name, wert in filter.items %}{% if wert %}<input type="hidden" name="{{ name }}" value="{{ wert }}">{% endif %}{% endfor %}
   <label class="nur-fuer-vorleser" for="{{ kennung }}">Schulwissen durchsuchen</label>
   <div class="suchfeld">
     <span class="suchfeld-symbol">{% include "kern/_symbol.html" with name="suche" %}</span>
