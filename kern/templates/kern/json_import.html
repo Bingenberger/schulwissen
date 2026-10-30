@@ -1,13 +1,8 @@
 {% extends "grundlage.html" %}
-{% block titel %}JSON importieren{% endblock %}
+{% block titel %}Einträge importieren{% endblock %}
 {% block inhalt %}
-<div class="start">
-<h1>Einträge importieren</h1><p>{{ dokument.titel }}</p>
-<form method="post" enctype="multipart/form-data" class="karte">
-{% csrf_token %}{% include "kern/_formular.html" %}
-<button class="knopf" type="submit" name="aktion" value="vorschau">Vorschau anzeigen</button>
-{% if bericht.ok %}<button class="knopf knopf-wichtig" type="submit" name="aktion" value="uebernehmen">Geprüfte Einträge übernehmen</button>{% endif %}
-</form>
-{% if bericht %}<h2>Vorschau</h2><pre style="white-space:pre-wrap">{{ bericht.als_text }}</pre>{% endif %}
-</div>
+<div class="start importseite"><p class="brotkrumen"><a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> › Import</p><h1>Einträge importieren</h1><p class="leise">Wähle eine JSON-Datei aus. Zuerst prüfst du die Vorschau; erst mit „Übernehmen“ werden die Einträge gespeichert.</p>
+<form method="post" enctype="multipart/form-data" class="karte">{% csrf_token %}{% include "kern/_formular.html" %}<div class="knopf-reihe"><button class="knopf" type="submit" name="aktion" value="vorschau">Vorschau anzeigen</button>{% if bericht %}<button class="knopf knopf-wichtig" type="submit" name="aktion" value="uebernehmen" {% if not bericht.ok %}disabled{% endif %}>Geprüfte Einträge übernehmen</button>{% endif %}</div></form>
+{% if bericht %}<section><h2>Vorschau · {{ bericht.saetze|length }} Einträge geprüft</h2>{% if bericht.ok %}<p class="meldung meldung-success">Die Prüfung ist abgeschlossen. Du kannst die Einträge übernehmen.</p>{% else %}<div class="meldung meldung-error"><strong>Bitte korrigiere die Fehler vor dem Übernehmen.</strong>{% for fehler in bericht.fehler %}<p>{{ fehler }}</p>{% endfor %}</div>{% endif %}
+<p class="tabellen-hinweis">Bei Bedarf seitlich verschieben.</p><div class="tabelle-rahmen" role="region" aria-label="Importvorschau" tabindex="0"><table class="tabelle"><thead><tr><th>Eintrag</th><th>Prüfung</th><th>Hinweise</th></tr></thead><tbody>{% for satz in bericht.saetze %}<tr><td><strong>{{ satz.roh.titel }}</strong><br><span class="kennung">{{ satz.roh.kennung }}</span></td><td>{% if not satz.ok %}<span class="schild schild-fehler">Fehler</span>{% elif satz.warnungen %}<span class="schild schild-entwurf">Hinweis</span>{% else %}<span class="schild schild-beschlossen">In Ordnung</span>{% endif %}</td><td>{% for befund in satz.befunde %}<p class="{% if befund.ist_fehler %}import-fehler{% else %}import-hinweis{% endif %}">{{ befund.text }}</p>{% empty %}Keine Hinweise.{% endfor %}</td></tr>{% empty %}<tr><td colspan="3">Keine Einträge zur Vorschau vorhanden.</td></tr>{% endfor %}</tbody></table></div></section>{% endif %}</div>
 {% endblock %}

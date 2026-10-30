@@ -1,0 +1,55 @@
+/* Die Django-Verwaltung verwendet dieselben Farben und Eingabegrößen. */
+:root, html[data-theme] {
+  --primary:var(--akzent); --secondary:var(--akzent-dunkel); --accent:var(--akzent-kontrast);
+  --body-fg:var(--text); --body-bg:var(--flaeche); --body-quiet-color:var(--text-leise);
+  --body-loud-color:var(--text); --header-color:var(--akzent-kontrast);
+  --header-branding-color:var(--akzent-kontrast); --header-bg:var(--akzent-dunkel); --header-link-color:var(--akzent-kontrast);
+  --breadcrumbs-fg:var(--text); --breadcrumbs-link-fg:var(--akzent); --breadcrumbs-bg:var(--akzent-leise);
+  --link-fg:var(--akzent); --link-hover-color:var(--akzent-dunkel); --link-selected-fg:var(--akzent);
+  --hairline-color:var(--linie); --border-color:var(--linie-stark);
+  --darkened-bg:var(--flaeche-tief); --selected-bg:var(--akzent-leise); --selected-row:var(--akzent-leise);
+  --button-fg:var(--akzent-kontrast); --button-bg:var(--akzent); --button-hover-bg:var(--akzent-dunkel);
+  --default-button-bg:var(--akzent); --default-button-hover-bg:var(--akzent-dunkel);
+  --delete-button-bg:var(--fehler); --message-success-bg:var(--gut-flaeche); --message-warning-bg:var(--warnung-flaeche); --message-error-bg:var(--fehler-flaeche);
+}
+body { font-family:var(--schrift); font-size:var(--grundgroesse); line-height:var(--zeilenhoehe); }
+#header { min-height:64px; box-sizing:border-box; }
+#site-name a { color:var(--akzent-kontrast); }
+.module { border-radius:var(--radius); overflow:hidden; background:var(--papier); }
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),select,textarea,.button,input[type="submit"] { min-height:var(--klickflaeche); box-sizing:border-box; border-radius:var(--radius-feld); font-size:var(--schrift-normal); }
+input[type="checkbox"],input[type="radio"] { min-width:var(--klickflaeche); min-height:var(--klickflaeche); accent-color:var(--akzent); }
+label { font-size:var(--schrift-normal); }
+:focus-visible { outline:3px solid var(--fokus); outline-offset:3px; }
+td,th { padding:var(--abstand-3); font-size:var(--schrift-klein); }
+#changelist-filter a { padding-top:var(--abstand-3); padding-bottom:var(--abstand-3); }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+
+h1 { font-size:var(--schrift-titel); }
+h2 { font-size:var(--schrift-abschnitt); }
+h3 { font-size:var(--schrift-normal); }
+.help,.help-tooltip,#changelist .actions { font-size:var(--schrift-klein); }
+#content .module td a,#content .module th a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); }
+#user-tools { font-size:var(--schrift-klein); text-transform:none; letter-spacing:normal; }
+#user-tools a,#user-tools button { display:inline-flex; align-items:center; min-height:var(--klickflaeche); }
+html { font-size:var(--grundgroesse); }
+#header { height:auto; flex-wrap:wrap; gap:var(--abstand-2); }
+#header #user-tools { position:static; float:none; height:auto; margin:0; line-height:var(--zeilenhoehe); }
+#header #user-tools a,#header #user-tools button { font-size:var(--schrift-klein); text-transform:none; letter-spacing:normal; }
+.addlink,.changelink,.viewlink,.deletelink { background-position:left center; }
+#header>nav { position:static; display:flex; flex-wrap:wrap; min-width:0; max-width:100%; }
+#header #user-tools { box-sizing:border-box; min-width:0; max-width:100%; }
+#header #user-tools button { min-width:var(--klickflaeche); }
+@media(max-width:1024px) {
+  #header { flex-direction:column; align-items:stretch; }
+  #header>nav { width:100%; justify-content:center; }
+  #header #branding { width:100%; text-align:center; }
+  #header #user-tools { width:100%; text-align:center; }
+}
+@media(max-width:1024px) {
+  /* Ein Blockfluss verhindert zusätzliche Flex-Spalten bei großer Schrift. */
+  #header { display:block; height:auto; }
+  #header #branding { float:none; }
+  #header #user-tools { margin-top:var(--abstand-2); }
+}
+/* Der Inhaltsbereich darf die Kopfzeile bei langen Verwaltungslisten nicht stauchen. */
+#header { flex-shrink:0; }

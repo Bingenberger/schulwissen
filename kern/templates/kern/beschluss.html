@@ -2,24 +2,24 @@
 {% block titel %}{{ beschluss.titel }}{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:68rem">
+<div class="geruest ohne-navigation">
   <div>
     <p class="brotkrumen"><a href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a> › {{ beschluss.datum|date:"d.m.Y" }}</p>
     <h1>{{ beschluss.titel }}</h1>
-    <p class="hinweis-beschluss" style="font-weight:400">{{ beschluss.herkunft }}</p>
+    <p class="hinweis-beschluss normalgewichtet">{{ beschluss.herkunft }}</p>
 
     {% if beschluss.text %}
       <div class="karte">
-        <h2 style="margin-top:0">Beschlusstext</h2>
+        <h2>Beschlusstext</h2>
         <p>{{ beschluss.text|linebreaks }}</p>
       </div>
     {% endif %}
 
     <div class="karte">
-      <h2 style="margin-top:0">Freigegebene Fassungen ({{ versionen|length }})</h2>
+      <h2>Freigegebene Fassungen ({{ versionen|length }})</h2>
       <p class="klein leise">Diese Fassungen sind durch den Beschluss gültig geworden
         und bleiben unverändert erhalten.</p>
-      <table class="tabelle">
+      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
         <thead>
           <tr><th>Kennung</th><th>Titel</th><th class="zahl">Fassung</th><th>Status</th><th></th></tr>
         </thead>
@@ -38,19 +38,19 @@
             <tr><td colspan="5">Dieser Beschluss hat keine Fassungen freigegeben.</td></tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table></div>
     </div>
 
     {% if beschluss.protokoll_anhang %}
       <div class="karte">
-        <h2 style="margin-top:0">Protokoll</h2>
+        <h2>Protokoll</h2>
         <p><a href="{{ beschluss.protokoll_anhang.datei.url }}">{{ beschluss.protokoll_anhang.dateiname }}</a></p>
       </div>
     {% endif %}
 
     {% if darf_beschliessen and versionen %}
       <div class="karte">
-        <h2 style="margin-top:0">Zurücknehmen</h2>
+        <h2>Zurücknehmen</h2>
         <p class="klein leise">Nur für den Fall, dass beim Eintragen etwas schiefging.
           Die Fassungen werden wieder „abgestimmt in Gruppe“, die zuvor gültige
           Fassung wird reaktiviert. Eine inhaltliche Rücknahme ist ein neuer Beschluss.</p>

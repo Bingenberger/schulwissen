@@ -1,44 +1,8 @@
 {% extends "grundlage.html" %}
 {% block titel %}Konferenzbeschlüsse{% endblock %}
-
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:68rem">
-  <div>
-    <h1>Konferenzbeschlüsse</h1>
-    <p class="leise">Jeder beschlossene Inhalt zeigt, durch welchen Beschluss er gilt.
-      Hier steht die andere Richtung: welcher Beschluss hat was freigegeben.</p>
-
-    {% if ist_redaktion %}
-      <p class="knopf-reihe">
-        <a class="knopf" href="{% url 'kern:beschlussvorlage' %}">Beschlussvorlage zusammenstellen</a>
-      </p>
-    {% endif %}
-
-    <div class="karte">
-      <table class="tabelle">
-        <thead>
-          <tr><th>Datum</th><th>Gremium</th><th>Titel</th><th class="zahl">Fassungen</th></tr>
-        </thead>
-        <tbody>
-          {% for beschluss in beschluesse %}
-            <tr>
-              <td style="white-space:nowrap">{{ beschluss.datum|date:"d.m.Y" }}</td>
-              <td>{{ beschluss.gremium }}</td>
-              <td><a href="{% url 'kern:beschluss' beschluss.pk %}">{{ beschluss.titel }}</a></td>
-              <td class="zahl">{{ beschluss.anzahl }}</td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="4">
-              Es gibt noch keinen Beschluss.
-              {% if darf_beschliessen %}
-                Die Administration trägt ihn nach der Konferenz ein –
-                <a href="{% url 'kern:beschlussvorlage' %}">aus einer Beschlussvorlage heraus</a>.
-              {% endif %}
-            </td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+<div class="start beschlussliste"><h1>Konferenzbeschlüsse</h1><p class="leise">Hier findest du unsere Beschlüsse und die Inhalte, die dadurch gültig geworden sind.</p>
+{% if ist_redaktion %}<p class="knopf-reihe"><a class="knopf" href="{% url 'kern:beschlussvorlage' %}">{% include "kern/_symbol.html" with name="gruppe" %}Beschlussvorlage zusammenstellen</a></p>{% endif %}
+<div class="beschluss-karten">{% for beschluss in beschluesse %}<a class="beschluss-kachel" href="{% url 'kern:beschluss' beschluss.pk %}"><span class="beschluss-datum">{% include "kern/_symbol.html" with name="kalender" %}{{ beschluss.datum|date:"d.m.Y" }}</span><span class="beschluss-inhalt"><span class="klein leise">{{ beschluss.gremium }}</span><strong>{{ beschluss.titel }}</strong><span class="klein leise">{{ beschluss.anzahl }} freigegebene Fassungen</span></span>{% include "kern/_symbol.html" with name="pfeil" %}</a>{% empty %}<div class="leerer-zustand">{% include "kern/_symbol.html" with name="gruppe" %}<h2>Es gibt noch keinen Beschluss.</h2><p>Nach einer Konferenz findest du hier die beschlossenen Absprachen.</p>{% if darf_beschliessen %}<a class="knopf" href="{% url 'kern:beschlussvorlage' %}">Beschlussvorlage öffnen</a>{% endif %}</div>{% endfor %}</div>
 </div>
 {% endblock %}

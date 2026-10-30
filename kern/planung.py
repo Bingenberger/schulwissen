@@ -165,5 +165,11 @@ def planung(request):
                             ),
                         }
                     )
-            gruppen.append({"name": name, "zeilen": zeilen})
+            gruppen.append(
+                {
+                    "name": name,
+                    "zeilen": zeilen,
+                    "erledigt": sum(bool(z["formular"]["erledigt"].value()) for z in zeilen),
+                }
+            )
     return render(request, "kern/planung.html", {"auswahl": auswahl, "gruppen": gruppen})

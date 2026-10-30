@@ -2,14 +2,14 @@
 {% block titel %}Beschlussvorlage{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:68rem">
+<div class="geruest ohne-navigation">
   <div>
     <h1>Beschlussvorlage</h1>
     <p class="leise">Alles, was in der Gruppe abgestimmt ist und der Konferenz
       vorgelegt werden kann. Die Auswahl kann als PDF heruntergeladen werden. Auch die Drucktaste des Browsers funktioniert –
       Navigation und Knöpfe werden dabei ausgeblendet.</p>
 
-    <form method="get" class="knopf-reihe" style="margin-bottom:1.5rem">
+    <form method="get" class="knopf-reihe">
       <label for="dok">Dokument</label>
       <select id="dok" name="dokument" onchange="this.form.submit()">
         <option value="">alle</option>
@@ -24,7 +24,7 @@
       <form method="post" action="{% url 'kern:beschluss_anlegen' %}">
         {% csrf_token %}
         <div class="karte">
-          <table class="tabelle">
+          <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
             <thead>
               <tr>
                 <th><span class="nur-fuer-vorleser">Auswahl</span></th>
@@ -46,7 +46,7 @@
                 </tr>
               {% endfor %}
             </tbody>
-          </table>
+          </table></div>
         </div>
 
         <p><button class="knopf" type="submit" formmethod="post" formaction="{% url 'kern:vorlage_pdf' %}">Auswahl als PDF herunterladen</button></p>

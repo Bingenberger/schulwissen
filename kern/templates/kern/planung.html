@@ -1,30 +1,16 @@
 {% extends "grundlage.html" %}
 {% block titel %}Meine Planung{% endblock %}
 {% block inhalt %}
-<div class="start">
-  <h1>Meine Planung</h1>
-  <p class="leise">Deine Häkchen und Notizen sind nur für dich sichtbar.</p>
-  <form method="get" class="karte">
-    {% include "kern/_formular.html" with formular=auswahl %}
-    <button class="knopf knopf-wichtig" type="submit">Fahrplan anzeigen</button>
-  </form>
-  {% for gruppe in gruppen %}
-    <h2>{{ gruppe.name }}</h2>
-    {% for zeile in gruppe.zeilen %}
-      <article class="karte">
-        <h3><a href="{% url 'kern:eintrag' zeile.eintrag.dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.kennung }} · {{ zeile.eintrag.titel }}</a></h3>
-        {% if zeile.auspraegung %}<div>{{ zeile.auspraegung|safe }}</div>{% endif %}
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="dokument" value="{{ auswahl.cleaned_data.dokument.schluessel }}">
-          <input type="hidden" name="schuljahr" value="{{ auswahl.cleaned_data.schuljahr }}">
-          <input type="hidden" name="jahrgang" value="{{ auswahl.cleaned_data.jahrgang }}">
-          <input type="hidden" name="klasse" value="{{ auswahl.cleaned_data.klasse }}">
-          {% include "kern/_formular.html" with formular=zeile.formular %}
-          <button class="knopf" type="submit">Meine Planung speichern</button>
-        </form>
-      </article>
-    {% empty %}<p class="leise">Keine Einträge für diesen Zeitraum.</p>{% endfor %}
-  {% endfor %}
+<div class="start planungsseite">
+  <h1>Meine Planung</h1><p class="leise">Deine Häkchen und Notizen sind nur für dich sichtbar.</p>
+  <form method="get" class="karte planwahl">{% include "kern/_formular.html" with formular=auswahl %}<button class="knopf knopf-wichtig" type="submit">Fahrplan anzeigen</button></form>
+  {% for gruppe in gruppen %}<section class="planungsquartal"><div class="abschnitt-kopf"><h2>{{ gruppe.name }}</h2>{% if gruppe.zeilen %}<span class="klein leise">{{ gruppe.erledigt }} von {{ gruppe.zeilen|length }} erledigt</span>{% endif %}</div>{% if gruppe.zeilen %}<progress class="planungsfortschritt" value="{{ gruppe.erledigt }}" max="{{ gruppe.zeilen|length }}" aria-label="Erledigte Einträge: {{ gruppe.name }}"></progress>{% endif %}
+    {% for zeile in gruppe.zeilen %}<article class="karte planung-eintrag{% if zeile.formular.erledigt.value %} ist-erledigt{% endif %}"><form method="post">
+      {% csrf_token %}<input type="hidden" name="dokument" value="{{ auswahl.cleaned_data.dokument.schluessel }}"><input type="hidden" name="schuljahr" value="{{ auswahl.cleaned_data.schuljahr }}"><input type="hidden" name="jahrgang" value="{{ auswahl.cleaned_data.jahrgang }}"><input type="hidden" name="klasse" value="{{ auswahl.cleaned_data.klasse }}">{{ zeile.formular.eintrag }}
+      <div class="planung-zeile"><div class="planung-haken">{{ zeile.formular.erledigt }}<label class="nur-fuer-vorleser" for="{{ zeile.formular.erledigt.id_for_label }}">{{ zeile.eintrag.titel }} erledigt</label></div><div><h3><a href="{% url 'kern:eintrag' zeile.eintrag.dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.titel }}</a></h3><p class="klein leise"><span class="kennung">{{ zeile.eintrag.kennung }}</span>{% if zeile.eintrag.daten.zeitumfang_std %} · {{ zeile.eintrag.daten.zeitumfang_std }} Stunden{% endif %}</p>{% if zeile.auspraegung %}<div>{{ zeile.auspraegung|safe }}</div>{% endif %}</div></div>
+      <details class="planung-notiz" {% if zeile.formular.notiz.value %}open{% endif %}><summary>{% include "kern/_symbol.html" with name="kommentar" %}Meine Notiz{% if zeile.formular.notiz.value %} · vorhanden{% endif %}</summary><div class="feld"><label for="{{ zeile.formular.notiz.id_for_label }}">{{ zeile.formular.notiz.label }}</label>{{ zeile.formular.notiz }}{% for fehler in zeile.formular.notiz.errors %}<p class="feld-fehler" id="{{ zeile.formular.notiz.auto_id }}_error">{{ fehler }}</p>{% endfor %}</div></details>
+      <button class="knopf" type="submit">Meine Planung speichern</button>
+    </form></article>{% empty %}<p class="leerer-zustand">Keine Einträge für diesen Zeitraum.</p>{% endfor %}
+  </section>{% empty %}<div class="leerer-zustand">{% include "kern/_symbol.html" with name="kalender" %}<h2>Dein Überblick fürs Schuljahr</h2><p>Wähle oben deine Klasse und den Jahrgang aus. Dann siehst du die passenden Vorhaben und Rituale.</p></div>{% endfor %}
 </div>
 {% endblock %}
