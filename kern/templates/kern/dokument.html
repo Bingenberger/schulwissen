@@ -17,7 +17,7 @@
         <p class="klein leise">Die Nummer vergibt die App – du musst nichts erfinden.</p>
         <div class="knopf-reihe">
           {% for typ in eintragstypen %}
-            {% if typ.schluessel != 'grundlagenkapitel' %}
+            {% if typ.schluessel != 'grundlagenkapitel' or dokument.dokumenttyp.schluessel != 'arbeitsplan_deutsch' %}
               <a class="knopf knopf-wichtig"
                  href="{% url 'kern:eintrag_neu' dokument.schluessel typ.schluessel %}">
                 {{ typ.name }} anlegen</a>
@@ -25,7 +25,7 @@
           {% endfor %}
         </div>
         {% for typ in eintragstypen %}
-          {% if typ.schluessel != 'grundlagenkapitel' %}
+          {% if typ.schluessel != 'grundlagenkapitel' or dokument.dokumenttyp.schluessel != 'arbeitsplan_deutsch' %}
             <p class="klein leise" style="margin:0.6rem 0 0">
               <strong>{{ typ.name }}:</strong> {{ typ.beschreibung }}</p>
           {% endif %}
@@ -33,6 +33,15 @@
       </div>
     {% endif %}
 
+    <p class="knopf-reihe">
+      {% if ist_administration %}
+        <a class="knopf" href="{% url 'kern:export' dokument.schluessel 'pdf' %}">Beschlossenen Stand als PDF</a>
+        <a class="knopf" href="{% url 'kern:export' dokument.schluessel 'json' %}">JSON exportieren</a>
+        {% if dokument.dokumenttyp.schluessel == 'arbeitsplan_deutsch' %}<a class="knopf" href="{% url 'kern:export' dokument.schluessel 'xlsx' %}">Excel exportieren</a>{% endif %}
+        <a class="knopf" href="{% url 'kern:json_import' dokument.schluessel %}">JSON importieren</a>
+      {% endif %}
+      {% if ist_lehrkraft and dokument.dokumenttyp.schluessel == 'arbeitsplan_deutsch' %}<a class="knopf" href="{% url 'kern:planung' %}?dokument={{ dokument.schluessel }}">Meine Planung</a>{% endif %}
+    </p>
     <h2>Gliederung</h2>
     <div class="karte">
       <table class="tabelle">

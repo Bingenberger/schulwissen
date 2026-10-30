@@ -6,7 +6,7 @@
   <div>
     <h1>Beschlussvorlage</h1>
     <p class="leise">Alles, was in der Gruppe abgestimmt ist und der Konferenz
-      vorgelegt werden kann. Zum Ausdrucken reicht die Drucktaste des Browsers –
+      vorgelegt werden kann. Die Auswahl kann als PDF heruntergeladen werden. Auch die Drucktaste des Browsers funktioniert –
       Navigation und Knöpfe werden dabei ausgeblendet.</p>
 
     <form method="get" class="knopf-reihe" style="margin-bottom:1.5rem">
@@ -27,17 +27,15 @@
           <table class="tabelle">
             <thead>
               <tr>
-                {% if darf_beschliessen %}<th><span class="nur-fuer-vorleser">Auswahl</span></th>{% endif %}
+                <th><span class="nur-fuer-vorleser">Auswahl</span></th>
                 <th>Kennung</th><th>Titel</th><th>Dokument</th><th>Verantwortlich</th><th></th>
               </tr>
             </thead>
             <tbody>
               {% for eintrag in kandidaten %}
                 <tr>
-                  {% if darf_beschliessen %}
                     <td><input type="checkbox" name="eintrag" value="{{ eintrag.pk }}" checked
                                aria-label="{{ eintrag.kennung }} in den Beschluss aufnehmen"></td>
-                  {% endif %}
                   <td><span class="kennung">{{ eintrag.kennung }}</span></td>
                   <td><a href="{% url 'kern:eintrag' eintrag.dokument.schluessel eintrag.kennung %}">{{ eintrag.titel }}</a></td>
                   <td class="klein">{{ eintrag.dokument.titel }}</td>
@@ -51,6 +49,7 @@
           </table>
         </div>
 
+        <p><button class="knopf" type="submit" formmethod="post" formaction="{% url 'kern:vorlage_pdf' %}">Auswahl als PDF herunterladen</button></p>
         {% if darf_beschliessen %}
           <div class="knopf-reihe">
             <button class="knopf knopf-wichtig" type="submit">Beschluss eintragen</button>

@@ -7,6 +7,11 @@ ENV PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/usr/local \
     UV_COMPILE_BYTECODE=1
 
+# Pango und Schriftarten für den serverseitigen PDF-Export.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 # uv löst die Abhängigkeiten reproduzierbar aus uv.lock auf.
 RUN pip install --no-cache-dir uv
 

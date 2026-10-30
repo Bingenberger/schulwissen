@@ -39,6 +39,7 @@
   </form>
 
   <div class="kopf-konto">
+    {% if ist_lehrkraft %}<a href="{% url 'kern:planung' %}">Meine Planung</a>{% endif %}
     <a href="{% url 'fachdaten:uebersicht' %}">Kompetenzen</a>
     {% if ist_administration %}<a href="{% url 'admin:index' %}">Verwaltung</a>{% endif %}
     <span class="klein">{{ user.anzeigename }}</span>

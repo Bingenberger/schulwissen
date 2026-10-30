@@ -1,0 +1,9 @@
+{% extends "grundlage.html" %}
+{% block titel %}Dokument anlegen{% endblock %}
+{% block inhalt %}
+<div class="start"><h1>Dokument anlegen</h1>
+<form method="post" class="karte">{% csrf_token %}
+{% include "kern/_formular.html" %}
+<button class="knopf knopf-wichtig" type="submit">Dokument anlegen</button>
+</form></div>
+{% endblock %}

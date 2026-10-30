@@ -17,7 +17,7 @@ from kern.models import Beschluss, Dokument, Eintrag, Eintragsversion, Gremium
 class BeschlussFormular(forms.ModelForm):
     class Meta:
         model = Beschluss
-        fields = ["datum", "gremium", "titel", "text", "protokoll_anhang"]
+        fields = ["datum", "gremium", "titel", "text", "protokoll_eintrag", "protokoll_anhang"]
         widgets = {
             "datum": forms.DateInput(attrs={"type": "date"}),
             "text": forms.Textarea(attrs={"rows": 5}),
@@ -31,6 +31,9 @@ class BeschlussFormular(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["gremium"].queryset = Gremium.objects.all()
+        self.fields["protokoll_eintrag"].queryset = Eintrag.objects.filter(
+            dokument__dokumenttyp__schluessel="protokoll"
+        )
         self.fields["protokoll_anhang"].required = False
 
 

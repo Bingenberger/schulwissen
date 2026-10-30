@@ -66,6 +66,9 @@ def _formularfeld(feld):
         "required": False,
     }
 
+    if feld.typ == Feldtyp.DATUM:
+        return forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), **gemeinsam)
+
     if feld.typ == Feldtyp.RICHTEXT:
         return RichtextFeld(zeilen=max(feld.zeilen, 6), **gemeinsam)
 

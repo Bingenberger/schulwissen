@@ -17,12 +17,15 @@ kein Umbau des Kerns (Leitprinzip 3).
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field, replace
+from datetime import date
 
 
 class Feldtyp:
+    DATUM = "datum"
     TEXT = "text"
     """Einzeilige Eingabe."""
     LANGTEXT = "langtext"
@@ -308,6 +311,12 @@ class Eintragstyp:
 
 def _wert_pruefen(feld: Feld, wert: object) -> tuple[object, str]:
     """Einen einzelnen Wert in den Typ des Feldes bringen."""
+    if feld.typ == Feldtyp.DATUM:
+        try:
+            return date.fromisoformat(str(wert)).isoformat(), ""
+        except ValueError:
+            return None, "Bitte ein Datum im Format JJJJ-MM-TT angeben."
+
     if feld.typ == Feldtyp.ZAHL:
         if isinstance(wert, bool):
             return None, "Hier wird eine Zahl erwartet."
@@ -315,6 +324,8 @@ def _wert_pruefen(feld: Feld, wert: object) -> tuple[object, str]:
             zahl = float(str(wert).replace(",", "."))
         except (TypeError, ValueError):
             return None, f"„{wert}“ ist keine Zahl."
+        if not math.isfinite(zahl):
+            return None, "Bitte eine endliche Zahl angeben."
         if feld.ganzzahl:
             if zahl != int(zahl):
                 return None, "Hier wird eine ganze Zahl erwartet."

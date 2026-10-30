@@ -1,6 +1,6 @@
-# Phase 1 ausprobieren
+# Schulwissen ausprobieren
 
-Diese Anleitung führt dich durch alles, was Phase 1 kann – in etwa 20 Minuten.
+Diese Anleitung führt dich durch die Funktionen der Phasen 1 bis 3.
 Du brauchst nur Docker.
 
 ## Vorbereiten
@@ -285,7 +285,47 @@ docker compose exec app python manage.py shell -c \
 
 Die Zahl ist vor und nach der Vorschau gleich.
 
-## 11. Tests
+## 11. Phase 3 ausprobieren
+
+### Persönliche Planung
+
+1. Als Lehrkraft **Meine Planung** öffnen.
+2. Arbeitsplan, Klasse „3b“ und Schuljahr „2026/27“ wählen, **Fahrplan anzeigen**.
+3. Ein Vorhaben abhaken, eine Notiz ergänzen und speichern.
+4. Seite neu laden: Häkchen und Notiz bleiben erhalten.
+5. Klasse oder Schuljahr wechseln: der Fortschritt ist getrennt.
+6. Mit einer anderen Lehrkraft anmelden: die Notiz des ersten Kontos ist
+   nicht sichtbar. Ein lesendes Konto hat keinen Zugang zur Planung.
+
+### Konzepte und Protokolle
+
+1. Als Administration auf der Startseite **Dokument anlegen** wählen.
+2. Ein Konzept mit dem Schlüssel „medienkonzept“ anlegen und ein Kapitel ergänzen.
+3. Ein Konferenzprotokoll anlegen. Im automatisch erzeugten Protokollkopf Datum
+   und Gremium eintragen; einen Tagesordnungspunkt mit Beratung und Beschlusstext
+   ergänzen.
+4. Einträge wie gewohnt abstimmen und per tatsächlichem Beschluss freigeben.
+   Beim Beschluss kann ein Protokolleintrag zugeordnet werden.
+
+### Exporte und generischer Import
+
+1. Als Administration die Dokumentseite öffnen: **JSON exportieren** und beim
+   Arbeitsplan **Excel exportieren** herunterladen.
+2. **JSON importieren** öffnen und den JSON-Export hochladen. Die Vorschau
+   schreibt nichts; erst die ausdrückliche Übernahme erzeugt neue Fassungen.
+3. Die Excel-Datei mit dem bekannten Importkommando zuerst per `--vorschau`
+   prüfen; Verweise und Rich Text bleiben beim Rundlauf erhalten.
+4. **Beschlossenen Stand als PDF** herunterladen. Deckblatt, Inhaltsverzeichnis,
+   beschlossene Kapitel/Steckbriefe und Abdeckungsmatrix prüfen.
+5. Einen beschlossenen Inhalt als Entwurf ändern und PDF erneut herunterladen:
+   im PDF steht weiterhin der gültige Inhalt.
+6. Als Redaktion eine **Beschlussvorlage** öffnen, abgestimmte Einträge auswählen
+   und **Auswahl als PDF herunterladen** wählen. Das PDF zeigt auch Unterschiede
+   zum bisherigen Beschluss.
+7. Eine JSON-Datei nach [JSON-IMPORT.md](JSON-IMPORT.md) mit unbekannter Kompetenz
+   oder zyklischer Gliederung hochladen: der gesamte Import wird abgewiesen.
+
+## 12. Tests
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml \

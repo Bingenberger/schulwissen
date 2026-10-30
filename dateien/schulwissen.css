@@ -118,6 +118,8 @@ body {
 
 .kopf-konto {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   align-items: center;
   gap: 1rem;
   font-size: 0.95rem;
@@ -388,6 +390,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 .feld input[type="email"],
 .feld input[type="password"],
 .feld input[type="number"],
+.feld input[type="date"],
 .feld select,
 .feld textarea {
   width: 100%;
@@ -1056,3 +1059,10 @@ del {
 }
 
 .baum-zeile.ist-gesperrt:hover { background: transparent; }
+
+/* Persönliche Planung: Häkchen auch auf dem Tablet sicher treffen. */
+.feld input[type="checkbox"] {
+  width: 1.5rem;
+  height: 1.5rem;
+  accent-color: var(--akzent);
+}

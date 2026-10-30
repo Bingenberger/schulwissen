@@ -400,7 +400,7 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
 
     roh = formular.als_rohsatz(kennung)
 
-    if eintrag is not None and roh.status != eintrag.status:
+    if roh.status != (eintrag.status if eintrag is not None else Status.ENTWURF):
         if not rechte.darf_status_setzen(request.user, eintrag, roh.status):
             formular.add_error(
                 "status",

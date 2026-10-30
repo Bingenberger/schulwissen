@@ -249,6 +249,13 @@ def zeile_zu_rohsatz(zeile: dict, typschluessel: str) -> tuple[Rohsatz, list[Bef
 
 def _text_zu_html(text: str) -> str:
     """Zeilenumbrüche aus einer Zelle in Absätze verwandeln."""
+    # Der Export bewahrt Rich Text als HTML; herkömmliche Zellen bleiben Klartext.
+    import re
+
+    if re.search(r"</?(?:p|h[2-4]|ul|ol|table|strong|em|blockquote)(?:>|\s)", text):
+        from eintragstypen.html import saeubern
+
+        return saeubern(text)
     absaetze = [t.strip() for t in str(text).split("\n") if t.strip()]
     if not absaetze:
         return ""

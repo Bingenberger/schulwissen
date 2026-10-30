@@ -19,7 +19,6 @@ from kern.models import (
     Gruppenprofil,
     Kommentar,
     Nutzer,
-    PersoenlicherFortschritt,
     Status,
     Verlinkung,
 )
@@ -220,9 +219,3 @@ class VerlinkungAdmin(admin.ModelAdmin):
     list_display = ["von_eintrag", "art", "ziel_typ", "ziel_id", "beschriftung"]
     list_filter = ["art", "ziel_typ"]
     search_fields = ["ziel_id", "beschriftung"]
-
-
-@admin.register(PersoenlicherFortschritt)
-class FortschrittAdmin(admin.ModelAdmin):
-    list_display = ["nutzer", "eintrag", "schuljahr", "klasse", "erledigt"]
-    list_filter = ["schuljahr", "erledigt"]

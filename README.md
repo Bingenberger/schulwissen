@@ -11,7 +11,7 @@ Die vollständige fachliche Beschreibung steht in [SPEC.md](SPEC.md).
 
 ## Stand
 
-**Phase 1 und Phase 2 sind umgesetzt** (SPEC.md §13).
+**Phase 1 bis Phase 3 sind umgesetzt** (SPEC.md §13).
 
 Phase 1: Kern, Rollen, Arbeitsplan Deutsch, Kompetenz-Stammdaten, Import aus
 der Arbeitsmappe, Eingabemasken.
@@ -21,9 +21,13 @@ Textextraktion aus Anhängen, Beschlüsse mit Statusworkflow, Fassungsvergleich,
 „Änderungen seit Beschluss“, alle sieben Auswertungen aus §7.5 und die
 Nextcloud-Verlinkung (Stufe 1).
 
-Noch nicht da (Phasen 3 und 4): „Meine Planung“, PDF-, JSON- und XLSX-Export,
-die Dokumenttypen „Konzept“ und „Konferenzprotokoll“, der generische
-JSON-Import, Nextcloud-Indexierung, OIDC und weitere Fächer.
+Phase 3: persönliche Planung mit Häkchen und privaten Notizen je Klasse und
+Schuljahr, PDF des beschlossenen Dokumentstands und ausgewählter
+Beschlussvorlagen, JSON-/XLSX-Export, Dokumenttypen „Konzept“ und
+„Konferenzprotokoll“ sowie generischer JSON-Import mit Vorschau.
+
+Noch nicht da (Phase 4): Nextcloud-Indexierung, OIDC und weitere Fächer.
+Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPORT.md).
 
 ## Schnellstart
 
@@ -53,7 +57,7 @@ den Server in [DEPLOYMENT.md](DEPLOYMENT.md).
 | Verzeichnis | Inhalt |
 | --- | --- |
 | `schulwissen/` | Einstellungen, URLs, WSGI |
-| `kern/` | Nutzer, Rollen, Dokument, Eintrag, Fassungen, Beschluss, Verlinkung, Anhang, Kommentar |
+| `kern/` | Nutzer, Rollen, Dokumente, Fassungen, Beschlüsse, Anhänge, Kommentare, Planung, Exporte, Konzepte und Protokolle |
 | `eintragstypen/` | Registry der Feldschemata, Formular-Fabrik, gemeinsamer Schreibweg |
 | `fachdaten/` | Kompetenzerwartungen des Lehrplans, ihr Import und ihre Suche |
 | `deutsch/` | Dokumenttyp „Arbeitsplan Deutsch“: Gliederung, Eintragstypen, XLSX-Import, Auswertungen |
@@ -197,6 +201,19 @@ Zeilen, deren Titel auf „(Beispiel)“ endet, werden übersprungen.
 
 Beide Dateien liegen im Projektverzeichnis und sind im Abbild enthalten; die
 Kommandos finden sie ohne weitere Angabe.
+
+## Persönliche Planung und neue Dokumente
+
+**Meine Planung** in der Kopfzeile öffnet den Fahrplan für eine Klasse und ein
+Schuljahr. Der Jahrgang wird aus „3b“ erkannt oder ausdrücklich gewählt.
+Häkchen und Notizen sind nur im eigenen Konto sichtbar und verändern keine
+Einträge oder Fassungen. Sie erscheinen weder in der Verwaltung noch in den
+Dokumentexporten.
+
+Die Administration legt über **Dokument anlegen** auf der Startseite auch
+Konzepte und Konferenzprotokolle an. Kapitel und Tagesordnungspunkte entstehen
+über dieselben Formulare und durchlaufen denselben Beschlussworkflow wie
+der Arbeitsplan. Auf der Dokumentseite stehen Import und Exporte bereit.
 
 ## Entwickeln
 

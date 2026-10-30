@@ -27,6 +27,7 @@
   </form>
 
   <h2>Dokumente</h2>
+  {% if ist_administration %}<p><a class="knopf" href="{% url 'kern:dokument_neu' %}">Dokument anlegen</a></p>{% endif %}
   {% for dokument in dokumente %}
     <div class="karte">
       <h3 style="margin-top:0">

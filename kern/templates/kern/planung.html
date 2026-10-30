@@ -1,0 +1,30 @@
+{% extends "grundlage.html" %}
+{% block titel %}Meine Planung{% endblock %}
+{% block inhalt %}
+<div class="start">
+  <h1>Meine Planung</h1>
+  <p class="leise">Deine Häkchen und Notizen sind nur für dich sichtbar.</p>
+  <form method="get" class="karte">
+    {% include "kern/_formular.html" with formular=auswahl %}
+    <button class="knopf knopf-wichtig" type="submit">Fahrplan anzeigen</button>
+  </form>
+  {% for gruppe in gruppen %}
+    <h2>{{ gruppe.name }}</h2>
+    {% for zeile in gruppe.zeilen %}
+      <article class="karte">
+        <h3><a href="{% url 'kern:eintrag' zeile.eintrag.dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.kennung }} · {{ zeile.eintrag.titel }}</a></h3>
+        {% if zeile.auspraegung %}<div>{{ zeile.auspraegung|safe }}</div>{% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="dokument" value="{{ auswahl.cleaned_data.dokument.schluessel }}">
+          <input type="hidden" name="schuljahr" value="{{ auswahl.cleaned_data.schuljahr }}">
+          <input type="hidden" name="jahrgang" value="{{ auswahl.cleaned_data.jahrgang }}">
+          <input type="hidden" name="klasse" value="{{ auswahl.cleaned_data.klasse }}">
+          {% include "kern/_formular.html" with formular=zeile.formular %}
+          <button class="knopf" type="submit">Meine Planung speichern</button>
+        </form>
+      </article>
+    {% empty %}<p class="leise">Keine Einträge für diesen Zeitraum.</p>{% endfor %}
+  {% endfor %}
+</div>
+{% endblock %}

@@ -57,7 +57,13 @@ def test_das_feld_bietet_eine_auswahl_an():
     feld = Eintrag._meta.get_field("eintragstyp")
     moegliche = {wert for wert, _ in feld.get_choices(include_blank=False)}
 
-    assert moegliche == {"grundlagenkapitel", "ritual", "vorhaben"}
+    assert moegliche == {
+        "grundlagenkapitel",
+        "ritual",
+        "vorhaben",
+        "protokollkopf",
+        "tagesordnungspunkt",
+    }
     assert moegliche == {s for s, _ in registry.auswahl()}
 
 

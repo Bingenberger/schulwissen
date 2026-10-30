@@ -370,7 +370,7 @@ def test_filter_gelten_auch_fuer_dateien(lehrkraft, pdf_anhang, importierter_arb
 def test_filter_nach_dokument_schliesst_fremde_dateien_aus(lehrkraft, pdf_anhang, db):
     from kern.models import Dokument, Dokumenttyp
 
-    typ = Dokumenttyp.objects.create(schluessel="konzept", name="Konzept")
+    typ, _ = Dokumenttyp.objects.get_or_create(schluessel="konzept", defaults={"name": "Konzept"})
     Dokument.objects.create(schluessel="anderes", titel="Anderes Dokument", dokumenttyp=typ)
 
     ergebnis = dienste.suchen(lehrkraft, "Märchen", dokument="anderes")

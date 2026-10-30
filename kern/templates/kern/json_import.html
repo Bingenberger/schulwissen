@@ -1,0 +1,13 @@
+{% extends "grundlage.html" %}
+{% block titel %}JSON importieren{% endblock %}
+{% block inhalt %}
+<div class="start">
+<h1>Einträge importieren</h1><p>{{ dokument.titel }}</p>
+<form method="post" enctype="multipart/form-data" class="karte">
+{% csrf_token %}{% include "kern/_formular.html" %}
+<button class="knopf" type="submit" name="aktion" value="vorschau">Vorschau anzeigen</button>
+{% if bericht.ok %}<button class="knopf knopf-wichtig" type="submit" name="aktion" value="uebernehmen">Geprüfte Einträge übernehmen</button>{% endif %}
+</form>
+{% if bericht %}<h2>Vorschau</h2><pre style="white-space:pre-wrap">{{ bericht.als_text }}</pre>{% endif %}
+</div>
+{% endblock %}

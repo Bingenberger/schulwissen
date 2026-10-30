@@ -10,6 +10,7 @@ dependencies = [
     "whitenoise>=6.8",
     "nh3>=0.2.20",
     "openpyxl>=3.1.5",
+    "weasyprint>=68,<71",
     # Volltext aus Anhaengen (SPEC.md Paragraf 9)
     "pypdf>=5.1",
     "python-docx>=1.1",

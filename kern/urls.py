@@ -3,12 +3,17 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from kern import beschluss_views, views
+from kern import beschluss_views, dokument_views, export_views, import_views, planung, views
 
 app_name = "kern"
 
 urlpatterns = [
     path("", views.startseite, name="startseite"),
+    path("meine-planung", planung.planung, name="planung"),
+    path("dokument-neu", dokument_views.dokument_neu, name="dokument_neu"),
+    path("d/<slug:schluessel>/export/<str:format>", export_views.export, name="export"),
+    path("d/<slug:schluessel>/import", import_views.json_import, name="json_import"),
+    path("beschluesse/vorlage.pdf", export_views.vorlage_pdf, name="vorlage_pdf"),
     path("gesundheit", views.gesundheit, name="gesundheit"),
     # --- Anmeldung ---
     path(

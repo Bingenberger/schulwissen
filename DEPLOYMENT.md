@@ -296,7 +296,8 @@ Compose ist der empfohlene Weg. Wer die App lieber direkt auf dem Host
 betreibt, braucht Python 3.12, PostgreSQL 16 und `uv`:
 
 ```bash
-sudo apt install python3.12 python3.12-venv postgresql-16
+sudo apt install python3.12 python3.12-venv postgresql-16 \
+  libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core
 sudo -u postgres createuser --pwprompt schulwissen
 sudo -u postgres createdb -O schulwissen schulwissen
 sudo -u postgres psql -d schulwissen -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
@@ -343,3 +344,20 @@ sudo systemctl status schulwissen
 
 Die nginx-Konfiguration ist dieselbe; nur der Pfad für `/medien/` ändert sich
 auf das Verzeichnis aus `SW_MEDIEN_VERZEICHNIS`.
+
+
+## 12. Aktualisierung auf Phase 3
+
+Mit `docker compose up -d --build` werden WeasyPrint, Pango und Schriftarten
+mitgebaut. Die Startmigration ergänzt die Dokumenttypen „Konzept“ und
+„Konferenzprotokoll“, bestehende Inhalte bleiben erhalten. Danach kann die
+Administration Dokumente direkt auf der Startseite anlegen.
+
+PDF-Exporte brauchen weder einen Browser noch einen zusätzlichen Dienst.
+Bei Betrieb ohne Docker sind die oben genannten Systempakete erforderlich;
+siehe auch die [Installationshinweise von WeasyPrint](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html).
+
+Der generische Import ist über die Dokumentseite oder
+`manage.py eintraege_importieren DATEI --vorschau` erreichbar.
+Schema, Rundlauf und Archivgrenzen beschreibt [JSON-IMPORT.md](JSON-IMPORT.md).
+PostgreSQL und Medienverzeichnis bleiben die Grundlage vollständiger Sicherungen.
