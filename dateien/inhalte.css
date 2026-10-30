@@ -169,3 +169,11 @@ input[type="file"]::file-selector-button { min-height:var(--klickflaeche); paddi
 .kompetenzbereich[data-bereich^="Sprechen"]::before { background:var(--bereich-sprechen); }
 button.marke-text { font:inherit; background:transparent; border:0; color:inherit; min-height:var(--klickflaeche); min-width:var(--klickflaeche); text-align:left; cursor:pointer; }
 .marke-text.ist-ausgeklappt { white-space:normal; overflow:visible; max-width:none; }
+.listen-suche { margin:var(--abstand-5) 0 var(--abstand-6); }
+.listen-suche>label { display:block; font-weight:600; margin-bottom:var(--abstand-2); }
+.seitennavigation { margin-top:var(--abstand-6); }
+.entwurfsliste>li { display:flex; justify-content:space-between; align-items:center; gap:var(--abstand-3); padding:var(--abstand-4); background:var(--papier); border:1px solid var(--linie); border-radius:var(--radius); margin-bottom:var(--abstand-3); }
+.entwurfsliste a { display:block; min-height:var(--klickflaeche); color:var(--text); text-decoration:none; }
+.entwurfsliste a>span { display:block; }
+.knopf-gefahr { color:var(--fehler); border-color:var(--fehler); }
+@media(max-width:550px) { .entwurfsliste>li { flex-wrap:wrap; } }

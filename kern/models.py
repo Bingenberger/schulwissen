@@ -20,7 +20,7 @@ from django.contrib.auth.models import Group, PermissionsMixin
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 # --- Rollen ----------------------------------------------------------------
@@ -246,13 +246,39 @@ class Dokument(Zeitstempel):
         """
         nummern = []
         praefix = muster.split("{nr")[0].format(**teile)
-        for kennung in self.eintraege.filter(kennung__startswith=praefix).values_list(
-            "kennung", flat=True
-        ):
+        vergeben = list(
+            self.eintraege.filter(kennung__startswith=praefix).values_list("kennung", flat=True)
+        )
+        vergeben += list(
+            self.reservierte_kennungen.filter(kennung__startswith=praefix).values_list(
+                "kennung", flat=True
+            )
+        )
+        for kennung in vergeben:
             rest = kennung[len(praefix) :]
             if rest.isdigit():
                 nummern.append(int(rest))
         return muster.format(nr=max(nummern, default=0) + 1, **teile)
+
+
+class ReservierteKennung(models.Model):
+    """Eine gelöschte Kennung bleibt vergeben, ohne ihren Inhalt aufzubewahren."""
+
+    dokument = models.ForeignKey(
+        Dokument, on_delete=models.CASCADE, related_name="reservierte_kennungen"
+    )
+    kennung = models.CharField(max_length=40)
+    geloescht_am = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["dokument", "kennung"], name="reservierte_kennung_je_dokument"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.dokument_id}: {self.kennung}"
 
 
 # --- Einträge --------------------------------------------------------------
@@ -345,6 +371,19 @@ class Eintrag(Zeitstempel):
     def __str__(self) -> str:
         return f"{self.kennung} {self.titel}".strip()
 
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.dokument_id:
+            with transaction.atomic():
+                Dokument.objects.select_for_update().get(pk=self.dokument_id)
+                if ReservierteKennung.objects.filter(
+                    dokument_id=self.dokument_id, kennung=self.kennung
+                ).exists():
+                    raise ValidationError(
+                        "Diese Kennung wurde gelöscht und bleibt dauerhaft reserviert."
+                    )
+                return super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
+
     @property
     def typ(self):
         """Das Schema dieses Eintrags aus der Registry.
@@ -383,6 +422,15 @@ class Eintrag(Zeitstempel):
                 }
             )
 
+        if (
+            self.dokument_id
+            and ReservierteKennung.objects.filter(
+                dokument_id=self.dokument_id, kennung=self.kennung
+            ).exists()
+        ):
+            raise ValidationError(
+                {"kennung": "Diese Kennung wurde gelöscht und bleibt reserviert."}
+            )
         if not self.dokument_id:
             # Ohne Dokument hat Django schon einen Fehler dafür gemeldet.
             return

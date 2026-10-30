@@ -4,6 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from kern import (
+    arbeitsablauf,
     beschluss_views,
     dokument_views,
     export_views,
@@ -11,6 +12,7 @@ from kern import (
     import_views,
     oidc,
     planung,
+    uebersichten,
     views,
 )
 
@@ -18,6 +20,18 @@ app_name = "kern"
 
 urlpatterns = [
     path("", views.startseite, name="startseite"),
+    path("dokumente", uebersichten.dokumente, name="dokumente"),
+    path("meine-entwuerfe", uebersichten.eigene_entwuerfe, name="eigene_entwuerfe"),
+    path(
+        "d/<slug:schluessel>/protokoll-beschliessen",
+        arbeitsablauf.protokoll_beschliessen,
+        name="protokoll_beschliessen",
+    ),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/loeschen",
+        arbeitsablauf.eintrag_loeschen,
+        name="eintrag_loeschen",
+    ),
     path("styleguide", gestaltung.styleguide, name="styleguide"),
     path("anmelden/nextcloud", oidc.anmelden, name="oidc_anmelden"),
     path("anmelden/nextcloud/callback", oidc.callback, name="oidc_callback"),

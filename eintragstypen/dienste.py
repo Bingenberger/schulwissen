@@ -21,7 +21,7 @@ from django.db import transaction
 
 from eintragstypen import html
 from eintragstypen.registry import Feldtyp, registry
-from kern.models import Eintrag, Status, Verlinkung, Zieltyp
+from kern.models import Eintrag, ReservierteKennung, Status, Verlinkung, Zieltyp
 
 FEHLER = "fehler"
 WARNUNG = "warnung"
@@ -96,6 +96,13 @@ def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = Non
     zu können.
     """
     ergebnis = Befundsatz(roh=roh)
+    if ReservierteKennung.objects.filter(dokument=dokument, kennung=roh.kennung).exists():
+        ergebnis.befunde.append(
+            Befund(
+                FEHLER, "Diese Kennung wurde gelöscht und bleibt dauerhaft reserviert.", "kennung"
+            )
+        )
+        return ergebnis
 
     if not registry.bekannt(roh.eintragstyp):
         ergebnis.befunde.append(

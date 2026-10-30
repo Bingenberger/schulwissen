@@ -145,6 +145,7 @@
     </div>
 
     {% if darf_bearbeiten %}
+      <div class="karte"><h3>Eintrag entfernen</h3><a class="knopf knopf-leise" href="{% url 'kern:eintrag_loeschen' dokument.schluessel eintrag.kennung %}">Eintrag löschen …</a><p class="klein leise">Beschlossene oder verwendete Einträge bleiben geschützt.</p></div>
       <div class="karte">
         <h3>Anhang hinzufügen</h3>
         <form action="{% url 'kern:anhang_hochladen' dokument.schluessel eintrag.kennung %}"

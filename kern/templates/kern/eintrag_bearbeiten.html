@@ -27,6 +27,7 @@
       {% else %}Die Kennung vergibt die App beim Speichern.{% endif %}
     </p>
 
+    {% if eintrag %}<p><a class="knopf knopf-leise" href="{% url 'kern:eintrag_loeschen' dokument.schluessel eintrag.kennung %}">Eintrag löschen …</a></p>{% endif %}
     <div class="meldung meldung-info">
       <strong>Speichern geht immer.</strong> Felder mit <span class="feld-pflicht">*</span>
       sind Pflicht, aber erst für den Status „abgestimmt in Gruppe“. Du kannst

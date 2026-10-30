@@ -48,7 +48,7 @@ def startseite(request):
         )
         .filter(Q(erstellt_von=request.user) | Q(verantwortlich_person=request.user))
         .select_related("dokument")
-        .order_by("-geaendert_am")[:8]
+        .order_by("-geaendert_am", "pk")
         if rechte.ist_lehrkraft(request.user)
         else Eintrag.objects.none()
     )
@@ -57,11 +57,13 @@ def startseite(request):
         request,
         "kern/startseite.html",
         {
-            "dokumente": Dokument.objects.select_related("dokumenttyp").annotate(
-                anzahl=Count("eintraege")
-            ),
+            "dokumente": Dokument.objects.select_related("dokumenttyp")
+            .annotate(anzahl=Count("eintraege"))
+            .order_by("titel", "pk")[:6],
+            "dokumente_gesamt": Dokument.objects.count(),
+            "eigene_entwuerfe_gesamt": eigene_entwuerfe.count(),
             "zuletzt_beschlossen": zuletzt_beschlossen,
-            "eigene_entwuerfe": eigene_entwuerfe,
+            "eigene_entwuerfe": eigene_entwuerfe[:5],
         },
     )
 
@@ -154,6 +156,9 @@ def dokument_ansehen(request, schluessel: str):
         {
             "dokument": dokument,
             "baum": baum,
+            "protokoll_hat_entwuerfe": dokument.eintraege.exclude(status=Status.ARCHIVIERT)
+            .exclude(status=Status.BESCHLOSSEN)
+            .exists(),
             "kartengruppen": sorted(
                 karten.items(), key=lambda gruppe: (gruppe[0] != "Rituale", gruppe[0])
             ),

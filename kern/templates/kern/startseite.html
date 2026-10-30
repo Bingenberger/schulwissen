@@ -40,14 +40,14 @@
       {% endif %}
       {% if eigene_entwuerfe %}
         <div class="karte start-kurzkarte">
-          <h2>{% include "kern/_symbol.html" with name="stift" %}Meine offenen Entwürfe</h2>
+          <h2>{% include "kern/_symbol.html" with name="stift" %}Meine offenen Entwürfe</h2><p class="klein leise">Zuletzt geändert · {{ eigene_entwuerfe|length }} von {{ eigene_entwuerfe_gesamt }}.</p>
           <ul class="start-eintragsliste">
             {% for entwurf in eigene_entwuerfe|slice:":5" %}
               <li><a href="{% url 'kern:eintrag' entwurf.dokument.schluessel entwurf.kennung %}">
                 <strong>{{ entwurf.titel }}</strong><span>{{ entwurf.dokument.titel }} <span class="schild schild-klein schild-{{ entwurf.status }}">{{ entwurf.get_status_display }}</span></span>
               </a></li>
             {% endfor %}
-          </ul>
+          </ul><a class="knopf knopf-leise" href="{% url 'kern:eigene_entwuerfe' %}">Alle eigenen Entwürfe ansehen</a>
         </div>
       {% endif %}
     </section>
@@ -73,6 +73,7 @@
         </div>
       {% endfor %}
     </div>
+    <p><a class="knopf" href="{% url 'kern:dokumente' %}">Alle {{ dokumente_gesamt }} Dokument{{ dokumente_gesamt|pluralize:"e" }} ansehen</a><span class="klein leise"> · Auf der Startseite höchstens sechs.</span></p>
     {% if ist_redaktion %}<p class="start-redaktion"><a href="{% url 'kern:beschlussvorlage' %}">{% include "kern/_symbol.html" with name="gruppe" %}Beschlussvorlage für die nächste Konferenz öffnen{% include "kern/_symbol.html" with name="pfeil" %}</a></p>{% endif %}
   </section>
 </div>
