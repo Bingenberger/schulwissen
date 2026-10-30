@@ -1,0 +1,28 @@
+<form class="suchformular {% if gross %}start-suche{% else %}kopf-suche{% endif %}"
+      action="{% url 'suche:suchen' %}" method="get" role="search"
+      x-data="schulwissenSuche" @click.outside="schliessen()"
+      @keydown.arrow-down.prevent="bewegen(1)" @keydown.arrow-up.prevent="bewegen(-1)"
+      @keydown.escape.prevent="schliessen()" @keydown.enter="auswaehlen($event)"
+      >
+  <label class="nur-fuer-vorleser" for="{{ kennung }}">Schulwissen durchsuchen</label>
+  <div class="suchfeld">
+    <span class="suchfeld-symbol">{% include "kern/_symbol.html" with name="suche" %}</span>
+    <input type="search" id="{{ kennung }}" name="q" x-ref="eingabe"
+           value="{{ request.GET.q|default:'' }}"
+           placeholder="{% if gross %}z. B. Lesezeit, Diktat, Märchen …{% else %}Schulwissen durchsuchen …{% endif %}"
+           autocomplete="off" {% if gross %}autofocus{% endif %}
+           role="combobox" aria-autocomplete="list"
+           aria-expanded="false" :aria-expanded="String(offen)"
+           aria-controls="{{ kennung }}-vorschlaege"
+           :aria-activedescendant="aktiveId || null"
+           hx-get="{% url 'suche:vorschlaege' %}"
+           hx-trigger="input changed delay:200ms, search"
+           hx-target="#{{ kennung }}-vorschlaege"
+           @input="offen = true; aktiv = -1; aktiveId = ''"
+           @focus="offen = !!optionen().length">
+    <span class="suchfeld-laden" x-show="sucht" x-cloak role="status"><span class="nur-fuer-vorleser">Suche läuft</span></span>
+    <button class="knopf knopf-wichtig" type="submit">Suchen</button>
+  </div>
+  <div class="vorschlaege" id="{{ kennung }}-vorschlaege"
+       x-ref="vorschlaege" x-show="offen" x-cloak :aria-busy="String(sucht)"></div>
+</form>

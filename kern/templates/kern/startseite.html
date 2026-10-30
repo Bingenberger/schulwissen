@@ -1,95 +1,79 @@
 {% extends "grundlage.html" %}
+{% load static %}
 {% block titel %}Start{% endblock %}
+{% block kopf_zusatz %}<link rel="stylesheet" href="{% static 'startseite.css' %}">{% endblock %}
+{% block kopfsuche %}
+<nav class="kopf-einstiege" aria-label="Schnelleinstieg">
+  {% if ist_lehrkraft %}<a href="{% url 'kern:planung' %}">{% include "kern/_symbol.html" with name="kalender" %}Meine Planung</a>{% endif %}
+  <a href="{% url 'kern:beschluesse' %}">{% include "kern/_symbol.html" with name="kreis-haken" %}Beschlüsse</a>
+</nav>
+{% endblock %}
 
 {% block inhalt %}
-<div class="start">
-  <h1>Schulwissen der GGS Niederkassel</h1>
-  <p class="leise">Arbeitspläne, Konzepte und Konferenzbeschlüsse – an einer Stelle,
-    durchsuchbar und verlinkt.</p>
-
-  {% comment %}Großes Suchfeld mit Fokus beim Laden (SPEC.md §9).{% endcomment %}
-  <form class="start-suche" action="{% url 'suche:suchen' %}" method="get" role="search"
-        x-data="{ offen: false }" @click.outside="offen = false">
-    <label for="start-suchfeld">Wonach suchst du?</label>
-    <input type="search" id="start-suchfeld" name="q" value="{{ request.GET.q|default:'' }}"
-           placeholder="z. B. Märchen, Lesezeit, Leistungsbewertung oder SC2.02D"
-           autocomplete="off" autofocus
-           role="combobox" aria-expanded="false" aria-controls="start-vorschlaege"
-           hx-get="{% url 'suche:vorschlaege' %}"
-           hx-trigger="input changed delay:200ms"
-           hx-target="#start-vorschlaege"
-           @input="offen = true" @focus="offen = true"
-           {% comment %}.prevent, weil ein Suchfeld bei Escape sonst seinen
-           Inhalt leert und das input-Ereignis die Liste sofort wieder
-           aufklappt.{% endcomment %}
-           @keydown.escape.prevent="offen = false">
-    <div class="vorschlaege" id="start-vorschlaege" x-show="offen" x-cloak></div>
-  </form>
-
-  {% if oidc_eingerichtet %}
-  <form method="post" action="{% url 'kern:oidc_verbinden' %}">
-    {% csrf_token %}<button class="knopf" type="submit">Mein Konto mit Nextcloud verbinden</button>
-  </form>
-  {% endif %}
-  <h2>Dokumente</h2>
-  {% if ist_administration %}<p><a class="knopf" href="{% url 'kern:dokument_neu' %}">Dokument anlegen</a></p>{% endif %}
-  {% for dokument in dokumente %}
-    <div class="karte">
-      <h3 style="margin-top:0">
-        <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a>
-      </h3>
-      <p class="leise klein" style="margin:0">
-        {{ dokument.dokumenttyp.name }}
-        {% if dokument.gueltig_ab_schuljahr %} · ab Schuljahr {{ dokument.gueltig_ab_schuljahr }}{% endif %}
-        · {{ dokument.anzahl }} Einträge
-      </p>
-      {% if dokument.beschreibung %}<p style="margin:0.5rem 0 0">{{ dokument.beschreibung }}</p>{% endif %}
+<div class="start start-neu">
+  <section class="start-hero" aria-labelledby="start-titel">
+    <p class="start-augenbraue">Wissen für unseren Schulalltag</p>
+    <h1 id="start-titel">Was suchst du?</h1>
+    <p class="start-einleitung">Finde Arbeitspläne, Konzepte und die Absprachen aus unseren Konferenzen.</p>
+    {% include "kern/_suchfeld.html" with kennung="start-suchfeld" gross=True %}
+    <div class="start-beispiele" aria-label="Beispielsuchen">
+      <span>Zum Beispiel</span>
+      <a href="{% url 'suche:suchen' %}?q=Lesezeit">Lesezeit</a>
+      <a href="{% url 'suche:suchen' %}?q=Leistungsbewertung">Leistungsbewertung</a>
+      <a href="{% url 'suche:suchen' %}?q=M%C3%A4rchen">Märchen</a>
     </div>
-  {% empty %}
-    <div class="karte">
-      <p>Es gibt noch kein Dokument.</p>
-      {% if ist_administration %}
-        <p class="klein leise">Der Arbeitsplan Deutsch wird mit
-          <code>manage.py arbeitsplan_importieren</code> oder in der Verwaltung angelegt.</p>
+  </section>
+
+  {% if zuletzt_beschlossen or eigene_entwuerfe %}
+    <section class="start-aktuell" aria-label="Deine Einstiege">
+      {% if zuletzt_beschlossen %}
+        <div class="karte start-kurzkarte">
+          <h2>{% include "kern/_symbol.html" with name="kreis-haken" %}Zuletzt beschlossen</h2>
+          <ul class="start-eintragsliste">
+            {% for beschlossen in zuletzt_beschlossen|slice:":5" %}
+              <li><a href="{% url 'kern:eintrag' beschlossen.dokument.schluessel beschlossen.kennung %}">
+                <strong>{{ beschlossen.titel }}</strong><span>{{ beschlossen.dokument.titel }}</span>
+              </a></li>
+            {% endfor %}
+          </ul>
+        </div>
       {% endif %}
-    </div>
-  {% endfor %}
-
-  {% if eigene_entwuerfe %}
-    <h2>Meine offenen Entwürfe</h2>
-    <div class="karte">
-      <ul class="liste-schlicht">
-        {% for entwurf in eigene_entwuerfe %}
-          <li>
-            <a href="{% url 'kern:eintrag' entwurf.dokument.schluessel entwurf.kennung %}">
-              <span class="kennung">{{ entwurf.kennung }}</span> {{ entwurf.titel }}</a>
-            <span class="schild schild-klein schild-{{ entwurf.status }}">{{ entwurf.get_status_display }}</span>
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
+      {% if eigene_entwuerfe %}
+        <div class="karte start-kurzkarte">
+          <h2>{% include "kern/_symbol.html" with name="stift" %}Meine offenen Entwürfe</h2>
+          <ul class="start-eintragsliste">
+            {% for entwurf in eigene_entwuerfe|slice:":5" %}
+              <li><a href="{% url 'kern:eintrag' entwurf.dokument.schluessel entwurf.kennung %}">
+                <strong>{{ entwurf.titel }}</strong><span>{{ entwurf.dokument.titel }} <span class="schild schild-klein schild-{{ entwurf.status }}">{{ entwurf.get_status_display }}</span></span>
+              </a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </section>
   {% endif %}
 
-  <p class="knopf-reihe" style="margin:1.5rem 0">
-    <a class="knopf" href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a>
-    {% if ist_redaktion %}
-      <a class="knopf" href="{% url 'kern:beschlussvorlage' %}">Beschlussvorlage</a>
-    {% endif %}
-  </p>
-
-  {% if zuletzt_beschlossen %}
-    <h2>Zuletzt beschlossen</h2>
-    <div class="karte">
-      <ul class="liste-schlicht">
-        {% for beschlossen in zuletzt_beschlossen %}
-          <li>
-            <a href="{% url 'kern:eintrag' beschlossen.dokument.schluessel beschlossen.kennung %}">
-              <span class="kennung">{{ beschlossen.kennung }}</span> {{ beschlossen.titel }}</a>
-            <span class="leise klein">· {{ beschlossen.dokument.titel }}</span>
-          </li>
-        {% endfor %}
-      </ul>
+  <section class="start-dokumente" id="dokumente" aria-labelledby="dokumente-titel">
+    <div class="abschnitt-kopf">
+      <div><h2 id="dokumente-titel">Unsere Dokumente</h2><p>Nachlesen, worauf wir uns verständigt haben.</p></div>
+      {% if ist_administration %}<a class="knopf knopf-leise" href="{% url 'kern:dokument_neu' %}">{% include "kern/_symbol.html" with name="plus" %}Dokument anlegen</a>{% endif %}
     </div>
-  {% endif %}
+    <div class="dokument-kacheln">
+      {% for dokument in dokumente %}
+        <a class="dokument-kachel" href="{% url 'kern:dokument' dokument.schluessel %}">
+          <span class="dokument-symbol">{% if dokument.dokumenttyp.schluessel == 'protokoll' %}{% include "kern/_symbol.html" with name="gruppe" %}{% elif dokument.ist_arbeitsplan %}{% include "kern/_symbol.html" with name="buch" %}{% else %}{% include "kern/_symbol.html" with name="datei" %}{% endif %}</span>
+          <span class="dokument-kachel-inhalt"><span class="dokument-art">{{ dokument.dokumenttyp.name }}</span><strong>{{ dokument.titel }}</strong><span class="dokument-metainfo">{% if dokument.gueltig_ab_schuljahr %}Ab Schuljahr {{ dokument.gueltig_ab_schuljahr }} · {% endif %}{{ dokument.anzahl }} Einträge</span></span>
+          <span class="dokument-pfeil">{% include "kern/_symbol.html" with name="pfeil" %}</span>
+        </a>
+      {% empty %}
+        <div class="leerer-zustand">
+          {% include "kern/_symbol.html" with name="buch" %}
+          <h3>Hier entsteht unser Schulwissen.</h3><p>Noch sind keine Dokumente angelegt.</p>
+          {% if ist_administration %}<a class="knopf knopf-wichtig" href="{% url 'kern:dokument_neu' %}">Erstes Dokument anlegen</a>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    {% if ist_redaktion %}<p class="start-redaktion"><a href="{% url 'kern:beschlussvorlage' %}">{% include "kern/_symbol.html" with name="gruppe" %}Beschlussvorlage für die nächste Konferenz öffnen{% include "kern/_symbol.html" with name="pfeil" %}</a></p>{% endif %}
+  </section>
 </div>
 {% endblock %}

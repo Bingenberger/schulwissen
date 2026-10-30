@@ -5,48 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titel %}Schulwissen{% endblock %} · Schulwissen GGS Niederkassel</title>
   <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'tokens.css' %}">
   <link rel="stylesheet" href="{% static 'schulwissen.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'oberflaeche.js' %}" defer></script>
   <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
   {% block kopf_zusatz %}{% endblock %}
 </head>
 <body>
+{% include "kern/_symbole.html" %}
 <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
 
 {% if user.is_authenticated %}
 <header class="kopf">
-  <a class="kopf-marke" href="{% url 'kern:startseite' %}">Schulwissen</a>
-
-  {% comment %}Das Suchfeld steht auf jeder Seite (SPEC.md §12), mit
-  Autovervollständigung ab zwei Zeichen und 200 ms Verzögerung (§9).
-  {% endcomment %}
-  <form class="kopf-suche" action="{% url 'suche:suchen' %}" method="get" role="search"
-        x-data="{ offen: false }" @click.outside="offen = false">
-    <label class="nur-fuer-vorleser" for="kopf-suchfeld">Schulwissen durchsuchen</label>
-    <input type="search" id="kopf-suchfeld" name="q" value="{{ request.GET.q|default:'' }}"
-           placeholder="Suchen, z. B. Märchen oder SC2.02D" autocomplete="off"
-           role="combobox" aria-expanded="false" aria-controls="kopf-vorschlaege"
-           hx-get="{% url 'suche:vorschlaege' %}"
-           hx-trigger="input changed delay:200ms"
-           hx-target="#kopf-vorschlaege"
-           @input="offen = true" @focus="offen = true"
-           {% comment %}.prevent, weil ein Suchfeld bei Escape sonst seinen
-           Inhalt leert und das input-Ereignis die Liste sofort wieder
-           aufklappt.{% endcomment %}
-           @keydown.escape.prevent="offen = false">
-    <button class="knopf" type="submit">Suchen</button>
-    <div class="vorschlaege" id="kopf-vorschlaege" x-show="offen" x-cloak></div>
-  </form>
-
-  <div class="kopf-konto">
-    {% if ist_lehrkraft %}<a href="{% url 'kern:planung' %}">Meine Planung</a>{% endif %}
-    <a href="{% url 'fachdaten:uebersicht' %}">Kompetenzen</a>
-    {% if ist_administration %}<a href="{% url 'admin:index' %}">Verwaltung</a>{% endif %}
-    <span class="klein">{{ user.anzeigename }}</span>
-    <form action="{% url 'kern:abmelden' %}" method="post">
-      {% csrf_token %}
-      <button class="knopf knopf-leise" type="submit">Abmelden</button>
-    </form>
+  <div class="kopf-innen">
+    <a class="kopf-marke" href="{% url 'kern:startseite' %}">
+      <span class="kopf-logo">{% include "kern/_symbol.html" with name="buch" %}</span>
+      <span><span class="kopf-name">Schulwissen</span> <span class="kopf-schule">GGS Niederkassel</span></span>
+    </a>
+    <div class="kopf-mitte">
+      {% block kopfsuche %}{% include "kern/_suchfeld.html" with kennung="kopf-suchfeld" %}{% endblock %}
+    </div>
+    <details class="benutzermenue" data-benutzermenue>
+      <summary aria-label="{{ user.kuerzel|default:user.anzeigename|slice:":2"|upper }} {{ user.anzeigename }} · Benutzermenü">
+        <span class="benutzer-avatar" aria-hidden="true">{{ user.kuerzel|default:user.anzeigename|slice:":2"|upper }}</span>
+        <span class="benutzer-name">{{ user.anzeigename }}</span>
+        {% include "kern/_symbol.html" with name="unten" %}
+      </summary>
+      <div class="benutzermenue-inhalt">
+        <p class="benutzermenue-person"><strong>{{ user.anzeigename }}</strong><span>Dein Schulwissen-Konto</span></p>
+        <nav aria-label="Dein Konto">
+          <a href="{% url 'kern:startseite' %}#dokumente">{% include "kern/_symbol.html" with name="buch" %}Dokumente</a>
+          {% if ist_lehrkraft %}<a href="{% url 'kern:planung' %}">{% include "kern/_symbol.html" with name="kalender" %}Meine Planung</a>{% endif %}
+          <a href="{% url 'fachdaten:uebersicht' %}">{% include "kern/_symbol.html" with name="raster" %}Kompetenzen</a>
+          <a href="{% url 'kern:beschluesse' %}">{% include "kern/_symbol.html" with name="kreis-haken" %}Konferenzbeschlüsse</a>
+          {% if ist_redaktion %}<a href="{% url 'kern:beschlussvorlage' %}">{% include "kern/_symbol.html" with name="gruppe" %}Beschlussvorlage</a>{% endif %}
+          {% if ist_administration %}
+            <a href="{% url 'admin:index' %}">{% include "kern/_symbol.html" with name="raster" %}Verwaltung</a>
+            <a href="{% url 'kern:styleguide' %}">{% include "kern/_symbol.html" with name="stift" %}Gestaltungsübersicht</a>
+          {% endif %}
+          <a href="{% url 'kern:passwort_aendern' %}">{% include "kern/_symbol.html" with name="schloss" %}Passwort ändern</a>
+        </nav>
+        {% if oidc_eingerichtet %}
+          <form method="post" action="{% url 'kern:oidc_verbinden' %}">{% csrf_token %}
+            <button type="submit">{% include "kern/_symbol.html" with name="cloud" %}Mein Konto mit Nextcloud verbinden</button>
+          </form>
+        {% endif %}
+        <form action="{% url 'kern:abmelden' %}" method="post" class="benutzermenue-abmelden">{% csrf_token %}
+          <button type="submit">{% include "kern/_symbol.html" with name="abmelden" %}Abmelden</button>
+        </form>
+      </div>
+    </details>
   </div>
 </header>
 {% endif %}
@@ -54,17 +63,21 @@
 <main id="inhalt">
   {% block meldungen %}
     {% if messages %}
-      <div style="max-width:100rem;margin:1rem auto 0;padding:0 1.25rem">
+      <div class="meldungen" aria-label="Rückmeldungen" aria-live="polite">
         {% for meldung in messages %}
-          <div class="meldung meldung-{{ meldung.tags|default:'info' }}">{{ meldung }}</div>
+          <div class="meldung meldung-{{ meldung.tags|default:'info' }} toast" {% if meldung.tags == 'success' %}data-toast{% endif %}>
+            {% if meldung.tags == 'success' %}{% include "kern/_symbol.html" with name="kreis-haken" %}{% elif meldung.tags == 'error' or meldung.tags == 'warning' %}{% include "kern/_symbol.html" with name="warnung" %}{% else %}{% include "kern/_symbol.html" with name="info" %}{% endif %}
+            <span>{{ meldung }}</span>
+            <button type="button" class="symbol-knopf" aria-label="Meldung schließen" data-meldung-schliessen>{% include "kern/_symbol.html" with name="schliessen" %}</button>
+          </div>
         {% endfor %}
       </div>
     {% endif %}
   {% endblock %}
-
   {% block inhalt %}{% endblock %}
 </main>
 
+<footer class="seitenfuss"><span>Schulwissen · GGS Niederkassel</span><span>Gemeinsam festhalten, was uns wichtig ist.</span></footer>
 {% block ende %}{% endblock %}
 </body>
 </html>

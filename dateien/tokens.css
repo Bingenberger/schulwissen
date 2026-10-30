@@ -1,0 +1,88 @@
+/* Zentrale Gestaltungswerte. Schulgrün und Duzen sind abgestimmt. */
+:root {
+  color-scheme: light;
+  --grundgroesse: 17px;
+  --schrift: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --schrift-klein: 0.824rem;
+  --schrift-normal: 1rem;
+  --schrift-abschnitt: 1.294rem;
+  --schrift-titel: clamp(1.882rem, 4vw, 2.353rem);
+  --zeilenhoehe: 1.55;
+
+  --abstand-1: 4px;
+  --abstand-2: 8px;
+  --abstand-3: 12px;
+  --abstand-4: 16px;
+  --abstand-5: 24px;
+  --abstand-6: 32px;
+  --abstand-7: 48px;
+
+  --schulgruen: #7ab648;
+  --papier: #ffffff;
+  --flaeche: #f7f7f4;
+  --flaeche-tief: #eeefe8;
+  --linie: #dcdfd5;
+  --linie-stark: #858c7d;
+  --text: #252923;
+  --text-leise: #62675d;
+  --akzent: #477426;
+  --akzent-dunkel: #3e6521;
+  --akzent-leise: #eef5e8;
+  --akzent-kontrast: #ffffff;
+  --fokus: #416d24;
+
+  --gut: #3e6521;
+  --gut-flaeche: #eaf3e2;
+  --warnung: #80520e;
+  --warnung-flaeche: #fff2d8;
+  --info: #285e8a;
+  --info-flaeche: #eaf2fa;
+  --fehler: #a13535;
+  --fehler-flaeche: #fbecea;
+  --leistung: #f0eef8;
+  --leistung-linie: #8171aa;
+  --leistung-text: #554276;
+  --markierung: #ffedb5;
+
+  --radius: 8px;
+  --radius-feld: 6px;
+  --radius-rund: 999px;
+  --schatten: 0 1px 2px rgb(37 41 35 / 4%);
+  --schatten-menue: 0 8px 32px rgb(37 41 35 / 12%);
+  --klickflaeche: 44px;
+  --symbolgroesse: 22px;
+  --seitenbreite: 1200px;
+  --lesebreite: 70ch;
+  --dauer: 160ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-thema="hell"]) {
+    color-scheme: dark;
+    --papier: #242820;
+    --flaeche: #191d17;
+    --flaeche-tief: #30362b;
+    --linie: #434b3c;
+    --linie-stark: #87937b;
+    --text: #edf0e8;
+    --text-leise: #bac3b0;
+    --akzent: #a6d77c;
+    --akzent-dunkel: #c1e5a3;
+    --akzent-leise: #303e25;
+    --akzent-kontrast: #1c2c12;
+    --fokus: #c1e5a3;
+    --gut: #b5db94;
+    --gut-flaeche: #2a3c20;
+    --warnung: #f0cd83;
+    --warnung-flaeche: #40351f;
+    --info: #acd0f0;
+    --info-flaeche: #23374a;
+    --fehler: #f2b2ac;
+    --fehler-flaeche: #432c2b;
+    --leistung: #322d43;
+    --leistung-linie: #baa9df;
+    --leistung-text: #d6c9f0;
+    --markierung: #605021;
+    --schatten-menue: 0 8px 32px rgb(0 0 0 / 24%);
+  }
+}

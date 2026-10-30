@@ -6,38 +6,6 @@
  * Kontraste, alles mit der Tastatur erreichbar.
  */
 
-:root {
-  --schrift: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-
-  --papier: #ffffff;
-  --flaeche: #f4f6f8;
-  --flaeche-tief: #e8ecf0;
-  --linie: #ccd4dc;
-  --linie-stark: #9aa7b4;
-
-  --text: #1b2229;
-  --text-leise: #566270;
-
-  --akzent: #1f5c8b;
-  --akzent-dunkel: #164463;
-  --akzent-leise: #e4eef6;
-
-  /* Der Block „Leistung" ist farbig abgesetzt (SPEC.md §7.4). */
-  --leistung: #f6eee4;
-  --leistung-linie: #c89a5e;
-
-  --gut: #1d6a3a;
-  --gut-flaeche: #e2f2e7;
-  --warnung: #8a5a00;
-  --warnung-flaeche: #fbf0d8;
-  --fehler: #a32020;
-  --fehler-flaeche: #fae6e6;
-
-  --radius: 8px;
-  --schatten: 0 1px 3px rgb(27 34 41 / 12%);
-  --klickflaeche: 44px;
-}
-
 *,
 *::before,
 *::after {
@@ -45,18 +13,23 @@
 }
 
 html {
-  font-size: 17px;
+  font-size: var(--grundgroesse);
 }
 
 body {
   margin: 0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
   font-family: var(--schrift);
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: var(--zeilenhoehe);
   color: var(--text);
   background: var(--flaeche);
   -webkit-text-size-adjust: 100%;
 }
+
+a { color:var(--akzent); }
 
 /* --- Sprungmarke für die Tastaturbedienung --- */
 
@@ -73,68 +46,33 @@ body {
   top: 0.5rem;
 }
 
-/* --- Kopfzeile mit Suchfeld auf allen Seiten --- */
-
-.kopf {
-  background: var(--akzent-dunkel);
-  color: #fff;
-  padding: 0.75rem 1.25rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
-}
-
-.kopf a {
-  color: #fff;
-}
-
-.kopf-marke {
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.kopf-suche {
-  flex: 1 1 18rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.kopf-suche input {
-  flex: 1;
-  min-height: var(--klickflaeche);
-  font-size: 1rem;
-  padding: 0 0.85rem;
-  border: 2px solid transparent;
-  border-radius: var(--radius);
-}
-
-.kopf-suche input:focus-visible {
-  outline: 3px solid #ffd27f;
-  outline-offset: 1px;
-}
-
-.kopf-konto {
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 100%;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.95rem;
-}
-
-/* In der dunklen Kopfzeile muss auch der leise Knopf hell sein – die
-   Akzentfarbe hätte dort zu wenig Kontrast. */
-.kopf .knopf-leise {
-  color: #fff;
-  text-decoration: underline;
-}
-
-.kopf .knopf-leise:hover {
-  background: rgb(255 255 255 / 18%);
-}
+/* --- Kopfzeile und Konto --- */
+.kopf { background:var(--papier); border-bottom:1px solid var(--linie); }
+.kopf-innen { max-width:var(--seitenbreite); min-height:64px; margin:auto; padding:var(--abstand-2) var(--abstand-6); display:flex; align-items:center; gap:var(--abstand-6); }
+.kopf-marke { display:flex; align-items:center; gap:var(--abstand-3); color:var(--text); text-decoration:none; flex-shrink:0; }
+.kopf-logo { display:grid; place-items:center; width:40px; height:40px; border-radius:var(--radius); background:var(--akzent-leise); color:var(--akzent); }
+.kopf-logo .symbol { width:26px; height:26px; }
+.kopf-name { display:block; font-size:var(--schrift-abschnitt); font-weight:700; line-height:1.2; letter-spacing:-.03em; }
+.kopf-schule { display:block; font-size:var(--schrift-klein); color:var(--text-leise); }
+.kopf-mitte { flex:1; min-width:0; }
+.kopf-einstiege { display:flex; justify-content:flex-end; gap:var(--abstand-5); }
+.kopf-einstiege a { display:inline-flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); font-size:var(--schrift-klein); color:var(--text-leise); text-decoration:none; }
+.kopf-einstiege a:hover { color:var(--akzent); }
+.benutzermenue { position:relative; flex-shrink:0; }
+.benutzermenue summary { display:flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); padding:var(--abstand-1) var(--abstand-2); border-radius:var(--radius); cursor:pointer; list-style:none; font-size:var(--schrift-klein); }
+.benutzermenue summary::-webkit-details-marker { display:none; }
+.benutzermenue[open] summary,.benutzermenue summary:hover { background:var(--flaeche-tief); }
+.benutzer-avatar { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:var(--akzent-leise); color:var(--akzent); font-weight:700; }
+.benutzer-name { max-width:12rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.benutzermenue-inhalt { position:absolute; right:0; top:calc(100% + var(--abstand-2)); z-index:60; width:min(320px,calc(100vw - 32px)); max-height:calc(100dvh - 100px); overflow:auto; padding:var(--abstand-2); background:var(--papier); border:1px solid var(--linie); border-radius:var(--radius); box-shadow:var(--schatten-menue); font-size:var(--schrift-klein); }
+.benutzermenue-person { margin:0; padding:var(--abstand-3); border-bottom:1px solid var(--linie); }
+.benutzermenue-person span { display:block; color:var(--text-leise); }
+.benutzermenue-inhalt a,.benutzermenue-inhalt button { display:flex; align-items:center; gap:var(--abstand-3); min-height:var(--klickflaeche); width:100%; padding:var(--abstand-2) var(--abstand-3); background:transparent; border:0; border-radius:var(--radius-feld); color:var(--text); text-decoration:none; text-align:left; font:inherit; cursor:pointer; }
+.benutzermenue-inhalt a:hover,.benutzermenue-inhalt button:hover { background:var(--akzent-leise); }
+.benutzermenue-inhalt form { margin:0; }
+.benutzermenue-abmelden { border-top:1px solid var(--linie); }
+@media(max-width:1100px) { .benutzer-name { display:none; } }
+@media(max-width:650px) { .kopf-innen { flex-wrap:wrap; padding:var(--abstand-2) var(--abstand-4); gap:var(--abstand-2); justify-content:space-between; } .kopf-mitte { order:3; flex-basis:100%; } .kopf-einstiege { justify-content:flex-start; } }
 
 /* --- Grundgerüst: Navigation links, Inhalt mittig, Nebenspalte rechts --- */
 
@@ -245,9 +183,9 @@ body {
 
 /* --- Überschriften --- */
 
-h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 0.5rem; }
-h2 { font-size: 1.35rem; line-height: 1.3; margin: 1.75rem 0 0.5rem; }
-h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
+h1 { font-size: var(--schrift-titel); line-height: 1.25; margin: 0 0 0.5rem; }
+h2 { font-size: var(--schrift-abschnitt); line-height: 1.3; margin: 1.75rem 0 0.5rem; }
+h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 
 .ueberschrift-zeile {
   display: flex;
@@ -277,7 +215,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 
 .schild {
   display: inline-block;
-  font-size: 0.85rem;
+  font-size: var(--schrift-klein);
   font-weight: 600;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
@@ -287,11 +225,11 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 
 .schild-idee        { background: var(--flaeche-tief); color: var(--text-leise); }
 .schild-entwurf     { background: var(--warnung-flaeche); color: var(--warnung); }
-.schild-abgestimmt  { background: var(--akzent-leise); color: var(--akzent-dunkel); }
+.schild-abgestimmt  { background: var(--info-flaeche); color: var(--info); }
 .schild-beschlossen { background: var(--gut-flaeche); color: var(--gut); }
-.schild-archiviert  { background: var(--flaeche-tief); color: var(--text-leise); text-decoration: line-through; }
+.schild-archiviert  { background: var(--flaeche-tief); color: var(--text-leise); }
 
-.schild-klein { font-size: 0.78rem; padding: 0.1rem 0.45rem; }
+.schild-klein { font-size: var(--schrift-klein); padding: 0.1rem 0.45rem; }
 
 /* --- Knöpfe --- */
 
@@ -317,7 +255,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 .knopf-wichtig {
   background: var(--akzent);
   border-color: var(--akzent-dunkel);
-  color: #fff;
+  color: var(--akzent-kontrast);
 }
 
 .knopf-wichtig:hover { background: var(--akzent-dunkel); }
@@ -507,7 +445,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
   font-size: 0.82rem;
   font-weight: 700;
   background: var(--akzent);
-  color: #fff;
+  color: var(--akzent-kontrast);
   border-radius: 4px;
   padding: 0.12rem 0.4rem;
   white-space: nowrap;
@@ -517,7 +455,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 .kompetenz-text { flex: 1; line-height: 1.45; }
 
 .kompetenz-stufe {
-  font-size: 0.85rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
   white-space: nowrap;
 }
@@ -585,7 +523,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
   color: var(--akzent-dunkel);
 }
 
-.marke-weg:hover { background: #fff; }
+.marke-weg:hover { background:var(--papier); }
 
 .auswahl-treffer { max-height: 20rem; overflow-y: auto; border-top: 1px solid var(--linie); }
 
@@ -633,7 +571,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 }
 
 .editor-knopf:hover { background: var(--flaeche-tief); }
-.editor-knopf.ist-aktiv { background: var(--akzent); border-color: var(--akzent-dunkel); color: #fff; }
+.editor-knopf.ist-aktiv { background: var(--akzent); border-color: var(--akzent-dunkel); color:var(--akzent-kontrast); }
 
 .editor-trenner { width: 1px; background: var(--linie); margin: 0.2rem 0.3rem; }
 
@@ -730,83 +668,16 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
   clip-path: inset(50%);
 }
 
-/* --- Startseite --- */
-
-.start {
-  max-width: 50rem;
-  margin: 0 auto;
-  padding: 3rem 1.25rem 4rem;
-}
-
-.start-suche { margin: 2rem 0 3rem; }
-
-.start-suche label {
-  display: block;
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin-bottom: 0.6rem;
-}
-
-.start-suche input {
-  width: 100%;
-  min-height: 3.6rem;
-  font-size: 1.25rem;
-  padding: 0 1rem;
-  border: 2px solid var(--linie-stark);
-  border-radius: var(--radius);
-}
-
-.start-suche input:focus-visible { border-color: var(--akzent); }
-
-.anmeldung { max-width: 26rem; margin: 4rem auto; padding: 0 1.25rem; }
-
-/* --- Dunkle Darstellung --- */
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-thema="hell"]) {
-    --papier: #1b2129;
-    --flaeche: #14181e;
-    --flaeche-tief: #242c35;
-    --linie: #333d48;
-    --linie-stark: #4d5a68;
-
-    --text: #e7ecf1;
-    --text-leise: #a3afbb;
-
-    --akzent: #6fb2e0;
-    --akzent-dunkel: #11212e;
-    --akzent-leise: #1d3243;
-
-    --leistung: #2b2419;
-    --leistung-linie: #c89a5e;
-
-    --gut: #76d39b;
-    --gut-flaeche: #16301f;
-    --warnung: #e6bc6a;
-    --warnung-flaeche: #322713;
-    --fehler: #f08f8f;
-    --fehler-flaeche: #34191b;
-  }
-
-  :root:not([data-thema="hell"]) .kopf { background: #11212e; }
-  :root:not([data-thema="hell"]) .kompetenz-kennung { background: #2b5f87; }
-  :root:not([data-thema="hell"]) .editor-knopf.ist-aktiv { color: #0f1419; }
-}
-
+/* --- Allgemeine Seiten und Druck --- */
+main { flex:1; min-width:0; }
+.start { max-width:56rem; margin:auto; padding:var(--abstand-7) var(--abstand-5); }
+.anmeldung { max-width:26rem; margin:var(--abstand-7) auto; padding:0 var(--abstand-5); }
+.seitenfuss { max-width:var(--seitenbreite); width:100%; margin:auto; padding:var(--abstand-5) var(--abstand-6); display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--abstand-2); color:var(--text-leise); font-size:var(--schrift-klein); }
 @media print {
-  .kopf,
-  .navigation,
-  .nebenspalte,
-  .knopf-reihe,
-  .sprungmarke { display: none !important; }
-
-  .geruest,
-  .geruest.mit-nebenspalte { grid-template-columns: 1fr; padding: 0; }
-
-  .karte,
-  .block { border: 0; box-shadow: none; padding: 0; }
-
-  body { background: #fff; font-size: 11pt; }
+ .kopf,.navigation,.nebenspalte,.knopf-reihe,.sprungmarke,.seitenfuss,.meldungen { display:none!important; }
+ .geruest,.geruest.mit-nebenspalte { display:block; padding:0; }
+ .karte,.block { border:0; box-shadow:none; padding:0; }
+ body { background:var(--papier); font-size:11pt; display:block; }
 }
 
 /* --- Suche ---------------------------------------------------------------- */
@@ -820,7 +691,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
   background: var(--papier);
   border: 1px solid var(--linie-stark);
   border-radius: var(--radius);
-  box-shadow: 0 6px 20px rgb(27 34 41 / 18%);
+  box-shadow: var(--schatten-menue);
   max-height: 26rem;
   overflow-y: auto;
 }
@@ -902,7 +773,7 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 
 /* Die Hervorhebung kommt aus PostgreSQL (SearchHeadline). */
 mark {
-  background: #ffe9a8;
+  background: var(--markierung);
   color: inherit;
   padding: 0 0.12em;
   border-radius: 3px;
@@ -1033,10 +904,6 @@ del {
   color: var(--text-leise);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-thema="hell"]) mark { background: #6b5516; color: #fff; }
-}
-
 /* --- Nextcloud-Dateiauswahl ----------------------------------------------- */
 
 .dateizeichen {
@@ -1066,3 +933,49 @@ del {
   height: 1.5rem;
   accent-color: var(--akzent);
 }
+
+/* --- Gemeinsame Komponenten des neuen Grundlayouts --- */
+.symbol-vorrat { position:absolute; width:0; height:0; overflow:hidden; }
+.symbol { width:var(--symbolgroesse); height:var(--symbolgroesse); flex-shrink:0; vertical-align:middle; }
+.knopf { gap:var(--abstand-2); min-width:var(--klickflaeche); border-radius:var(--radius-feld); }
+.knopf-gefahr { color:var(--fehler); border-color:var(--fehler); }
+.knopf:disabled { opacity:.5; cursor:not-allowed; }
+:focus-visible { outline:3px solid var(--fokus); outline-offset:3px; }
+.schild::before { content:""; display:inline-block; width:6px; height:6px; margin-right:var(--abstand-2); border-radius:50%; background:currentColor; vertical-align:middle; }
+.suchformular { position:relative; margin:0; }
+.suchfeld { display:flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); padding:var(--abstand-1); border:1px solid var(--linie-stark); border-radius:var(--radius); background:var(--papier); }
+.suchfeld:focus-within { outline:2px solid var(--fokus); outline-offset:2px; }
+.suchfeld-symbol { color:var(--text-leise); display:flex; padding-left:var(--abstand-2); }
+.suchfeld input { flex:1; min-width:0; width:100%; min-height:var(--klickflaeche); padding:var(--abstand-2); border:0; background:transparent; color:var(--text); font:inherit; outline:none; }
+.suchfeld input::placeholder { color:var(--text-leise); opacity:1; }
+.kopf-suche { display:block; }
+.kopf-suche .suchfeld { font-size:var(--schrift-klein); }
+.suchfeld .knopf { flex-shrink:0; }
+.vorschlaege { text-align:left; box-shadow:var(--schatten-menue); }
+.vorschlagsliste [aria-selected="true"] a { background:var(--akzent-leise); outline:2px solid var(--fokus); outline-offset:-2px; }
+.suchfeld-laden { width:16px; height:16px; flex-shrink:0; border:2px solid var(--linie); border-top-color:var(--akzent); border-radius:50%; animation:suche-laedt .8s linear infinite; }
+@keyframes suche-laedt { to { transform:rotate(360deg); } }
+.meldungen { position:fixed; bottom:var(--abstand-5); left:50%; transform:translateX(-50%); z-index:80; width:min(38rem,calc(100% - 32px)); }
+.toast { display:flex; align-items:center; gap:var(--abstand-3); margin:var(--abstand-2) 0 0; box-shadow:var(--schatten-menue); }
+.toast>span { flex:1; }
+.symbol-knopf { display:inline-flex; align-items:center; justify-content:center; min-width:var(--klickflaeche); min-height:var(--klickflaeche); padding:var(--abstand-2); background:transparent; border:0; color:inherit; cursor:pointer; border-radius:var(--radius-feld); }
+.meldung-info { background:var(--info-flaeche); color:var(--info); border-color:var(--info); }
+.leerer-zustand { width:100%; padding:var(--abstand-6); border:1px dashed var(--linie-stark); border-radius:var(--radius); text-align:center; color:var(--text-leise); }
+.leerer-zustand h3 { color:var(--text); }
+.accordion { border:1px solid var(--linie); border-radius:var(--radius); background:var(--papier); }
+.accordion summary { min-height:var(--klickflaeche); cursor:pointer; padding:var(--abstand-3) var(--abstand-4); font-weight:600; }
+.accordion>div { padding:0 var(--abstand-4) var(--abstand-4); }
+.anhang-kachel { display:flex; align-items:center; gap:var(--abstand-3); padding:var(--abstand-4); border:1px solid var(--linie); border-radius:var(--radius); color:var(--text); text-decoration:none; min-height:var(--klickflaeche); }
+.anhang-kachel small { display:block; color:var(--text-leise); font-size:var(--schrift-klein); }
+.tabelle-rahmen { overflow:auto; max-height:20rem; border:1px solid var(--linie); border-radius:var(--radius); }
+.tabelle-rahmen table { margin:0; }
+.tabelle-rahmen th { position:sticky; top:0; background:var(--flaeche-tief); }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+.kompetenz-chip { display:inline-flex; align-items:center; gap:var(--abstand-2); padding:var(--abstand-2) var(--abstand-3); background:var(--akzent-leise); color:var(--akzent); border:1px solid var(--linie); border-radius:var(--radius-rund); font-size:var(--schrift-klein); }
+
+.gueltigkeitsbanner { display:flex; align-items:flex-start; gap:var(--abstand-3); padding:var(--abstand-4); border:1px solid; border-radius:var(--radius); margin:var(--abstand-4) 0; }
+.gueltigkeitsbanner .symbol { margin-top:var(--abstand-1); }
+.gueltigkeitsbanner p { margin:var(--abstand-1) 0 0; }
+.gueltigkeitsbanner-beschlossen { background:var(--gut-flaeche); color:var(--gut); border-color:var(--gut); }
+.gueltigkeitsbanner-entwurf { background:var(--warnung-flaeche); color:var(--warnung); border-color:var(--warnung); }

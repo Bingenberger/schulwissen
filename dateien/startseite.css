@@ -1,0 +1,38 @@
+/* Startseite: eine Hauptaufgabe und ruhige, große Einstiege. */
+.start-neu { max-width:var(--seitenbreite); padding:var(--abstand-7) var(--abstand-6); }
+.start-hero { max-width:760px; margin:var(--abstand-6) auto var(--abstand-7); text-align:center; }
+.start-augenbraue { font-size:var(--schrift-klein); font-weight:600; color:var(--akzent); letter-spacing:.08em; text-transform:uppercase; margin:0 0 var(--abstand-4); }
+.start-hero h1 { letter-spacing:-.035em; }
+.start-einleitung { max-width:52ch; margin:var(--abstand-4) auto var(--abstand-6); color:var(--text-leise); }
+.start-suche .suchfeld { min-height:72px; padding:var(--abstand-2); }
+.start-suche .knopf { min-height:48px; padding:0 var(--abstand-5); }
+.start-beispiele { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:0 var(--abstand-5); font-size:var(--schrift-klein); color:var(--text-leise); margin-top:var(--abstand-3); }
+.start-beispiele a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); text-decoration:none; }
+.start-beispiele a:hover { text-decoration:underline; }
+.start-aktuell { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:var(--abstand-5); margin-bottom:var(--abstand-7); }
+.start-kurzkarte { padding:var(--abstand-5); margin:0; }
+.start-kurzkarte h2 { display:flex; align-items:center; gap:var(--abstand-2); font-size:var(--schrift-normal); margin:0 0 var(--abstand-4); }
+.start-kurzkarte h2 .symbol { color:var(--akzent); }
+.start-eintragsliste { margin:0; padding:0; list-style:none; }
+.start-eintragsliste li+li { border-top:1px solid var(--linie); }
+.start-eintragsliste a { display:block; padding:var(--abstand-3) 0; min-height:var(--klickflaeche); text-decoration:none; color:var(--text); }
+.start-eintragsliste a:hover strong { color:var(--akzent); text-decoration:underline; }
+.start-eintragsliste strong { display:block; font-weight:600; }
+.start-eintragsliste a>span { display:block; color:var(--text-leise); font-size:var(--schrift-klein); }
+.start-dokumente { border-top:1px solid var(--linie); padding-top:var(--abstand-6); }
+.abschnitt-kopf { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--abstand-4); margin-bottom:var(--abstand-5); }
+.abschnitt-kopf h2 { margin:0; }
+.abschnitt-kopf p { margin:var(--abstand-2) 0 0; color:var(--text-leise); font-size:var(--schrift-klein); }
+.dokument-kacheln { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--abstand-4); }
+.dokument-kachel { display:flex; align-items:center; gap:var(--abstand-4); min-height:136px; padding:var(--abstand-5); border:1px solid var(--linie); border-radius:var(--radius); background:var(--papier); color:var(--text); text-decoration:none; box-shadow:var(--schatten); transition:background var(--dauer); }
+.dokument-kachel:hover { background:var(--akzent-leise); border-color:var(--akzent); }
+.dokument-symbol { width:48px; height:56px; display:grid; place-items:center; flex-shrink:0; border-radius:var(--radius); background:var(--akzent-leise); color:var(--akzent); }
+.dokument-kachel-inhalt { flex:1; min-width:0; overflow-wrap:anywhere; }
+.dokument-kachel-inhalt strong { display:block; font-weight:600; margin:var(--abstand-1) 0; }
+.dokument-art,.dokument-metainfo { display:block; font-size:var(--schrift-klein); }
+.dokument-art { color:var(--akzent); }
+.dokument-metainfo,.dokument-pfeil { color:var(--text-leise); }
+.start-redaktion { margin-top:var(--abstand-5); font-size:var(--schrift-klein); }
+.start-redaktion a { display:inline-flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); text-decoration:none; }
+@media(max-width:800px) { .dokument-kacheln { grid-template-columns:1fr; } .start-hero { margin-top:var(--abstand-4); } }
+@media(max-width:550px) { .start-neu { padding:var(--abstand-6) var(--abstand-4); } .start-beispiele { gap:0 var(--abstand-4); } .start-beispiele>span { flex-basis:100%; } .start-suche .suchfeld { min-height:64px; padding:var(--abstand-1); gap:var(--abstand-1); } .start-suche .knopf { padding:0 var(--abstand-3); } .start-suche input { padding:var(--abstand-1); } .dokument-kachel { min-height:120px; padding:var(--abstand-4); } }

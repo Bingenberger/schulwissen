@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Schulwissen">
   <!-- Aufgeschlagenes Buch: Zeichen für den Arbeitsplan. -->
-  <rect width="32" height="32" rx="6" fill="#1f5c8b"/>
+  <rect width="32" height="32" rx="6" fill="#477426"/>
   <path d="M6 9.5c3.4-1.6 6.3-1.6 9.4 0v14c-3.1-1.6-6-1.6-9.4 0z" fill="#fff" opacity=".95"/>
   <path d="M26 9.5c-3.4-1.6-6.3-1.6-9.4 0v14c3.1-1.6 6-1.6 9.4 0z" fill="#fff" opacity=".75"/>
-  <path d="M16 9.1v14.6" stroke="#1f5c8b" stroke-width="1.2"/>
+  <path d="M16 9.1v14.6" stroke="#477426" stroke-width="1.2"/>
 </svg>

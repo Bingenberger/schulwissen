@@ -1,0 +1,26 @@
+.gestaltung { max-width:1000px; margin:auto; padding:var(--abstand-7) var(--abstand-6); }
+.gestaltung-kopf { max-width:var(--lesebreite); }
+.gestaltung-kopf>p { color:var(--text-leise); }
+.gestaltung-kopf .gestaltung-augenbraue { color:var(--akzent); text-transform:uppercase; letter-spacing:.08em; font-size:var(--schrift-klein); font-weight:600; }
+.gestaltung-hinweis { font-size:var(--schrift-klein); }
+.gestaltung-navigation { display:flex; flex-wrap:wrap; gap:var(--abstand-2) var(--abstand-5); border-bottom:1px solid var(--linie); padding-bottom:var(--abstand-4); }
+.gestaltung-navigation a { min-height:var(--klickflaeche); display:inline-flex; align-items:center; font-size:var(--schrift-klein); }
+.gestaltung-abschnitt { padding:var(--abstand-6) 0; border-bottom:1px solid var(--linie); scroll-margin-top:var(--abstand-5); }
+.gestaltung-abschnitt h2 { margin:0; }
+.gestaltung-abschnitt>p { color:var(--text-leise); max-width:var(--lesebreite); }
+.gestaltung-reihe { display:flex; flex-wrap:wrap; align-items:center; gap:var(--abstand-3); margin:var(--abstand-5) 0; }
+.gestaltung-banner { display:flex; align-items:flex-start; gap:var(--abstand-3); padding:var(--abstand-4); border:1px solid; border-radius:var(--radius); margin:var(--abstand-4) 0; }
+.gestaltung-banner .symbol { margin-top:var(--abstand-1); }
+.gestaltung-banner p { margin:var(--abstand-1) 0 0; }
+.gestaltung-spalten { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--abstand-5); }
+.gestaltung-karte { margin:var(--abstand-5) 0; padding:var(--abstand-5); }
+.gestaltung-karte h3 { margin:var(--abstand-4) 0; }
+.gestaltung-karte p { margin:var(--abstand-3) 0; }
+.gestaltung-karte .kompetenz-chip { display:inline-block; white-space:normal; }
+.gestaltung .feld-hilfe,.gestaltung-kommentar { font-size:var(--schrift-klein); }
+.gestaltung-fehler { color:var(--fehler); font-size:var(--schrift-klein); margin:var(--abstand-2) 0; }
+.gestaltung [aria-invalid="true"] { border-color:var(--fehler); border-width:2px; }
+.gestaltung-abstand { margin:var(--abstand-5) 0; }
+.gestaltung-kommentar { display:flex; align-items:flex-start; gap:var(--abstand-3); padding:var(--abstand-4); background:var(--flaeche-tief); border-radius:var(--radius); }
+.gestaltung-kommentar p { margin:var(--abstand-2) 0 0; }
+@media(max-width:650px) { .gestaltung { padding:var(--abstand-6) var(--abstand-4); } .gestaltung-spalten { grid-template-columns:1fr; gap:var(--abstand-4); } .gestaltung-karte { margin:var(--abstand-2) 0; } }

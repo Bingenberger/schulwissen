@@ -1,0 +1,58 @@
+{% extends "grundlage.html" %}
+{% load static %}
+{% block titel %}Gestaltungsübersicht{% endblock %}
+{% block kopf_zusatz %}<link rel="stylesheet" href="{% static 'styleguide.css' %}">{% endblock %}
+{% block inhalt %}
+<div class="gestaltung">
+  <header class="gestaltung-kopf">
+    <p class="gestaltung-augenbraue">Gemeinsame Grundlagen</p>
+    <h1>So sieht Schulwissen aus.</h1>
+    <p>Ruhig, gut lesbar und mit dem Finger bedienbar. Diese interne Übersicht zeigt die gemeinsamen Bausteine und ihre Zustände.</p>
+    <p class="gestaltung-hinweis">Alle Inhalte auf dieser Seite sind Beispiele. Hier werden keine Schuldaten geändert.</p>
+  </header>
+  <nav class="gestaltung-navigation" aria-label="Bausteine">
+    <a href="#status">Status</a><a href="#aktionen">Aktionen</a><a href="#formulare">Formulare</a><a href="#inhalte">Inhalte</a><a href="#rueckmeldungen">Rückmeldungen</a>
+  </nav>
+  <section class="gestaltung-abschnitt" id="status">
+    <h2>Status und Gültigkeit</h2><p>Farbe unterstützt den Klartext. Beschlossene Inhalte sind grün, Entwürfe bleiben erkennbar.</p>
+    <div class="gestaltung-reihe"><span class="schild schild-idee">Idee</span><span class="schild schild-entwurf">Entwurf</span><span class="schild schild-abgestimmt">Abgestimmt</span><span class="schild schild-beschlossen">Beschlossen</span><span class="schild schild-archiviert">Archiviert</span><span class="kennung">V-2-01</span></div>
+    <div class="gueltigkeitsbanner gueltigkeitsbanner-beschlossen">{% include "kern/_symbol.html" with name="kreis-haken" %}<div><strong>Beschlossen und gültig</strong><p>Gilt seit Beschluss der Fachkonferenz Deutsch vom 12.03.2027.</p></div></div>
+    <div class="gueltigkeitsbanner gueltigkeitsbanner-entwurf">{% include "kern/_symbol.html" with name="stift" %}<div><strong>Entwurf – noch nicht beschlossen</strong><p>Dieser Arbeitsstand wird im Kollegium abgestimmt.</p></div></div>
+  </section>
+  <section class="gestaltung-abschnitt" id="aktionen">
+    <h2>Aktionen</h2><p>Eine Hauptaktion, ruhige Alternativen und sichtbarer Tastaturfokus. Alle Schaltflächen bieten mindestens 44 × 44 Pixel Platz.</p>
+    <div class="gestaltung-reihe"><button type="button" class="knopf knopf-wichtig">{% include "kern/_symbol.html" with name="haken" %}Speichern</button><button type="button" class="knopf">Abbrechen</button><button type="button" class="knopf knopf-leise">{% include "kern/_symbol.html" with name="stift" %}Bearbeiten</button><button type="button" class="knopf knopf-gefahr">Löschen</button><button type="button" class="knopf knopf-wichtig" disabled>Speichern</button></div>
+  </section>
+  <section class="gestaltung-abschnitt" id="formulare">
+    <h2>Formulare und Suche</h2><p>Beschriftungen stehen über dem Feld. Hinweise und Fehler erklären den nächsten Schritt.</p>
+    <div class="gestaltung-spalten">
+      <div class="feld"><label for="beispiel-titel">Titel des Vorhabens</label><p class="feld-hilfe" id="titel-hilfe">Ein kurzer Titel, den das Kollegium wiedererkennt.</p><input id="beispiel-titel" type="text" value="Gemeinsam Märchen entdecken" aria-describedby="titel-hilfe"></div>
+      <div class="feld"><label for="beispiel-jahrgang">Jahrgang <span class="feld-pflicht">(Pflichtfeld)</span></label><select id="beispiel-jahrgang" aria-invalid="true" aria-describedby="jahrgang-fehler"><option value="">Bitte auswählen</option><option>Jahrgang 2</option></select><p class="gestaltung-fehler" id="jahrgang-fehler">Bitte wähle einen Jahrgang aus.</p></div>
+    </div>
+    <div class="feld"><label for="beispiel-notiz">Deine Notiz</label><textarea id="beispiel-notiz" rows="3" placeholder="Was möchtest du festhalten?"></textarea></div>
+    {% include "kern/_suchfeld.html" with kennung="gestaltung-suchfeld" %}
+    <p class="feld-hilfe">Die Suche verwendet die vorhandenen Inhalte. Ab zwei Zeichen erscheinen Vorschläge; Pfeiltasten, Enter und Escape bedienen die Auswahl.</p>
+  </section>
+  <section class="gestaltung-abschnitt" id="inhalte">
+    <h2>Inhalte und Zusammenarbeit</h2>
+    <div class="gestaltung-spalten">
+      <article class="karte gestaltung-karte"><span class="schild schild-entwurf">Entwurf</span><h3>Gemeinsam Märchen entdecken</h3><p>Jahrgang 2 · 2. Quartal · 12 Stunden</p><p>Wir hören, lesen und erzählen Märchen.</p><span class="kompetenz-chip">Lesen – Texte verstehen <span class="kennung">L-2</span></span></article>
+      <article class="block block-leistung gestaltung-karte"><h3>{% include "kern/_symbol.html" with name="raster" %} Leistung</h3><p>Die Kinder erzählen ein Märchen nach und nutzen passende Erzählhilfen.</p><span class="schild schild-abgestimmt">Beobachtung im Unterricht</span></article>
+    </div>
+    <details class="accordion"><summary>Jahrgang 2: So gestalten wir die Lesezeit</summary><div>Jeden Morgen lesen die Kinder zehn Minuten in einem selbst gewählten Buch.</div></details>
+    <div class="gestaltung-spalten gestaltung-abstand">
+      <div class="anhang-kachel">{% include "kern/_symbol.html" with name="datei" %}<div><strong>Erzählhilfen für Märchen.pdf</strong><small>PDF · 240 KB · Nextcloud</small></div>{% include "kern/_symbol.html" with name="cloud" %}</div>
+      <article class="gestaltung-kommentar">{% include "kern/_symbol.html" with name="kommentar" %}<div><strong>Anna · 30.10.2026</strong><p>Die Erzählkarten können wir gemeinsam vorbereiten.</p></div></article>
+    </div>
+    <h3>Tabellen</h3><p class="feld-hilfe" id="tabelle-hilfe">Bei kleinen Bildschirmen kannst du die Tabelle seitlich verschieben. Die Kopfzeile bleibt beim Scrollen sichtbar.</p>
+    <div class="tabelle-rahmen" tabindex="0" role="region" aria-label="Beispieltabelle" aria-describedby="tabelle-hilfe"><table class="tabelle"><caption class="nur-fuer-vorleser">Beispiel: Vorhaben nach Jahrgang</caption><thead><tr><th scope="col">Vorhaben</th><th scope="col">Jahrgang</th><th scope="col">Quartal</th><th scope="col">Status</th></tr></thead><tbody><tr><th scope="row">Gemeinsam Märchen entdecken</th><td>2</td><td>Q2</td><td><span class="schild schild-entwurf">Entwurf</span></td></tr><tr><th scope="row">Unsere tägliche Lesezeit</th><td>1–4</td><td>Ganzjährig</td><td><span class="schild schild-beschlossen">Beschlossen</span></td></tr></tbody></table></div>
+  </section>
+  <section class="gestaltung-abschnitt" id="rueckmeldungen">
+    <h2>Rückmeldungen und leere Zustände</h2>
+    <div class="meldung meldung-success gestaltung-banner">{% include "kern/_symbol.html" with name="kreis-haken" %}<span>Als Entwurf gespeichert.</span></div>
+    <p class="feld-hilfe">Erfolgsmeldungen erscheinen im Alltag unten und verschwinden nach drei Sekunden. Beim Lesen mit Maus oder Tastatur pausiert die Anzeige.</p>
+    <div class="meldung meldung-error gestaltung-banner">{% include "kern/_symbol.html" with name="warnung" %}<div><strong>Bitte prüfe den Jahrgang.</strong><p>Fehler bleiben sichtbar, bis du sie schließt oder korrigierst.</p></div></div>
+    <div class="leerer-zustand">{% include "kern/_symbol.html" with name="buch" %}<h3>Noch keine Vorhaben für Jahrgang 2.</h3><p>Hier findest du die Vorhaben, sobald sie angelegt sind.</p></div>
+  </section>
+</div>
+{% endblock %}
