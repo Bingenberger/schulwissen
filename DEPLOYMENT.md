@@ -283,6 +283,7 @@ curl -s localhost:8001/gesundheit   # muss „ok" antworten
 
 | Fehlerbild | Ursache |
 | --- | --- |
+| „Unbekannter Eintragstyp" an einem Eintrag | Der Typ wurde von Hand gesetzt oder sein Modul ist weg. `manage.py eintraege_pruefen` findet alle, `--setzen <typ>` stellt sie richtig. |
 | `SW_ALLOWED_HOSTS fehlt` beim Start | `.env` unvollständig oder nicht gelesen |
 | „Bad Request (400)“ im Browser | Die aufgerufene Domain steht nicht in `SW_ALLOWED_HOSTS` |
 | Links in den Passwort-Mails zeigen auf `http://` | nginx setzt `X-Forwarded-Proto` nicht |

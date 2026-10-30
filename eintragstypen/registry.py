@@ -174,6 +174,8 @@ class Eintragstyp:
     xlsx_blatt: str = ""
     #: Erlaubt Anhänge an Einträgen dieses Typs.
     mit_anhaengen: bool = True
+    #: Wahr für den Ersatztyp zu einem Schlüssel, den es nicht (mehr) gibt.
+    ist_platzhalter: bool = False
 
     _nach_schluessel: dict = field(default_factory=dict, repr=False, compare=False)
     _nach_spalte: dict = field(default_factory=dict, repr=False, compare=False)
@@ -379,6 +381,30 @@ class Registry:
 
     def bekannt(self, schluessel: str) -> bool:
         return schluessel in self._typen
+
+    def platzhalter(self, schluessel: str) -> Eintragstyp:
+        """Ersatztyp für einen Schlüssel, den es nicht gibt.
+
+        Damit bleibt ein Dokument lesbar, auch wenn ein einzelner Eintrag einen
+        unbekannten Typ trägt – etwa weil er von Hand in der Verwaltung
+        angelegt wurde oder ein Modul entfernt wurde. Ohne ihn risse ein
+        einziger Datensatz die ganze Seite mit.
+        """
+        return Eintragstyp(
+            schluessel=schluessel,
+            name=f"Unbekannter Eintragstyp „{schluessel}“",
+            beschreibung=(
+                "Diesen Eintragstyp kennt die App nicht. Der Eintrag lässt sich "
+                "weder anzeigen noch bearbeiten, bis die Administration den Typ "
+                "richtigstellt."
+            ),
+            felder=(),
+            ist_platzhalter=True,
+        )
+
+    def holen_oder_platzhalter(self, schluessel: str) -> Eintragstyp:
+        """Wie ``holen``, gibt aber einen Platzhalter statt eines Fehlers."""
+        return self._typen.get(schluessel) or self.platzhalter(schluessel)
 
     def alle(self) -> Sequence[Eintragstyp]:
         return tuple(self._typen.values())

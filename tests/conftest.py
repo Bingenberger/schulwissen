@@ -67,7 +67,13 @@ def _nutzer_mit_rolle(rollen, rolle: str, email: str) -> Nutzer:
 
 @pytest.fixture
 def admin_nutzer(rollen) -> Nutzer:
-    return _nutzer_mit_rolle(rollen, ROLLE_ADMINISTRATION, "admin@example.org")
+    """Administration – wie „manage.py admin_anlegen“ das Konto einrichtet,
+    also mit Zugang zur Django-Verwaltung."""
+    nutzer = _nutzer_mit_rolle(rollen, ROLLE_ADMINISTRATION, "admin@example.org")
+    nutzer.is_staff = True
+    nutzer.is_superuser = True
+    nutzer.save(update_fields=["is_staff", "is_superuser"])
+    return nutzer
 
 
 @pytest.fixture

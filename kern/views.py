@@ -238,6 +238,18 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
     # Lesende sehen die zuletzt beschlossene Fassung, alle anderen den
     # Arbeitsstand (SPEC.md §6).
     zeigt_entwurf = rechte.zeigt_entwurf(request.user, eintrag)
+    if not eintrag.typ_bekannt:
+        return render(
+            request,
+            "kern/eintrag_unbekannt.html",
+            {
+                "dokument": eintrag.dokument,
+                "eintrag": eintrag,
+                "baum": _gliederungsbaum(eintrag.dokument, request.user),
+                "ist_administration": rechte.ist_administration(request.user),
+            },
+        )
+
     if zeigt_entwurf or beschlossen is None:
         bloecke = list(_felder_zum_lesen(eintrag))
         angezeigter_titel = eintrag.titel
@@ -296,6 +308,15 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
             "Diesen Eintrag darf nur die verantwortliche Arbeitsgruppe oder die "
             "Redaktion bearbeiten."
         )
+    if not eintrag.typ_bekannt:
+        # Ohne Feldschema lässt sich keine Maske bauen.
+        messages.error(
+            request,
+            f"„{eintrag.kennung}“ trägt den Eintragstyp „{eintrag.eintragstyp}“, "
+            "den die App nicht kennt. Die Administration muss ihn in der "
+            "Verwaltung richtigstellen.",
+        )
+        return redirect("kern:eintrag", schluessel=schluessel, kennung=kennung)
 
     if request.method == "POST":
         formular = EintragFormular(request.POST, eintragstyp=eintrag.eintragstyp, eintrag=eintrag)

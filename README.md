@@ -91,6 +91,14 @@ die Spaltenzuordnung des XLSX-Imports und später die Spalten des Exports.
 **Ein neuer Dokumenttyp ist damit eine neue Moduldatei, kein Umbau des Kerns.**
 Vorbild ist `deutsch/eintragstypen.py`.
 
+Weil die Typen im Code stehen, kann die Datenbank sie nicht erzwingen – eine
+Prüfbedingung dort bräuchte je neuem Typ eine Migration, und genau das soll sie
+nicht. Stattdessen prüft die Anwendung: Das Feld bietet nur die registrierten
+Typen an, `Eintrag.clean()` weist alles andere zurück, und
+`manage.py eintraege_pruefen` findet Altlasten. Trifft die App doch auf einen
+unbekannten Typ, zeigt sie einen Hinweis statt eines Fehlers – ein einzelner
+Datensatz darf nicht das ganze Dokument unlesbar machen.
+
 ## Rollen
 
 | Rolle | Darf |

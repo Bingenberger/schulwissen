@@ -30,6 +30,18 @@ ROLLE_REDAKTION = "Redaktion"
 ROLLE_LEHRKRAFT = "Lehrkraft"
 ROLLE_LESEND = "Lesend"
 
+
+def eintragstyp_auswahl():
+    """Die Eintragstypen für das Auswahlfeld.
+
+    Als Funktion, weil die Registry erst gefüllt ist, wenn alle Apps geladen
+    sind. Django ruft sie bei Bedarf auf, nicht beim Import.
+    """
+    from eintragstypen.registry import registry
+
+    return registry.auswahl()
+
+
 ROLLEN = (
     (ROLLE_ADMINISTRATION, "Nutzer, Dokumenttypen, Stammdaten, Beschlüsse, Import und Export"),
     (ROLLE_REDAKTION, "Einträge bearbeiten, Status bis „abgestimmt“, Beschlussvorlagen"),
@@ -260,7 +272,12 @@ class Eintrag(Zeitstempel):
     dokument = models.ForeignKey(
         Dokument, verbose_name="Dokument", on_delete=models.CASCADE, related_name="eintraege"
     )
-    eintragstyp = models.CharField("Eintragstyp", max_length=60)
+    eintragstyp = models.CharField(
+        "Eintragstyp",
+        max_length=60,
+        choices=eintragstyp_auswahl,
+        help_text="Bestimmt, welche Felder der Eintrag hat.",
+    )
     kennung = models.CharField(
         "Kennung",
         max_length=40,
@@ -326,10 +343,56 @@ class Eintrag(Zeitstempel):
 
     @property
     def typ(self):
-        """Das Schema dieses Eintrags aus der Registry."""
+        """Das Schema dieses Eintrags aus der Registry.
+
+        Ist der Typ unbekannt, kommt ein Platzhalter zurück statt eines
+        Fehlers – ein einzelner kaputter Datensatz soll nicht das ganze
+        Dokument unlesbar machen. ``typ_bekannt`` sagt, ob es ein echter ist.
+        """
         from eintragstypen.registry import registry
 
-        return registry.holen(self.eintragstyp)
+        return registry.holen_oder_platzhalter(self.eintragstyp)
+
+    @property
+    def typ_bekannt(self) -> bool:
+        from eintragstypen.registry import registry
+
+        return registry.bekannt(self.eintragstyp)
+
+    def clean(self) -> None:
+        """Prüft den Eintragstyp, bevor etwas Unbrauchbares gespeichert wird.
+
+        Eine Prüfung in der Datenbank wäre hier falsch: Eintragstypen stehen im
+        Code, und jeder neue Typ bräuchte sonst eine Migration – genau das soll
+        er nicht (Leitprinzip 3).
+        """
+        from eintragstypen.registry import registry
+
+        super().clean()
+        if not registry.bekannt(self.eintragstyp):
+            bekannt = ", ".join(f"„{s}“" for s, _ in registry.auswahl()) or "(noch keine)"
+            raise ValidationError(
+                {
+                    "eintragstyp": (
+                        f"„{self.eintragstyp}“ ist kein Eintragstyp. Möglich sind: {bekannt}."
+                    )
+                }
+            )
+
+        if not self.dokument_id:
+            # Ohne Dokument hat Django schon einen Fehler dafür gemeldet.
+            return
+
+        erlaubt = self.dokument.dokumenttyp.eintragstypen or []
+        if erlaubt and self.eintragstyp not in erlaubt:
+            raise ValidationError(
+                {
+                    "eintragstyp": (
+                        f"„{registry.holen(self.eintragstyp).name}“ ist im Dokumenttyp "
+                        f"„{self.dokument.dokumenttyp.name}“ nicht vorgesehen."
+                    )
+                }
+            )
 
     @property
     def ist_beschlossen(self) -> bool:

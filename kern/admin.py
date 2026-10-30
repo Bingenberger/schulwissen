@@ -128,13 +128,20 @@ class VerlinkungInline(admin.TabularInline):
 
 @admin.register(Eintrag)
 class EintragAdmin(admin.ModelAdmin):
-    list_display = ["kennung", "titel", "dokument", "eintragstyp", "status", "geaendert_am"]
+    list_display = ["kennung", "titel", "dokument", "typ_spalte", "status", "geaendert_am"]
     list_filter = ["dokument", "eintragstyp", "status"]
     search_fields = ["kennung", "titel", "suchtext"]
     readonly_fields = ["suchtext", "erstellt_am", "geaendert_am"]
     inlines = [VerlinkungInline]
     autocomplete_fields = ["eltern"]
     ordering = ["dokument", "position", "kennung"]
+
+    @admin.display(description="Eintragstyp", ordering="eintragstyp")
+    def typ_spalte(self, eintrag: Eintrag) -> str:
+        """Macht einen unbekannten Typ in der Liste sofort sichtbar."""
+        if eintrag.typ_bekannt:
+            return eintrag.typ.name
+        return f"⚠ unbekannt: {eintrag.eintragstyp}"
 
 
 class EintragsversionInline(admin.TabularInline):
