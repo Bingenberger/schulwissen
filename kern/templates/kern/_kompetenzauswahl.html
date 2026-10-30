@@ -7,22 +7,23 @@
   Liste liest. Alpine hält die Liste der Marken, HTMX holt die Treffer.
 {% endcomment %}
 {% with feld=zeile.feld gebunden=zeile.gebunden %}
-<div class="feld" x-data="kompetenzauswahl($refs.quelle_{{ feld.schluessel }})">
+<div class="feld" {% if feld.pflicht %}data-pflicht="{{ feld.label }}"{% endif %} x-data="kompetenzauswahl($refs.quelle_{{ feld.schluessel }})">
   <span class="feld-beschriftung">
     {{ feld.label }}{% if feld.pflicht %}<span class="feld-pflicht" title="Pflichtfeld">*</span>{% endif %}
   </span>
-  {% if feld.hilfe %}<p class="feld-hilfe">{{ feld.hilfe }}</p>{% endif %}
+  {% if feld.hilfe %}<p class="feld-hilfe" id="{{ gebunden.auto_id }}_helptext">{{ feld.hilfe }}</p>{% endif %}
 
   <textarea x-ref="quelle_{{ feld.schluessel }}" name="{{ gebunden.name }}"
-            class="editor-quelle" aria-hidden="true" tabindex="-1">{{ gebunden.value|default:'' }}</textarea>
+            class="editor-quelle" id="{{ gebunden.id_for_label }}" aria-hidden="true" tabindex="-1">{{ gebunden.value|default:'' }}</textarea>
 
+  {% with daten_id="auswahl-"|add:feld.schluessel %}{{ zeile.marken|json_script:daten_id }}{% endwith %}
   <div class="auswahl">
     <div class="auswahl-kopf">
       <input type="hidden" name="fach" value="{{ dokument.fach|default:'deutsch' }}">
       <label class="nur-fuer-vorleser" for="suche_{{ feld.schluessel }}">
         {{ feld.label }} suchen</label>
       <input type="search" id="suche_{{ feld.schluessel }}"
-             name="q" placeholder="Kennung oder Wort, z. B. SC2.02 oder Märchen"
+             name="q" {% if feld.hilfe or gebunden.errors %}aria-describedby="{% if feld.hilfe %}{{ gebunden.auto_id }}_helptext{% endif %}{% if gebunden.errors %} {{ gebunden.auto_id }}_error{% endif %}"{% endif %} placeholder="Kennung oder Wort, z. B. SC2.02 oder Märchen"
              autocomplete="off"
              hx-get="{% url 'fachdaten:suche' %}"
              hx-trigger="input changed delay:200ms, search"
@@ -53,8 +54,8 @@
     <div class="auswahl-gewaehlt" role="list" aria-label="Gewählte Kompetenzerwartungen">
       <template x-for="marke in marken" :key="marke.kennung">
         <span class="marke" role="listitem">
-          <span class="marke-kennung" x-text="marke.kennung"></span>
-          <span class="marke-text" x-text="marke.text" :title="marke.text"></span>
+          <button type="button" class="marke-text" x-data="{ offen: false }" @click="offen = !offen" :aria-expanded="String(offen)" :class="{ 'ist-ausgeklappt': offen }" x-text="marke.text || marke.kennung" :title="marke.text"></button>
+          <span class="marke-kennung" x-show="marke.text" x-text="marke.kennung"></span>
           <button type="button" class="marke-weg" @click="entfernen(marke.kennung)"
                   :aria-label="'Entfernen: ' + marke.kennung">×</button>
         </span>
@@ -68,5 +69,6 @@
          hx-get="{% url 'fachdaten:suche' %}" hx-trigger="load"
          hx-include="previous .auswahl-kopf"></div>
   </div>
+  {% for fehler in gebunden.errors %}<p class="feld-fehler" id="{{ gebunden.auto_id }}_error">{{ fehler }}</p>{% endfor %}
 </div>
 {% endwith %}

@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block inhalt %}
-<div class="geruest">
+<div class="geruest bearbeitungsansicht">
   {% include "kern/_navigation.html" %}
 
   <div>
@@ -33,23 +33,25 @@
       jederzeit als Entwurf sichern und später weiterarbeiten.
     </div>
 
-    <form method="post" x-data="{ jahrgang: '{{ formular.f_jahrgang.value|default:'' }}' }">
+    <form method="post" data-eintragsformular x-data="{ jahrgang: '{{ formular.f_jahrgang.value|default:'' }}' }">
       {% csrf_token %}
 
+      {% if formular.errors %}<div class="meldung meldung-error" role="alert"><strong>Bitte prüfe die markierten Felder.</strong><ul>{% for feld in formular %}{% if feld.errors %}<li><a href="#{% if feld.name|slice:":2" == 'v_' %}suche_{{ feld.name|slice:"2:" }}{% else %}{{ feld.id_for_label }}{% endif %}">{{ feld.label }}: {{ feld.errors|striptags }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
       {% if formular.non_field_errors %}
         {% for fehler in formular.non_field_errors %}
           <div class="meldung meldung-error">{{ fehler }}</div>
         {% endfor %}
       {% endif %}
 
+      <div class="formular-fortschritt" data-fortschritt hidden><strong data-fortschritt-text></strong><progress data-fortschritt-balken max="1" value="0" aria-label="Ausgefüllte Pflichtfelder"></progress><details><summary>Was fehlt noch?</summary><ul data-fehlende-felder></ul></details></div>
       <section class="block">
         <h2>Titel</h2>
-        <div class="feld">
+        <div class="feld" data-pflicht="Titel">
           <label for="{{ formular.titel.id_for_label }}">
             {{ formular.titel.label }}<span class="feld-pflicht" title="Pflichtfeld">*</span></label>
-          {% if formular.titel.help_text %}<p class="feld-hilfe">{{ formular.titel.help_text }}</p>{% endif %}
+          {% if formular.titel.help_text %}<p class="feld-hilfe" id="{{ formular.titel.auto_id }}_helptext">{{ formular.titel.help_text }}</p>{% endif %}
           {{ formular.titel }}
-          {% for fehler in formular.titel.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+          {% for fehler in formular.titel.errors %}<p class="feld-fehler" id="{{ formular.titel.auto_id }}_error">{{ fehler }}</p>{% endfor %}
         </div>
       </section>
 
@@ -62,7 +64,7 @@
             {% elif zeile.feld.ist_berechnet %}
               <div class="feld">
                 <span class="feld-beschriftung">{{ zeile.feld.label }}</span>
-                {% if zeile.feld.hilfe %}<p class="feld-hilfe">{{ zeile.feld.hilfe }}</p>{% endif %}
+                {% if zeile.feld.hilfe %}<p class="feld-hilfe" id="{{ zeile.gebunden.auto_id }}_helptext">{{ zeile.feld.hilfe }}</p>{% endif %}
                 <span class="feld-berechnet">
                   {% if zeile.berechnet %}{{ zeile.berechnet }}{% if zeile.feld.einheit %} {{ zeile.feld.einheit }}{% endif %}
                   {% else %}wird beim Speichern berechnet{% endif %}
@@ -73,19 +75,19 @@
               das steuernde Feld gewählt ist. Zurzeit steuert nur „jahrgang";
               ein weiteres Steuerfeld braucht hier eine Zeile mehr.
               {% endcomment %}
-              <div class="feld"
+              <div class="feld" {% if zeile.feld.pflicht %}data-pflicht="{{ zeile.feld.label }}"{% endif %}
                    {% if zeile.feld.sichtbar_wenn_feld == 'jahrgang' %}x-show="{{ zeile.feld.sichtbar_wenn_werte_js }}.includes(String(jahrgang))" x-cloak{% endif %}>
                 <label for="{{ zeile.gebunden.id_for_label }}">
                   {{ zeile.feld.label }}{% if zeile.feld.pflicht %}<span class="feld-pflicht" title="Pflichtfeld">*</span>{% endif %}
                   {% if zeile.feld.einheit %} <span class="leise klein">({{ zeile.feld.einheit }})</span>{% endif %}
                 </label>
-                {% if zeile.feld.hilfe %}<p class="feld-hilfe">{{ zeile.feld.hilfe }}</p>{% endif %}
+                {% if zeile.feld.hilfe %}<p class="feld-hilfe" id="{{ zeile.gebunden.auto_id }}_helptext">{{ zeile.feld.hilfe }}</p>{% endif %}
                 {% if zeile.feld.schluessel == 'jahrgang' %}
                   {% comment %}Eigenes <select>, damit Alpine den Jahrgang
                   kennt: davon hängt ab, ob „Klassenarbeit" angeboten wird.
                   {% endcomment %}
                   <select name="{{ zeile.gebunden.name }}" id="{{ zeile.gebunden.id_for_label }}"
-                          x-model="jahrgang">
+                          x-model="jahrgang" aria-describedby="{{ zeile.gebunden.auto_id }}_helptext{% if zeile.gebunden.errors %} {{ zeile.gebunden.auto_id }}_error{% endif %}" {% if zeile.gebunden.errors %}aria-invalid="true"{% endif %}>
                     <option value="">– bitte wählen –</option>
                     {% for wert, beschriftung in zeile.feld.auswahl %}
                       <option value="{{ wert }}"
@@ -96,31 +98,31 @@
                 {% else %}
                   {{ zeile.gebunden }}
                 {% endif %}
-                {% for fehler in zeile.gebunden.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+                {% for fehler in zeile.gebunden.errors %}<p class="feld-fehler" id="{{ zeile.gebunden.auto_id }}_error">{{ fehler }}</p>{% endfor %}
               </div>
             {% endif %}
           {% endfor %}
         </section>
       {% endfor %}
 
-      <section class="block">
-        <h2>Status</h2>
+      <div class="aktionsleiste">
+      <details class="status-auswahl" {% if formular.status.errors %}open{% endif %}><summary>Status ändern</summary>
         <div class="feld">
           <label for="{{ formular.status.id_for_label }}">{{ formular.status.label }}</label>
-          <p class="feld-hilfe">{{ formular.status.help_text }}</p>
+          <p class="feld-hilfe" id="{{ formular.status.auto_id }}_helptext">{{ formular.status.help_text }}</p>
           {{ formular.status }}
-          {% for fehler in formular.status.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+          {% for fehler in formular.status.errors %}<p class="feld-fehler" id="{{ formular.status.auto_id }}_error">{{ fehler }}</p>{% endfor %}
         </div>
-      </section>
+      </details>
 
       <div class="knopf-reihe">
-        <button class="knopf knopf-wichtig" type="submit">Speichern</button>
+        <button class="knopf knopf-wichtig" data-speichern type="submit">Speichern</button>
         {% if eintrag %}
           <a class="knopf" href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">Abbrechen</a>
         {% else %}
           <a class="knopf" href="{% url 'kern:dokument' dokument.schluessel %}">Abbrechen</a>
         {% endif %}
-      </div>
+      </div><p class="klein leise" data-speicherhinweis>{% if eintrag %}Stand vom {{ eintrag.geaendert_am|date:"d.m.Y, H:i" }}{% else %}Noch nicht gespeichert{% endif %}</p></div>
     </form>
   </div>
 </div>
@@ -144,7 +146,9 @@ document.addEventListener("alpine:init", () => {
         .split(/[,;\n]/).map((t) => t.trim()).filter(Boolean);
       // Klartexte stehen in der Trefferliste; bis sie geladen ist, zeigen wir
       // die Kennung. Das Feld ist damit sofort bedienbar.
-      this.marken = kennungen.map((kennung) => ({ kennung, text: "" }));
+      const klartexte = quelle.closest(".feld").querySelector('script[type="application/json"]');
+      const vorgaben = klartexte ? JSON.parse(klartexte.textContent) : [];
+      this.marken = kennungen.map((kennung) => ({ kennung, text: (vorgaben || []).find(m => m.kennung === kennung)?.text || "" }));
       quelle.closest(".feld").addEventListener("kompetenz-gewaehlt", (ereignis) => {
         this.hinzufuegen(ereignis.detail);
       });
@@ -174,6 +178,7 @@ document.addEventListener("alpine:init", () => {
 
     spiegeln() {
       quelle.value = this.marken.map((m) => m.kennung).join(", ");
+      quelle.dispatchEvent(new Event("input", {bubbles: true}));
     },
   }));
 });

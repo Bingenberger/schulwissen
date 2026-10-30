@@ -171,7 +171,17 @@ class EintragFormular(forms.Form):
                     continue
                 name = (VERWEIS if feld.ist_verlinkung else DATEN) + feld.schluessel
                 if name in self.fields:
-                    eintraege.append({"feld": feld, "gebunden": self[name]})
+                    zeile = {"feld": feld, "gebunden": self[name]}
+                    if feld.ist_verlinkung and feld.zieltyp == "kompetenz":
+                        from fachdaten.models import Kompetenzerwartung
+
+                        kennungen = VerweisFeld(required=False).clean(self[name].value() or "")
+                        klartexte = Kompetenzerwartung.objects.in_bulk(kennungen)
+                        zeile["marken"] = [
+                            {"kennung": k, "text": klartexte[k].text if k in klartexte else ""}
+                            for k in kennungen
+                        ]
+                    eintraege.append(zeile)
             if eintraege:
                 yield {"name": block, "felder": eintraege}
 

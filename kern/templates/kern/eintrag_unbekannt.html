@@ -13,16 +13,16 @@
 
     <div class="ueberschrift-zeile">
       <span class="kennung">{{ eintrag.kennung }}</span>
-      <h1 style="margin:0">{{ eintrag.titel }}</h1>
+      <h1>{{ eintrag.titel }}</h1>
     </div>
 
     <div class="meldung meldung-error">
-      <p style="margin-top:0">
+      <p>
         Dieser Eintrag trägt den Eintragstyp
         <strong><code>{{ eintrag.eintragstyp }}</code></strong>, den die App nicht kennt.
         Deshalb lässt er sich weder anzeigen noch bearbeiten.
       </p>
-      <p style="margin-bottom:0">
+      <p>
         {% if ist_administration %}
           Bitte in der Verwaltung unter
           <a href="{% url 'admin:kern_eintrag_change' eintrag.pk %}">Einträge → {{ eintrag.kennung }}</a>
@@ -36,13 +36,13 @@
 
     {% if ist_administration %}
       <div class="karte">
-        <h2 style="margin-top:0">Was ist passiert?</h2>
+        <h2>Was ist passiert?</h2>
         <p>Eintragstypen stehen im Code, nicht in der Datenbank – so kommt ein
           neuer Dokumenttyp ohne Umbau hinzu. Bis eben war das Feld in der
           Verwaltung aber ein freies Textfeld. Jetzt bietet es eine Auswahl an
           und weist unbekannte Werte zurück.</p>
-        <p style="margin-bottom:0">Alle betroffenen Einträge findet:</p>
-        <pre style="overflow-x:auto"><code>docker compose exec app python manage.py eintraege_pruefen</code></pre>
+        <p>Alle betroffenen Einträge findet:</p>
+        <pre class="code-rahmen"><code>docker compose exec app python manage.py eintraege_pruefen</code></pre>
       </div>
     {% endif %}
 

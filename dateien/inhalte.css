@@ -1,0 +1,171 @@
+/* Lesen, Bearbeiten und die gemeinsame Gliederung. */
+.geruest>* { min-width:0; }
+.navigation { align-self:start; background:var(--papier); border:1px solid var(--linie); border-radius:var(--radius); padding:0; }
+.navigation>summary { display:flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); padding:var(--abstand-4); cursor:pointer; font-size:var(--schrift-klein); font-weight:600; list-style:none; }
+.navigation>summary::-webkit-details-marker { display:none; }
+.navigation>summary>.symbol:last-child { margin-left:auto; }
+.navigation[open]>summary { border-bottom:1px solid var(--linie); }
+.navigation>nav { padding:var(--abstand-3); max-height:75vh; overflow:auto; }
+.navigation h2 { font-size:var(--schrift-normal); padding:var(--abstand-2); margin:0 0 var(--abstand-2); }
+.navigation hr { border:0; border-top:1px solid var(--linie); margin:var(--abstand-4) 0; }
+.navigation .baum-zeile { min-height:var(--klickflaeche); display:flex; align-items:center; flex-wrap:wrap; gap:var(--abstand-1); font-size:var(--schrift-klein); overflow-wrap:anywhere; }
+.navigation .schild { font-size:var(--schrift-klein); white-space:normal; }
+.navigation .baum-tiefe-2 { padding-left:var(--abstand-4); }
+.navigation .baum-tiefe-3 { padding-left:var(--abstand-5); }
+.navigation .baum-tiefe-4 { padding-left:var(--abstand-6); }
+.eintrag-inhalt { max-width:var(--lesebreite); width:100%; margin:0 auto; }
+.eintrag-titel { display:flex; gap:var(--abstand-4); align-items:flex-start; justify-content:space-between; margin:var(--abstand-5) 0; }
+.eintrag-titel h1 { margin:var(--abstand-3) 0; overflow-wrap:anywhere; }
+.eintrag-titel>.knopf { flex-shrink:0; }
+.fassungswahl,.inhaltsspruenge { display:flex; flex-wrap:wrap; gap:var(--abstand-2); margin:var(--abstand-4) 0 var(--abstand-5); }
+.fassungswahl a,.inhaltsspruenge a { display:flex; align-items:center; padding:var(--abstand-2) var(--abstand-3); min-height:var(--klickflaeche); border-radius:var(--radius-feld); font-size:var(--schrift-klein); text-decoration:none; background:var(--papier); border:1px solid var(--linie); }
+.fassungswahl a[aria-current],.fassungswahl a:hover,.inhaltsspruenge a:hover { color:var(--akzent); background:var(--akzent-leise); border-color:var(--akzent); }
+.leseansicht .block,.bearbeitungsansicht .block { padding:var(--abstand-5); margin-bottom:var(--abstand-5); scroll-margin-top:var(--abstand-5); }
+.block>h2 { font-size:var(--schrift-abschnitt); }
+.lesefeld { margin-bottom:var(--abstand-5); }
+.lesefeld:last-child { margin-bottom:0; }
+.lesefeld-inhalt { overflow-wrap:anywhere; }
+.lesefeld-inhalt p:last-child { margin-bottom:0; }
+.lesefeld .feld-beschriftung { font-size:var(--schrift-klein); color:var(--text-leise); margin-bottom:var(--abstand-2); }
+.kompetenzliste .kompetenz { flex-wrap:wrap; background:var(--akzent-leise); border-radius:var(--radius); padding:var(--abstand-3); margin:var(--abstand-2) 0; }
+.kompetenzliste .kompetenz-text { flex-basis:100%; }
+.kompetenz-kennung,.kennung { font-size:var(--schrift-klein); }
+.anhang-liste { list-style:none; margin:0; padding:0; display:grid; gap:var(--abstand-3); }
+.anhang-kachel { overflow-wrap:anywhere; }
+.anhang-kachel>span { min-width:0; }
+.nebenspalte { font-size:var(--schrift-klein); }
+.nebenspalte .karte { padding:var(--abstand-4); }
+.nebenspalte .karte>h3 { display:flex; align-items:center; gap:var(--abstand-2); margin:0 0 var(--abstand-4); font-size:var(--schrift-normal); }
+.nebenspalte .feld { margin-bottom:var(--abstand-4); }
+.nebenspalte .liste-schlicht li { margin-bottom:var(--abstand-3); }
+.nebenspalte .liste-schlicht strong { display:block; }
+.kommentar { padding:var(--abstand-3) 0; }
+.formular-fortschritt { padding:var(--abstand-4) var(--abstand-5); margin-bottom:var(--abstand-5); background:var(--akzent-leise); border:1px solid var(--linie); border-radius:var(--radius); }
+.formular-fortschritt progress { display:block; width:100%; height:var(--abstand-2); margin:var(--abstand-3) 0; accent-color:var(--akzent); }
+.formular-fortschritt summary { min-height:var(--klickflaeche); cursor:pointer; padding:var(--abstand-2) 0; font-size:var(--schrift-klein); }
+.formular-fortschritt ul { margin:0; padding:0; list-style:none; }
+.formular-fortschritt .knopf { justify-content:flex-start; text-align:left; }
+.aktionsleiste { position:sticky; bottom:var(--abstand-2); z-index:20; padding:var(--abstand-4); margin-top:var(--abstand-5); border:1px solid var(--linie-stark); border-radius:var(--radius); background:var(--papier); box-shadow:var(--schatten-menue); display:flex; flex-wrap:wrap; align-items:center; gap:var(--abstand-3); }
+.aktionsleiste>.knopf-reihe { order:-1; }
+.aktionsleiste>p { margin:0; flex-basis:100%; font-size:var(--schrift-klein); }
+.status-auswahl { position:relative; }
+.status-auswahl summary { min-height:var(--klickflaeche); cursor:pointer; padding:var(--abstand-2); }
+.status-auswahl .feld { position:absolute; bottom:100%; right:0; width:260px; padding:var(--abstand-4); border:1px solid var(--linie); background:var(--papier); border-radius:var(--radius); box-shadow:var(--schatten-menue); }
+.marke { flex-direction:row; align-items:center; max-width:100%; border-radius:var(--radius-rund); }
+.marke-text { min-width:0; flex:1; }
+.marke-weg,.editor-knopf { min-width:var(--klickflaeche); min-height:var(--klickflaeche); }
+.auswahl-kopf { flex-wrap:wrap; gap:var(--abstand-2); }
+.auswahl-kopf input[type="search"] { min-width:0; flex:1 1 15rem; }
+.auswahl-kopf select { max-width:100%; min-height:var(--klickflaeche); }
+.editor-leiste { gap:var(--abstand-1); padding:var(--abstand-2); }
+.editor-flaeche [contenteditable] { min-height:10rem; padding:var(--abstand-4); }
+.editor-mehr { position:relative; }
+.editor-mehr summary { min-height:var(--klickflaeche); padding:var(--abstand-2); cursor:pointer; display:flex; align-items:center; }
+.editor-mehr-inhalt { display:flex; flex-wrap:wrap; gap:var(--abstand-1); padding:var(--abstand-2); background:var(--flaeche-tief); }
+@media(min-width:1500px) { .geruest.mit-nebenspalte { grid-template-columns:250px minmax(0,1fr) 280px; } }
+@media(max-width:1100px) { .navigation { position:static; max-height:none; } .navigation>nav { max-height:60vh; } .eintrag-inhalt { max-width:var(--lesebreite); } }
+@media(max-width:600px) { .eintrag-titel { flex-wrap:wrap; } .geruest { padding:var(--abstand-4); gap:var(--abstand-4); } .aktionsleiste { bottom:0; } .status-auswahl .feld { position:static; width:100%; margin-top:var(--abstand-3); } .status-auswahl[open] { flex-basis:100%; } .leseansicht .block,.bearbeitungsansicht .block { padding:var(--abstand-4); } }
+@media print { .navigation,.inhaltsspruenge,.fassungswahl,.aktionsleiste,.eintrag-titel>.knopf { display:none!important; } .eintrag-inhalt { max-width:none; } .leseansicht .block { break-inside:avoid; border:0; background:transparent; } }
+
+.block:has(.ritual-jahrgang) { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--abstand-4); }
+.block:has(.ritual-jahrgang)>:not(.ritual-jahrgang) { grid-column:1/-1; }
+.ritual-jahrgang { margin:0; padding:var(--abstand-3); border:1px solid var(--linie); border-radius:var(--radius); background:var(--flaeche); }
+.ritual-jahrgang summary { min-height:var(--klickflaeche); font-size:var(--schrift-klein); font-weight:600; cursor:pointer; }
+@media(max-width:1100px) { .block:has(.ritual-jahrgang) { display:block; } .ritual-jahrgang { margin-bottom:var(--abstand-3); } }
+.dokument-aktionen { margin:var(--abstand-5) 0; }
+.dokument-anlegen,.dokument-verwaltung { margin:var(--abstand-5) 0; }
+.dokument-gruppe { margin:var(--abstand-6) 0; }
+.vorhaben-karten { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:var(--abstand-4); }
+.vorhaben-kachel { display:block; padding:var(--abstand-5); border:1px solid var(--linie); border-radius:var(--radius); background:var(--papier); color:var(--text); text-decoration:none; }
+.vorhaben-kachel:hover { border-color:var(--akzent); background:var(--akzent-leise); }
+.vorhaben-kachel h3 { margin:var(--abstand-4) 0 var(--abstand-2); }
+.kapitelliste { background:var(--papier); border:1px solid var(--linie); border-radius:var(--radius); }
+.kapitel-zeile { display:flex; align-items:center; gap:var(--abstand-3); padding:var(--abstand-4); border-bottom:1px solid var(--linie); }
+.kapitel-zeile:last-child { border-bottom:0; }
+.kapitel-zeile>div { flex:1; min-width:0; overflow-wrap:anywhere; }
+.kapitel-zeile a { display:flex; align-items:center; min-height:var(--klickflaeche); text-decoration:none; color:var(--text); }
+.kapitel-zeile a:hover { color:var(--akzent); text-decoration:underline; }
+.kapitel-zeile small { display:block; color:var(--text-leise); font-size:var(--schrift-klein); }
+.kapitel-tiefe-1 { padding-left:var(--abstand-5); }
+.kapitel-tiefe-2 { padding-left:var(--abstand-6); }
+@media(max-width:600px) { .kapitel-zeile { flex-wrap:wrap; padding:var(--abstand-3); } .kapitel-zeile .schild { margin-left:auto; } }
+/* Gemeinsame Inhaltsbreiten, Tabellen und Auswertungen. */
+.geruest { gap:var(--abstand-5); padding:var(--abstand-6); }
+.geruest.ohne-navigation { max-width:var(--seitenbreite); }
+.auswertungen-navigation a { min-height:var(--klickflaeche); font-size:var(--schrift-klein); }
+.tabelle-rahmen { width:100%; max-height:70vh; margin:var(--abstand-3) 0; }
+.tabelle-rahmen table { min-width:640px; }
+.tabelle-rahmen th,.tabelle-rahmen td { padding:var(--abstand-3); }
+.tabelle-rahmen th { font-size:var(--schrift-klein); }
+.tabelle-rahmen td:first-child,.tabelle-rahmen th:first-child { position:sticky; left:0; z-index:1; background:var(--papier); }
+.tabelle-rahmen thead th { position:sticky; top:0; z-index:2; background:var(--flaeche-tief); }
+.tabelle-rahmen thead th:first-child { z-index:3; background:var(--flaeche-tief); }
+.tabelle-rahmen .matrix-kompetenz { min-width:260px; max-width:320px; }
+.matrix-kompetenz summary { min-height:var(--klickflaeche); cursor:pointer; }
+.matrix-kompetenz ul { padding-left:var(--abstand-5); }
+.tabellen-hinweis { font-size:var(--schrift-klein); color:var(--text-leise); margin:var(--abstand-3) 0; }
+.ritualbaender { margin:var(--abstand-5) 0 var(--abstand-6); }
+.ritualband { background:var(--akzent-leise); border-left:4px solid var(--akzent); border-radius:var(--radius); padding:var(--abstand-4); margin-bottom:var(--abstand-3); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--abstand-3); }
+.ritualband a { display:flex; align-items:center; min-height:var(--klickflaeche); font-weight:600; text-decoration:none; }
+.ritualband p { margin:0; }
+.ritualband summary { min-height:var(--klickflaeche); cursor:pointer; padding:var(--abstand-2); font-size:var(--schrift-klein); }
+.fahrplan-spalte,.fahrplan-karte { padding:var(--abstand-4); }
+.fahrplan-karte>a { display:block; min-height:var(--klickflaeche); }
+.balken { height:var(--abstand-3); border-radius:var(--radius-rund); overflow:hidden; }
+.kompetenzbereich { font-size:var(--schrift-klein); color:var(--text-leise); }
+@media(max-width:600px) { .geruest { padding:var(--abstand-4); } .tabelle-rahmen td:first-child,.tabelle-rahmen th:first-child { max-width:44vw; } .tabelle-rahmen .matrix-kompetenz { min-width:40vw; max-width:44vw; } }
+@media print { .tabelle-rahmen { max-height:none; overflow:visible; border:0; } .tabelle-rahmen table { min-width:0; } .tabelle-rahmen th,.tabelle-rahmen td { position:static!important; } .tabellen-hinweis,.dokument-anlegen,.dokument-verwaltung { display:none; } }
+.pflichtfeld-hinweis { margin-bottom:var(--abstand-5); font-size:var(--schrift-klein); }
+/* Persönliche Planung, Beschlüsse und Verwaltung. */
+.planwahl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--abstand-4); margin:var(--abstand-5) 0 var(--abstand-7); }
+.planwahl .feld { margin:0; }
+.planwahl>.knopf { align-self:end; justify-self:start; }
+.planungsquartal { margin-bottom:var(--abstand-7); }
+.planungsquartal .abschnitt-kopf { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:var(--abstand-3); }
+.planungsquartal h2 { margin:0 0 var(--abstand-3); }
+.planungsfortschritt { width:100%; height:var(--abstand-2); accent-color:var(--akzent); margin-bottom:var(--abstand-5); }
+.planung-eintrag h3 { margin:0; }
+.planung-zeile { display:grid; grid-template-columns:var(--klickflaeche) minmax(0,1fr); gap:var(--abstand-4); }
+.planung-haken input { width:var(--klickflaeche); height:var(--klickflaeche); margin:0; accent-color:var(--akzent); }
+.planung-notiz summary { display:flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); cursor:pointer; margin:var(--abstand-3) 0; }
+.planung-eintrag.ist-erledigt { background:var(--flaeche-tief); }
+.planung-eintrag.ist-erledigt h3 a { color:var(--text-leise); }
+.beschluss-karten { display:grid; gap:var(--abstand-4); margin:var(--abstand-6) 0; }
+.beschluss-kachel { display:flex; align-items:center; gap:var(--abstand-5); padding:var(--abstand-5); background:var(--papier); border:1px solid var(--linie); border-radius:var(--radius); color:var(--text); text-decoration:none; }
+.beschluss-kachel:hover { border-color:var(--akzent); background:var(--akzent-leise); }
+.beschluss-datum { display:flex; align-items:center; gap:var(--abstand-2); font-size:var(--schrift-klein); color:var(--akzent); flex-shrink:0; }
+.beschluss-inhalt { flex:1; min-width:0; }
+.beschluss-inhalt>* { display:block; }
+.beschluss-inhalt strong { margin:var(--abstand-1) 0; }
+.import-fehler,.schild-fehler { color:var(--fehler); background:var(--fehler-flaeche); }
+.import-hinweis { color:var(--warnung); }
+input[type="file"] { max-width:100%; min-height:var(--klickflaeche); font:inherit; }
+input[type="file"]::file-selector-button { min-height:var(--klickflaeche); padding:var(--abstand-2) var(--abstand-3); margin-right:var(--abstand-3); border:1px solid var(--linie-stark); border-radius:var(--radius-feld); background:var(--papier); color:var(--text); cursor:pointer; }
+.knopf-reihe select,.knopf-reihe input { min-height:var(--klickflaeche); max-width:100%; font:inherit; background:var(--papier); color:var(--text); border:1px solid var(--linie-stark); border-radius:var(--radius-feld); padding:var(--abstand-2); }
+@media(max-width:600px) { .planwahl { grid-template-columns:1fr; } .beschluss-kachel { flex-wrap:wrap; gap:var(--abstand-3); } .beschluss-datum { flex-basis:100%; } }
+.vollbreit { width:100%; }
+.historische-fassung>div { max-width:var(--lesebreite); margin:auto; }
+.gueltigkeitsbanner-archiviert { color:var(--text-leise); background:var(--flaeche-tief); border-color:var(--linie-stark); }
+.auswertungen-navigation a[aria-current="page"] { background:var(--akzent-leise); border-color:var(--akzent); color:var(--akzent); }
+@media print { body { color:var(--text); background:var(--papier); } .gueltigkeitsbanner { background:transparent; color:var(--text); border-color:var(--text); } }
+
+[data-pflicht].ist-offen>label::after,[data-pflicht].ist-offen>.feld-beschriftung::after { content:' · noch offen'; color:var(--warnung); font-size:var(--schrift-klein); font-weight:400; }
+.feld [aria-invalid="true"] { border-color:var(--fehler); border-width:2px; }
+.innenabstand { padding:var(--abstand-4); }
+.auswahl-hinweis { padding:var(--abstand-3) var(--abstand-4); margin:0; background:var(--flaeche); }
+.filter-ohne-rahmen { border:0; background:transparent; padding:0; }
+.datenluecke { padding:var(--abstand-2) var(--abstand-3); border-radius:var(--radius); }
+.metazeile { margin:var(--abstand-1) 0 0; }
+.code-rahmen { overflow-x:auto; }
+.normalgewichtet { font-weight:400; }
+.kompaktkarte { padding:var(--abstand-4); }
+.am-ende { align-self:end; }
+.tabelle input[type="checkbox"] { width:var(--klickflaeche); height:var(--klickflaeche); accent-color:var(--akzent); }
+.gueltigkeitsbanner a,.nebenspalte a,.treffer-mehr a,.tabelle a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); min-width:var(--klickflaeche); }
+@media print { .gueltigkeitsbanner a,.nebenspalte a,.tabelle a { display:inline; min-height:0; min-width:0; } }
+.kompetenzbereich::before { content:''; display:inline-block; width:var(--abstand-2); height:var(--abstand-2); margin-right:var(--abstand-2); border-radius:50%; background:var(--bereich-lesen); }
+.kompetenzbereich[data-bereich^="Schreiben"]::before { background:var(--bereich-schreiben); }
+.kompetenzbereich[data-bereich^="Sprache"]::before { background:var(--bereich-sprache); }
+.kompetenzbereich[data-bereich^="Sprechen"]::before { background:var(--bereich-sprechen); }
+button.marke-text { font:inherit; background:transparent; border:0; color:inherit; min-height:var(--klickflaeche); min-width:var(--klickflaeche); text-align:left; cursor:pointer; }
+.marke-text.ist-ausgeklappt { white-space:normal; overflow:visible; max-width:none; }

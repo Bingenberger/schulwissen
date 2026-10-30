@@ -2,7 +2,7 @@
 {% block titel %}Datei aus der Nextcloud{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:62rem">
+<div class="geruest ohne-navigation">
   <div>
     <p class="brotkrumen">
       <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> ›
@@ -27,7 +27,7 @@
       </nav>
 
       <div class="karte">
-        <table class="tabelle">
+        <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
           <thead><tr><th>Typ</th><th>Name</th><th class="zahl">Größe</th><th></th></tr></thead>
           <tbody>
             {% for datei in eintraege %}
@@ -58,7 +58,7 @@
               <tr><td colspan="4">Dieser Ordner ist leer.</td></tr>
             {% endfor %}
           </tbody>
-        </table>
+        </table></div>
       </div>
     {% endif %}
 

@@ -2,7 +2,7 @@
 {% block titel %}{{ eintrag.kennung }}, Fassung {{ version.versionsnummer }}{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:62rem">
+<div class="geruest ohne-navigation historische-fassung">
   <div>
     <p class="brotkrumen">
       <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> ›
@@ -10,9 +10,15 @@
       Fassung {{ version.versionsnummer }}
     </p>
 
+    {% if version.status == 'beschlossen' %}
+      <div class="gueltigkeitsbanner gueltigkeitsbanner-beschlossen"><div><strong>Beschlossene Fassung</strong><p>{% if version.beschluss %}{{ version.beschluss.herkunft }}{% else %}Diese Fassung ist beschlossen und unveränderlich.{% endif %}</p></div></div>
+    {% elif version.status == 'archiviert' %}
+      <div class="gueltigkeitsbanner gueltigkeitsbanner-archiviert"><strong>Archiviert · Diese Fassung wurde von einem neueren Beschluss abgelöst.</strong></div>
+    {% else %}<div class="gueltigkeitsbanner gueltigkeitsbanner-entwurf"><strong>Entwurf – noch nicht beschlossen</strong></div>{% endif %}
+
     <div class="ueberschrift-zeile">
       <span class="kennung">{{ eintrag.kennung }}</span>
-      <h1 style="margin:0">{{ version.titel }}</h1>
+      <h1>{{ version.titel }}</h1>
       <span class="schild schild-{{ version.status }}">{{ version.get_status_display }}</span>
     </div>
     <p class="leise klein">
@@ -20,12 +26,6 @@
       {% if version.autor %} von {{ version.autor.anzeigename }}{% endif %}
       {% if version.beschluss %} · <a href="{% url 'kern:beschluss' version.beschluss.pk %}">{{ version.beschluss.herkunft }}</a>{% endif %}
     </p>
-
-    {% if version.status == 'beschlossen' %}
-      <p class="hinweis-beschluss">Diese Fassung ist beschlossen und unveränderlich.</p>
-    {% elif version.status == 'archiviert' %}
-      <p class="hinweis-entwurf">Diese Fassung wurde von einem neueren Beschluss abgelöst.</p>
-    {% endif %}
 
     {% for block in bloecke %}
       <section class="block{% if block.name == 'Leistung' %} block-leistung{% endif %}">

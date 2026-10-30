@@ -26,6 +26,7 @@ const WERKZEUGE = [
   {
     beschriftung: "F",
     titel: "Fett (Strg+B)",
+    haupt: true,
     stil: "font-weight:700",
     aktiv: "bold",
     tun: (e) => e.chain().focus().toggleBold().run(),
@@ -54,12 +55,14 @@ const WERKZEUGE = [
   {
     beschriftung: "• Liste",
     titel: "Aufzählung",
+    haupt: true,
     aktiv: "bulletList",
     tun: (e) => e.chain().focus().toggleBulletList().run(),
   },
   {
     beschriftung: "1. Liste",
     titel: "Nummerierte Liste",
+    haupt: true,
     aktiv: "orderedList",
     tun: (e) => e.chain().focus().toggleOrderedList().run(),
   },
@@ -102,6 +105,7 @@ const WERKZEUGE = [
   {
     beschriftung: "Link",
     titel: "Link einfügen oder entfernen",
+    haupt: true,
     aktiv: "link",
     tun: (editor) => {
       if (editor.isActive("link")) {
@@ -112,6 +116,12 @@ const WERKZEUGE = [
       if (!adresse) return;
       editor.chain().focus().setLink({ href: adresse }).run();
     },
+  },
+  {
+    beschriftung: "[[ Verweis",
+    titel: "Verweis auf einen Eintrag beginnen",
+    haupt: true,
+    tun: (e) => e.chain().focus().insertContent("[[").run(),
   },
   {
     beschriftung: "Format entfernen",
@@ -132,7 +142,7 @@ function knopfBauen(werkzeug, editor) {
   knopf.className = "editor-knopf";
   knopf.textContent = werkzeug.beschriftung;
   knopf.title = werkzeug.titel;
-  knopf.setAttribute("aria-label", werkzeug.titel);
+  knopf.setAttribute("aria-label", `${werkzeug.beschriftung} – ${werkzeug.titel}`);
   if (werkzeug.stil) knopf.setAttribute("style", werkzeug.stil);
   knopf.addEventListener("click", (ereignis) => {
     ereignis.preventDefault();
@@ -161,7 +171,9 @@ function editorAufbauen(textfeld) {
   textfeld.setAttribute("tabindex", "-1");
   textfeld.setAttribute("aria-hidden", "true");
 
+  const beschriftung = textfeld.closest('.feld')?.querySelector('label');
   const editor = new Editor({
+    editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": beschriftung?.textContent.trim() || "Text bearbeiten" } },
     element: flaeche,
     extensions: [
       StarterKit.configure({
@@ -182,14 +194,24 @@ function editorAufbauen(textfeld) {
       // Leeren Absatz nicht als Inhalt zurückschreiben, sonst gilt ein leeres
       // Pflichtfeld als gefüllt.
       textfeld.value = inhalt === "<p></p>" ? "" : inhalt;
+      textfeld.dispatchEvent(new Event("input", {bubbles: true}));
     },
   });
 
-  const knoepfe = WERKZEUGE.map((werkzeug) => {
+  const mehr = document.createElement("details");
+  mehr.className = "editor-mehr";
+  const mehrTitel = document.createElement("summary");
+  mehrTitel.textContent = "Weitere Formatierung";
+  const mehrInhalt = document.createElement("div");
+  mehrInhalt.className = "editor-mehr-inhalt";
+  mehr.append(mehrTitel, mehrInhalt);
+  const knoepfe = WERKZEUGE.filter(w => !w.trenner).map((werkzeug) => {
     const knopf = knopfBauen(werkzeug, editor);
-    leiste.append(knopf);
+    (werkzeug.haupt ? leiste : mehrInhalt).append(knopf);
     return { werkzeug, knopf };
   });
+
+  leiste.append(mehr);
 
   function leisteAuffrischen() {
     const inTabelle = editor.isActive("table");

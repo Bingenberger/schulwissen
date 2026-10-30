@@ -7,7 +7,7 @@
       <label for="{{ feld.id_for_label }}">{{ feld.label }}</label>
       {% if feld.help_text %}<p class="feld-hilfe" id="{{ feld.auto_id }}_helptext">{{ feld.help_text }}</p>{% endif %}
       {{ feld }}
-      {% for fehler in feld.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
+      {% for fehler in feld.errors %}<p class="feld-fehler" id="{{ feld.auto_id }}_error">{{ fehler }}</p>{% endfor %}
     </div>
   {% endif %}
 {% endfor %}

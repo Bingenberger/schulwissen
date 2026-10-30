@@ -87,12 +87,13 @@ def _gliederungsbaum(dokument, nutzer):
     )
 
     beschlossene_titel: dict[int, str] = {}
+    beschlossene_daten: dict[int, dict] = {}
     if not rechte.zeigt_entwurf(nutzer):
-        beschlossene_titel = dict(
-            Eintragsversion.objects.filter(
-                eintrag__in=alle_eintraege, status=Status.BESCHLOSSEN
-            ).values_list("eintrag_id", "titel")
-        )
+        for version in Eintragsversion.objects.filter(
+            eintrag__in=alle_eintraege, status=Status.BESCHLOSSEN
+        ).order_by("eintrag_id", "versionsnummer"):
+            beschlossene_titel[version.eintrag_id] = version.titel
+            beschlossene_daten[version.eintrag_id] = version.daten
 
     def gehoert_in_den_baum(eintrag) -> bool:
         return eintrag.pk in sichtbare or eintrag.eintragstyp == "grundlagenkapitel"
@@ -111,6 +112,7 @@ def _gliederungsbaum(dokument, nutzer):
                     "tiefe": tiefe,
                     "titel": beschlossene_titel.get(eintrag.pk, eintrag.titel),
                     "lesbar": eintrag.pk in sichtbare,
+                    "daten": beschlossene_daten.get(eintrag.pk, eintrag.daten),
                     # Wer die beschlossene Fassung sieht, soll auch deren
                     # Status sehen – nicht den des Arbeitsstandes.
                     "status": (
@@ -129,12 +131,32 @@ def dokument_ansehen(request, schluessel: str):
     dokument = get_object_or_404(
         Dokument.objects.select_related("dokumenttyp"), schluessel=schluessel
     )
+    baum = _gliederungsbaum(dokument, request.user)
+    karten = {}
+    for zeile in baum:
+        if zeile["eintrag"].eintragstyp in ("vorhaben", "ritual") and zeile["lesbar"]:
+            daten = zeile["daten"]
+            gruppe = (
+                "Rituale"
+                if zeile["eintrag"].eintragstyp == "ritual"
+                else (
+                    f"Jahrgang {daten['jahrgang']}"
+                    if daten.get("jahrgang")
+                    else "Jahrgang noch offen"
+                )
+            )
+            karten.setdefault(gruppe, []).append(
+                {**zeile, "status_text": Status(zeile["status"]).label}
+            )
     return render(
         request,
         "kern/dokument.html",
         {
             "dokument": dokument,
-            "baum": _gliederungsbaum(dokument, request.user),
+            "baum": baum,
+            "kartengruppen": sorted(
+                karten.items(), key=lambda gruppe: (gruppe[0] != "Rituale", gruppe[0])
+            ),
             "eintragstypen": [
                 registry.holen(s)
                 for s in (dokument.dokumenttyp.eintragstypen or [])
@@ -175,6 +197,11 @@ def bloecke_zum_lesen(typ, daten: dict, verweise_je_feld: dict | None = None):
 
     verweise_je_feld = verweise_je_feld or {}
     daten = daten or {}
+    from fachdaten.models import Kompetenzerwartung
+
+    kompetenzen = Kompetenzerwartung.objects.in_bulk(
+        {v.ziel_id for ziele in verweise_je_feld.values() for v in ziele}
+    )
 
     for block, felder in typ.bloecke_mit_feldern(daten):
         zeilen = []
@@ -182,7 +209,15 @@ def bloecke_zum_lesen(typ, daten: dict, verweise_je_feld: dict | None = None):
             if feld.ist_verlinkung:
                 ziele = verweise_je_feld.get(feld.schluessel) or []
                 if ziele:
-                    zeilen.append({"feld": feld, "verweise": ziele})
+                    gruppen = {}
+                    if feld.zieltyp == "kompetenz":
+                        for ziel in ziele:
+                            erwartung = kompetenzen.get(ziel.ziel_id)
+                            name = erwartung.bereich_name if erwartung else "Weitere Kompetenzen"
+                            gruppen.setdefault(name, []).append(ziel)
+                    zeilen.append(
+                        {"feld": feld, "verweise": ziele, "verweisgruppen": list(gruppen.items())}
+                    )
                 continue
             wert = daten.get(feld.schluessel)
             if wert in (None, "", []):
@@ -418,6 +453,10 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
     # Der Wechsel auf „abgestimmt in Gruppe“ setzt vollständige Pflichtfelder
     # voraus (SPEC.md §7.4). Die Maske sagt, was fehlt.
     if roh.status == Status.ABGESTIMMT and befundsatz.fehlende_pflichtfelder:
+        for feld in befundsatz.fehlende_pflichtfelder:
+            name = ("v_" if feld.ist_verlinkung else "f_") + feld.schluessel
+            if name in formular.fields:
+                formular.add_error(name, f"Bitte fülle „{feld.label}“ aus.")
         namen = ", ".join(f.label for f in befundsatz.fehlende_pflichtfelder)
         formular.add_error(
             "status",
@@ -443,6 +482,10 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
             gespeichert.save(update_fields=["verantwortlich_gruppe"])
 
     if befundsatz.fehlende_pflichtfelder:
+        for feld in befundsatz.fehlende_pflichtfelder:
+            name = ("v_" if feld.ist_verlinkung else "f_") + feld.schluessel
+            if name in formular.fields:
+                formular.add_error(name, f"Bitte fülle „{feld.label}“ aus.")
         namen = ", ".join(f.label for f in befundsatz.fehlende_pflichtfelder)
         messages.warning(
             request,

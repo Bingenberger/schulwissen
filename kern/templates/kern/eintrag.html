@@ -2,84 +2,55 @@
 {% block titel %}{{ eintrag.kennung }} {{ angezeigter_titel }}{% endblock %}
 
 {% block inhalt %}
-<div class="geruest mit-nebenspalte">
+<div class="geruest mit-nebenspalte leseansicht">
   {% include "kern/_navigation.html" %}
 
-  <div>
+  <article class="eintrag-inhalt">
     <p class="brotkrumen">
       <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a>
       {% if eintrag.eltern %} › {{ eintrag.eltern.anzeige_nummer }} {{ eintrag.eltern.titel }}{% endif %}
       › {{ eintrag.kennung }}
     </p>
 
-    <div class="ueberschrift-zeile">
-      <span class="kennung">{{ eintrag.kennung }}</span>
-      <h1 style="margin:0">{{ angezeigter_titel }}</h1>
-      <span class="schild schild-{{ angezeigter_status }}">{{ angezeigter_status_text }}</span>
-    </div>
-    <p class="leise klein">{{ typ.name }}{% if typ.beschreibung %} – {{ typ.beschreibung }}{% endif %}</p>
-
-    {# Jeder beschlossene Eintrag zeigt oben, wodurch er gilt (SPEC.md §8.5). #}
-    {% if beschluss %}
-      <p class="hinweis-beschluss">
-        {{ beschluss.herkunft }}
-        <a href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Fassungen ansehen</a>
-      </p>
-      {% if entwurf_weicht_ab %}
-        {% if zeigt_entwurf %}
-          <p class="hinweis-entwurf">
-            <strong>Angezeigt wird der Arbeitsstand</strong>, nicht die beschlossene
-            Fassung. Gültig ist weiterhin Fassung {{ beschlossene_version.versionsnummer }}.
-            <a href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ beschlossene_version.versionsnummer }}">Unterschiede ansehen</a>
-          </p>
-        {% else %}
-          <p class="hinweis-entwurf">
-            Angezeigt wird die beschlossene Fassung. Es gibt bereits einen neueren
-            Entwurf, der noch nicht beschlossen ist.
-          </p>
-        {% endif %}
-      {% endif %}
-    {% elif eintrag.status != 'beschlossen' %}
-      <p class="hinweis-entwurf">
-        Noch nicht beschlossen – dieser Stand ist eine Arbeitsfassung.
-        {% if offene_pflichtfelder %}
-          Für „abgestimmt in Gruppe“ fehlt noch:
-          <strong>{% for feld in offene_pflichtfelder %}{{ feld.label }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>.
-        {% else %}
-          Alle Pflichtfelder sind gefüllt.
-        {% endif %}
-      </p>
+    {% if zeigt_entwurf and angezeigter_status != 'beschlossen' and angezeigter_status != 'archiviert' %}
+      <div class="gueltigkeitsbanner gueltigkeitsbanner-entwurf">{% include "kern/_symbol.html" with name="stift" %}<div><strong>{{ angezeigter_status_text }} – noch nicht beschlossen</strong>
+      {% if beschluss %}<p>Angezeigt wird der Arbeitsstand. Gültig bleibt die beschlossene Fassung. {{ beschluss.herkunft }}</p>{% else %}<p>Dieser Stand wird noch im Kollegium erarbeitet.</p>{% endif %}</div></div>
+    {% elif beschluss %}
+      <div class="gueltigkeitsbanner gueltigkeitsbanner-beschlossen">{% include "kern/_symbol.html" with name="kreis-haken" %}<div><strong>{{ angezeigter_status_text }}</strong><p>{{ beschluss.herkunft }}</p><a href="{% url 'kern:beschluss' beschluss.pk %}">Beschluss ansehen</a>{% if entwurf_weicht_ab and not zeigt_entwurf %}<p>Es gibt bereits einen neueren Entwurf, der noch nicht beschlossen ist.</p>{% endif %}</div></div>
+    {% else %}<div class="gueltigkeitsbanner gueltigkeitsbanner-entwurf"><strong>{{ angezeigter_status_text }} · Beschlussnachweis noch offen</strong></div>{% endif %}
+    <div class="eintrag-titel"><div><span class="kennung">{{ eintrag.kennung }}</span><h1>{{ angezeigter_titel }}</h1><p class="leise klein">{{ typ.name }}{% if typ.beschreibung %} · {{ typ.beschreibung }}{% endif %}</p></div>{% if darf_bearbeiten %}<a class="knopf" href="{% url 'kern:eintrag_bearbeiten' dokument.schluessel eintrag.kennung %}">{% include "kern/_symbol.html" with name="stift" %}Bearbeiten</a>{% endif %}</div>
+    {% if beschlossene_version %}
+      <nav class="fassungswahl" aria-label="Fassung auswählen">
+        <a href="{% url 'kern:version' dokument.schluessel eintrag.kennung beschlossene_version.versionsnummer %}">Beschlossene Fassung</a>
+        {% if not ist_nur_lesend %}<a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}" {% if zeigt_entwurf %}aria-current="page"{% endif %}>Arbeitsstand{% if entwurf_weicht_ab %} · Entwurf{% endif %}</a><a href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ beschlossene_version.versionsnummer }}">Unterschiede ansehen</a>{% endif %}
+        <a href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Alle Fassungen</a>
+      </nav>
     {% endif %}
-
-    {% if darf_bearbeiten %}
-      <div class="knopf-reihe" style="margin-bottom:1.5rem">
-        <a class="knopf knopf-wichtig"
-           href="{% url 'kern:eintrag_bearbeiten' dokument.schluessel eintrag.kennung %}">Bearbeiten</a>
-        <a class="knopf" href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Fassungen</a>
-      </div>
-    {% endif %}
-
+    <nav class="inhaltsspruenge" aria-label="In diesem Eintrag">{% for block in bloecke %}<a href="#block-{{ forloop.counter }}">{{ block.name }}</a>{% endfor %}</nav>
+    {% if zeigt_entwurf and offene_pflichtfelder %}<details class="accordion pflichtfeld-hinweis"><summary>Für „abgestimmt in Gruppe“ fehlen noch Pflichtfelder.</summary><div><ul>{% for feld in offene_pflichtfelder %}<li>{{ feld.label }}</li>{% endfor %}</ul></div></details>{% endif %}
     {% for block in bloecke %}
-      <section class="block{% if block.name == 'Leistung' %} block-leistung{% endif %}">
-        <h2>{{ block.name }}</h2>
+      <section id="block-{{ forloop.counter }}" class="block{% if block.name == 'Leistung' %} block-leistung{% endif %}">
+        <h2>{% if block.name == 'Leistung' %}{% include "kern/_symbol.html" with name="raster" %} {% endif %}{{ block.name }}</h2>
         {% for zeile in block.felder %}
-          <div class="lesefeld">
-            <span class="feld-beschriftung">{{ zeile.feld.label }}</span>
+          {% if 'auspraegung_jg' in zeile.feld.schluessel %}<details class="lesefeld ritual-jahrgang" open data-ritual-jahrgang><summary>{{ zeile.feld.label }}</summary>{% else %}<div class="lesefeld"><span class="feld-beschriftung">{{ zeile.feld.label }}</span>{% endif %}
             {% if zeile.verweise %}
-              <ul class="kompetenzliste">
+              {% if zeile.verweisgruppen %}
+                {% for bereich, verweise in zeile.verweisgruppen %}<h3 class="kompetenzbereich" data-bereich="{{ bereich }}">{{ bereich }}</h3><ul class="kompetenzliste">{% for verweis in verweise %}<li class="kompetenz"><span class="kompetenz-text">{{ verweis.beschriftung }}</span><span class="kompetenz-kennung">{{ verweis.ziel_id }}</span></li>{% endfor %}</ul>{% endfor %}
+              {% else %}<ul class="kompetenzliste">
                 {% for verweis in zeile.verweise %}
                   <li class="kompetenz">
-                    <span class="kompetenz-kennung">{{ verweis.ziel_id }}</span>
                     <span class="kompetenz-text">{{ verweis.beschriftung }}</span>
+                    {% if zeile.feld.zieltyp == 'kompetenz' %}<span class="kompetenz-kennung">{{ verweis.ziel_id }}</span>{% endif %}
                   </li>
                 {% endfor %}
-              </ul>
+              </ul>{% endif %}
+            {% elif zeile.feld.schluessel == 'klassenarbeit' %}<span class="schild {% if zeile.text == 'ja' %}schild-abgestimmt{% else %}schild-idee{% endif %}">{% if zeile.text == 'ja' %}Klassenarbeit{% else %}Keine Klassenarbeit{% endif %}</span>
             {% elif zeile.html %}
               <div class="lesefeld-inhalt">{{ zeile.html|safe }}</div>
             {% else %}
               <div class="lesefeld-inhalt">{{ zeile.text|linebreaks }}</div>
             {% endif %}
-          </div>
+          {% if 'auspraegung_jg' in zeile.feld.schluessel %}</details>{% else %}</div>{% endif %}
         {% endfor %}
       </section>
     {% empty %}
@@ -95,23 +66,13 @@
     {% if eintrag.anhaenge.all %}
       <section class="block">
         <h2>Anhänge</h2>
-        <ul class="liste-schlicht">
-          {% for anhang in eintrag.anhaenge.all %}
-            <li>
-              {% if anhang.datei %}
-                <a href="{{ anhang.datei.url }}">{{ anhang.dateiname }}</a>
-              {% elif anhang.nextcloud_link %}
-                <a href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer">{{ anhang.dateiname }}</a>
-                <span class="schild schild-klein schild-idee">Nextcloud</span>
-                <br><span class="leise klein">{{ anhang.nextcloud_pfad }}</span>
-              {% else %}{{ anhang.dateiname }}{% endif %}
-              {% if anhang.beschreibung %}<span class="leise klein"> – {{ anhang.beschreibung }}</span>{% endif %}
-            </li>
-          {% endfor %}
-        </ul>
+        <ul class="anhang-liste">{% for anhang in eintrag.anhaenge.all %}<li>
+          {% if anhang.datei %}<a class="anhang-kachel" href="{{ anhang.datei.url }}">{% elif anhang.nextcloud_link %}<a class="anhang-kachel" href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer">{% else %}<div class="anhang-kachel">{% endif %}
+          {% include "kern/_symbol.html" with name="datei" %}<span><strong>{{ anhang.dateiname }}</strong><small>{% if anhang.groesse %}{{ anhang.groesse|filesizeformat }}{% endif %}{% if anhang.nextcloud_link %} · Nextcloud{% endif %}{% if anhang.beschreibung %} · {{ anhang.beschreibung }}{% endif %}</small></span>
+          {% if anhang.datei or anhang.nextcloud_link %}</a>{% else %}</div>{% endif %}</li>{% endfor %}</ul>
       </section>
     {% endif %}
-  </div>
+  </article>
 
   {# Rechte Spalte: Status, Beschluss, Rückverweise, Kommentare (SPEC.md §12). #}
   <aside class="nebenspalte">
@@ -145,7 +106,7 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="leise klein" style="margin:0">Noch kein anderer Eintrag verweist hierher.</p>
+        <p class="leise klein">Noch kein anderer Eintrag verweist hierher.</p>
       {% endif %}
     </div>
 
@@ -157,7 +118,7 @@
             {{ kommentar.autor.anzeigename|default:"Unbekannt" }} · {{ kommentar.erstellt_am|date:"d.m.Y" }}
             {% if kommentar.erledigt %} · erledigt{% endif %}
           </p>
-          <p style="margin:0.2rem 0">{{ kommentar.text|linebreaksbr }}</p>
+          <p>{{ kommentar.text|linebreaksbr }}</p>
           {% if ist_lehrkraft %}
             <form action="{% url 'kern:kommentar_erledigen' dokument.schluessel eintrag.kennung kommentar.pk %}"
                   method="post">
@@ -198,7 +159,7 @@
           {% endfor %}
           <button class="knopf" type="submit">Anhängen</button>
         </form>
-        <p class="klein leise" style="margin:0.8rem 0 0">
+        <p class="klein leise">
           Oder eine Datei aus der Nextcloud verlinken:
         </p>
         <a class="knopf" href="{% url 'kern:nextcloud_waehlen' dokument.schluessel eintrag.kennung %}">

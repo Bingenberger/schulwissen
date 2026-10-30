@@ -1,5 +1,7 @@
 {# Gliederungsbaum des Dokuments – linke Spalte (SPEC.md §12). #}
-<nav class="navigation" aria-label="Gliederung des Dokuments">
+<details class="navigation" open data-gliederung>
+<summary>{% include "kern/_symbol.html" with name="buch" %}Gliederung und Auswertungen{% include "kern/_symbol.html" with name="unten" %}</summary>
+<nav aria-label="Gliederung des Dokuments">
   <h2>{{ dokument.titel }}</h2>
   {% for zeile in baum %}
     {% if zeile.lesbar %}
@@ -21,7 +23,7 @@
     {% endif %}
   {% endfor %}
 
-  <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
+  <hr>
   {% if dokument.ist_arbeitsplan %}
   <h2>Auswertungen</h2>
   <a class="baum-zeile" href="{% url 'deutsch:abdeckung' dokument.schluessel %}">Abdeckungsmatrix</a>
@@ -33,7 +35,8 @@
   <a class="baum-zeile" href="{% url 'deutsch:pruefliste' dokument.schluessel %}">Prüfliste</a>
   {% endif %}
 
-  <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
+  <hr>
   {% if not ist_nur_lesend %}<a class="baum-zeile" href="{% url 'kern:aenderungen' dokument.schluessel %}">Änderungen seit Beschluss</a>{% endif %}
   <a class="baum-zeile" href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a>
 </nav>
+</details>

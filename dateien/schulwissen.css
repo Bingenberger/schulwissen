@@ -22,7 +22,7 @@ body {
   display:flex;
   flex-direction:column;
   font-family: var(--schrift);
-  font-size: 1rem;
+  font-size: var(--schrift-normal);
   line-height: var(--zeilenhoehe);
   color: var(--text);
   background: var(--flaeche);
@@ -132,7 +132,7 @@ a { color:var(--akzent); }
 }
 
 .navigation h2 {
-  font-size: 0.95rem;
+  font-size: var(--schrift-klein);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-leise);
@@ -166,8 +166,8 @@ a { color:var(--akzent); }
 }
 
 .baum-tiefe-1 { padding-left: 1.5rem; }
-.baum-tiefe-2 { padding-left: 2.6rem; font-size: 0.97rem; }
-.baum-tiefe-3 { padding-left: 3.6rem; font-size: 0.95rem; }
+.baum-tiefe-2 { padding-left: 2.6rem; font-size: var(--schrift-klein); }
+.baum-tiefe-3 { padding-left: 3.6rem; font-size: var(--schrift-klein); }
 
 /* Einspaltig (Tablet, Handy) darf die Gliederung nicht kleben – sonst liegt
    sie über dem Formular. Sie bekommt eine eigene Höhe und scrollt für sich.
@@ -196,7 +196,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 
 .kennung {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 0.95rem;
+  font-size: var(--schrift-klein);
   background: var(--flaeche-tief);
   border-radius: 5px;
   padding: 0.15rem 0.45rem;
@@ -204,7 +204,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 }
 
 .brotkrumen {
-  font-size: 0.95rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
   margin-bottom: 0.75rem;
 }
@@ -298,7 +298,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 
 .block > h2 {
   margin-top: 0;
-  font-size: 1.2rem;
+  font-size: var(--schrift-normal);
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--linie);
 }
@@ -318,7 +318,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 }
 
 .feld-hilfe {
-  font-size: 0.93rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
   margin: 0.15rem 0 0.4rem;
 }
@@ -348,7 +348,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 .feld select { max-width: 28rem; }
 
 .feld-berechnet {
-  font-size: 1.1rem;
+  font-size: var(--schrift-normal);
   font-weight: 600;
   background: var(--flaeche-tief);
   border-radius: 6px;
@@ -442,7 +442,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 
 .kompetenz-kennung {
   font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 0.82rem;
+  font-size: var(--schrift-klein);
   font-weight: 700;
   background: var(--akzent);
   color: var(--akzent-kontrast);
@@ -498,11 +498,11 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
   border: 1px solid var(--akzent);
   border-radius: 999px;
   padding: 0.25rem 0.3rem 0.25rem 0.6rem;
-  font-size: 0.92rem;
+  font-size: var(--schrift-klein);
   max-width: 100%;
 }
 
-.marke-kennung { font-weight: 700; font-family: ui-monospace, Menlo, monospace; font-size: 0.82rem; }
+.marke-kennung { font-weight: 700; font-family: ui-monospace, Menlo, monospace; font-size: var(--schrift-klein); }
 
 .marke-text {
   overflow: hidden;
@@ -515,7 +515,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
   border: 0;
   background: transparent;
   cursor: pointer;
-  font-size: 1.15rem;
+  font-size: var(--schrift-normal);
   line-height: 1;
   min-width: 1.9rem;
   min-height: 1.9rem;
@@ -563,7 +563,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
   min-width: 2.3rem;
   padding: 0 0.6rem;
   font: inherit;
-  font-size: 0.92rem;
+  font-size: var(--schrift-klein);
   border: 1px solid var(--linie);
   border-radius: 5px;
   background: var(--papier);
@@ -614,7 +614,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
   vertical-align: top;
 }
 
-.tabelle th { background: var(--flaeche-tief); font-size: 0.93rem; }
+.tabelle th { background: var(--flaeche-tief); font-size: var(--schrift-klein); }
 
 .tabelle tbody tr:hover { background: var(--flaeche); }
 
@@ -648,7 +648,7 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 }
 
 .nebenspalte .karte { padding: 1rem 1.15rem; }
-.nebenspalte h3 { font-size: 1rem; margin-top: 0; }
+.nebenspalte h3 { font-size: var(--schrift-normal); margin-top: 0; }
 
 .liste-schlicht { list-style: none; margin: 0; padding: 0; }
 .liste-schlicht > li { padding: 0.4rem 0; border-bottom: 1px solid var(--flaeche-tief); }
@@ -656,10 +656,10 @@ h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 
 .kommentar { border-left: 3px solid var(--linie-stark); padding: 0.1rem 0 0.1rem 0.75rem; margin-bottom: 1rem; }
 .kommentar.ist-erledigt { opacity: 0.6; border-left-color: var(--gut); }
-.kommentar-kopf { font-size: 0.88rem; color: var(--text-leise); }
+.kommentar-kopf { font-size: var(--schrift-klein); color: var(--text-leise); }
 
 .leise { color: var(--text-leise); }
-.klein { font-size: 0.93rem; }
+.klein { font-size: var(--schrift-klein); }
 .nur-fuer-vorleser {
   position: absolute;
   width: 1px;
@@ -727,14 +727,14 @@ main { flex:1; min-width:0; }
 
 .vorschlag-kontext {
   display: block;
-  font-size: 0.88rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
 }
 
 .vorschlag-hinweis {
   margin: 0;
   padding: 0.75rem 0.8rem;
-  font-size: 0.93rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
 }
 
@@ -752,7 +752,7 @@ main { flex:1; min-width:0; }
 .treffer:last-child { border-bottom: 0; }
 
 .treffer-titel {
-  font-size: 1.08rem;
+  font-size: var(--schrift-normal);
   font-weight: 600;
   color: var(--akzent);
   text-decoration: none;
@@ -762,7 +762,7 @@ main { flex:1; min-width:0; }
 
 .treffer-kontext {
   margin: 0.2rem 0 0;
-  font-size: 0.9rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
 }
 
@@ -789,7 +789,7 @@ mark {
 
 .filterreihe label {
   display: block;
-  font-size: 0.9rem;
+  font-size: var(--schrift-klein);
   font-weight: 600;
   margin-bottom: 0.2rem;
 }
@@ -845,7 +845,7 @@ del {
   background: var(--papier);
   color: var(--text);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: var(--schrift-klein);
 }
 
 .auswertungen-navigation a:hover { background: var(--akzent-leise); }
@@ -866,7 +866,7 @@ del {
 
 .fahrplan-spalte > h2 {
   margin: 0 0 0.7rem;
-  font-size: 1rem;
+  font-size: var(--schrift-normal);
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--linie);
 }
@@ -900,7 +900,7 @@ del {
 
 .progression-spalte > h3 {
   margin: 0 0 0.4rem;
-  font-size: 0.95rem;
+  font-size: var(--schrift-klein);
   color: var(--text-leise);
 }
 
@@ -910,7 +910,7 @@ del {
   display: inline-block;
   min-width: 3.6rem;
   text-align: center;
-  font-size: 0.72rem;
+  font-size: var(--schrift-klein);
   font-weight: 700;
   letter-spacing: 0.03em;
   padding: 0.2rem 0.4rem;

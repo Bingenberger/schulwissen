@@ -1,6 +1,8 @@
 /* Zentrale Gestaltungswerte. Schulgrün und Duzen sind abgestimmt. */
 :root {
   color-scheme: light;
+  --druckpapier: #ffffff;
+  --drucktext: #111111;
   --grundgroesse: 17px;
   --schrift: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --schrift-klein: 0.824rem;
@@ -44,6 +46,10 @@
   --leistung-text: #554276;
   --markierung: #ffedb5;
 
+  --bereich-lesen: var(--akzent);
+  --bereich-schreiben: var(--info);
+  --bereich-sprache: var(--leistung-text);
+  --bereich-sprechen: var(--warnung);
   --radius: 8px;
   --radius-feld: 6px;
   --radius-rund: 999px;
@@ -57,7 +63,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-thema="hell"]) {
+  :root:not([data-thema="hell"]):not([data-theme="light"]) {
     color-scheme: dark;
     --papier: #242820;
     --flaeche: #191d17;
@@ -86,3 +92,35 @@
     --schatten-menue: 0 8px 32px rgb(0 0 0 / 24%);
   }
 }
+
+/* Explizite Themenwahl der Django-Verwaltung. */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --papier: #242820;
+    --flaeche: #191d17;
+    --flaeche-tief: #30362b;
+    --linie: #434b3c;
+    --linie-stark: #87937b;
+    --text: #edf0e8;
+    --text-leise: #bac3b0;
+    --akzent: #a6d77c;
+    --akzent-dunkel: #c1e5a3;
+    --akzent-leise: #303e25;
+    --akzent-kontrast: #1c2c12;
+    --fokus: #c1e5a3;
+    --gut: #b5db94;
+    --gut-flaeche: #2a3c20;
+    --warnung: #f0cd83;
+    --warnung-flaeche: #40351f;
+    --info: #acd0f0;
+    --info-flaeche: #23374a;
+    --fehler: #f2b2ac;
+    --fehler-flaeche: #432c2b;
+    --leistung: #322d43;
+    --leistung-linie: #baa9df;
+    --leistung-text: #d6c9f0;
+    --markierung: #605021;
+    --schatten-menue: 0 8px 32px rgb(0 0 0 / 24%);
+}
+
+@media print { :root { color-scheme:light; --papier:var(--druckpapier)!important; --flaeche:var(--druckpapier)!important; --text:var(--drucktext)!important; --text-leise:var(--drucktext)!important; --akzent:var(--drucktext)!important; --akzent-dunkel:var(--drucktext)!important; --gut:var(--drucktext)!important; --warnung:var(--drucktext)!important; --fehler:var(--drucktext)!important; --info:var(--drucktext)!important; } }

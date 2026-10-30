@@ -2,7 +2,7 @@
 {% block titel %}Änderungen seit dem letzten Beschluss{% endblock %}
 
 {% block inhalt %}
-<div class="geruest ohne-navigation" style="max-width:68rem">
+<div class="geruest ohne-navigation">
   <div>
     <p class="brotkrumen"><a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> › Änderungen</p>
     <h1>Änderungen seit dem letzten Beschluss</h1>
@@ -10,9 +10,9 @@
       beschlossenen Fassung geändert, was ist unverändert.</p>
 
     <div class="karte">
-      <h2 style="margin-top:0">Geändert ({{ geaendert|length }})</h2>
+      <h2>Geändert ({{ geaendert|length }})</h2>
       {% if geaendert %}
-        <table class="tabelle">
+        <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
           <thead><tr><th>Kennung</th><th>Titel</th><th>Beschlossen</th><th>Jetzt</th><th></th></tr></thead>
           <tbody>
             {% for eintrag, beschlossen, aktuell in geaendert %}
@@ -28,16 +28,16 @@
               </tr>
             {% endfor %}
           </tbody>
-        </table>
+        </table></div>
       {% else %}
-        <p class="leise" style="margin:0">Nichts geändert seit dem letzten Beschluss.</p>
+        <p class="leise">Nichts geändert seit dem letzten Beschluss.</p>
       {% endif %}
     </div>
 
     <div class="karte">
-      <h2 style="margin-top:0">Noch nie beschlossen ({{ neu|length }})</h2>
+      <h2>Noch nie beschlossen ({{ neu|length }})</h2>
       {% if neu %}
-        <table class="tabelle">
+        <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
           <thead><tr><th>Kennung</th><th>Titel</th><th>Status</th></tr></thead>
           <tbody>
             {% for eintrag in neu %}
@@ -48,15 +48,15 @@
               </tr>
             {% endfor %}
           </tbody>
-        </table>
+        </table></div>
       {% else %}
-        <p class="leise" style="margin:0">Alle Einträge sind schon einmal beschlossen worden.</p>
+        <p class="leise">Alle Einträge sind schon einmal beschlossen worden.</p>
       {% endif %}
     </div>
 
     <div class="karte">
-      <h2 style="margin-top:0">Unverändert ({{ unveraendert|length }})</h2>
-      <p class="klein leise" style="margin-bottom:0">
+      <h2>Unverändert ({{ unveraendert|length }})</h2>
+      <p class="klein leise">
         {% for eintrag in unveraendert %}
           <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %} · {% endif %}
         {% empty %}Keine.{% endfor %}
