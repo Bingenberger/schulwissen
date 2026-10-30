@@ -1,0 +1,70 @@
+{% extends "grundlage.html" %}
+{% block titel %}Progressionspaare{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:82rem">
+  <div>
+    {% include "deutsch/_auswertungsnavigation.html" %}
+
+    <h1>Progressionspaare</h1>
+    <p class="leise">Erwartungen gleicher Nummer in beiden Stufen: links das Ende
+      der Schuleingangsphase, rechts das Ende der Klasse 4. So zeigt sich, wo eine
+      Kompetenz zwar angebahnt, aber nie vertieft wird – oder umgekehrt.</p>
+
+    {% if mit_luecke %}
+      <div class="meldung meldung-warning">
+        <strong>{{ mit_luecke|length }} von {{ paare|length }} Paaren haben eine Lücke.</strong>
+        Sie stehen unten rot markiert.
+      </div>
+    {% elif paare %}
+      <div class="meldung meldung-success">
+        Alle {{ paare|length }} Progressionspaare sind in beiden Stufen abgedeckt.
+      </div>
+    {% endif %}
+
+    <div class="karte">
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th>Schuleingangsphase</th><th>aufgebaut in</th>
+            <th>Ende Klasse 4</th><th>aufgebaut in</th><th>Lücke</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for paar in paare %}
+            <tr>
+              <td>
+                <span class="kompetenz-kennung">{{ paar.sep.pk }}</span>
+                <div class="klein">{{ paar.sep.text }}</div>
+              </td>
+              <td class="klein {% if not paar.sep_eintraege %}abdeckung-fehlt{% endif %}">
+                {% for eintrag in paar.sep_eintraege %}
+                  <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %}, {% endif %}
+                {% empty %}fehlt{% endfor %}
+              </td>
+              <td>
+                <span class="kompetenz-kennung">{{ paar.klasse4.pk }}</span>
+                <div class="klein">{{ paar.klasse4.text }}</div>
+              </td>
+              <td class="klein {% if not paar.klasse4_eintraege %}abdeckung-fehlt{% endif %}">
+                {% for eintrag in paar.klasse4_eintraege %}
+                  <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %}, {% endif %}
+                {% empty %}fehlt{% endfor %}
+              </td>
+              <td class="klein">
+                {% if paar.luecke %}
+                  <span class="abdeckung-beruehrt">{{ paar.luecke }}</span>
+                {% else %}
+                  <span class="abdeckung-schwerpunkt">vollständig</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">Es gibt keine Progressionspaare – sind die Stammdaten importiert?</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -66,17 +66,57 @@ def startseite(request):
 
 
 def _gliederungsbaum(dokument, nutzer):
-    """Kapitelbaum für die linke Navigation."""
-    sichtbar = rechte.sichtbare_eintraege(nutzer, dokument.eintraege.all())
-    alle = list(sichtbar.order_by("position", "kennung"))
+    """Kapitelbaum für die linke Navigation.
+
+    Zwei Besonderheiten für Konten, die keine Entwürfe sehen dürfen:
+
+    * Die **Kapitel** stehen immer im Baum, auch wenn ihr Inhalt noch nicht
+      freigegeben ist. Sonst fiele die ganze Gliederung weg – und mit ihr die
+      Orientierung, denn ein freigegebenes Vorhaben hängt unter einem Kapitel,
+      das selbst noch Entwurf ist. Nicht freigegebene Kapitel sind als solche
+      gekennzeichnet und nicht anklickbar.
+    * Gezeigt wird der Titel der **beschlossenen** Fassung, nicht der des
+      Arbeitsstandes.
+    """
+    from kern.models import Eintragsversion
+
+    alle_eintraege = list(dokument.eintraege.order_by("position", "kennung"))
+    sichtbare = set(
+        rechte.sichtbare_eintraege(nutzer, dokument.eintraege.all()).values_list("pk", flat=True)
+    )
+
+    beschlossene_titel: dict[int, str] = {}
+    if not rechte.zeigt_entwurf(nutzer):
+        beschlossene_titel = dict(
+            Eintragsversion.objects.filter(
+                eintrag__in=alle_eintraege, status=Status.BESCHLOSSEN
+            ).values_list("eintrag_id", "titel")
+        )
+
+    def gehoert_in_den_baum(eintrag) -> bool:
+        return eintrag.pk in sichtbare or eintrag.eintragstyp == "grundlagenkapitel"
+
     kinder: dict[int | None, list] = {}
-    for eintrag in alle:
-        kinder.setdefault(eintrag.eltern_id, []).append(eintrag)
+    for eintrag in alle_eintraege:
+        if gehoert_in_den_baum(eintrag):
+            kinder.setdefault(eintrag.eltern_id, []).append(eintrag)
 
     def bauen(eltern_id, tiefe=0):
         zeilen = []
         for eintrag in kinder.get(eltern_id, []):
-            zeilen.append({"eintrag": eintrag, "tiefe": tiefe})
+            zeilen.append(
+                {
+                    "eintrag": eintrag,
+                    "tiefe": tiefe,
+                    "titel": beschlossene_titel.get(eintrag.pk, eintrag.titel),
+                    "lesbar": eintrag.pk in sichtbare,
+                    # Wer die beschlossene Fassung sieht, soll auch deren
+                    # Status sehen – nicht den des Arbeitsstandes.
+                    "status": (
+                        Status.BESCHLOSSEN if eintrag.pk in beschlossene_titel else eintrag.status
+                    ),
+                }
+            )
             zeilen.extend(bauen(eintrag.pk, tiefe + 1))
         return zeilen
 
@@ -123,24 +163,27 @@ def _ruckverweise(eintrag: Eintrag):
     )
 
 
-def _felder_zum_lesen(eintrag: Eintrag):
-    """Blöcke mit gefüllten Feldern – für die Leseansicht."""
+def bloecke_zum_lesen(typ, daten: dict, verweise_je_feld: dict | None = None):
+    """Blöcke mit gefüllten Feldern – für Leseansicht und alte Fassungen.
+
+    ``verweise_je_feld`` bildet einen Feldschlüssel auf die Liste seiner
+    Verweise ab. Für einen Eintrag kommen die aus der Datenbank, für eine
+    gespeicherte Fassung aus ihrem Schnappschuss.
+    """
     from eintragstypen.registry import Feldtyp
 
-    typ = eintrag.typ
-    for block, felder in typ.bloecke_mit_feldern(eintrag.daten):
+    verweise_je_feld = verweise_je_feld or {}
+    daten = daten or {}
+
+    for block, felder in typ.bloecke_mit_feldern(daten):
         zeilen = []
         for feld in felder:
             if feld.ist_verlinkung:
-                ziele = list(
-                    eintrag.verlinkungen.filter(
-                        art=feld.verlinkungsart, feld=feld.schluessel
-                    ).order_by("ziel_id")
-                )
+                ziele = verweise_je_feld.get(feld.schluessel) or []
                 if ziele:
                     zeilen.append({"feld": feld, "verweise": ziele})
                 continue
-            wert = eintrag.daten.get(feld.schluessel)
+            wert = daten.get(feld.schluessel)
             if wert in (None, "", []):
                 continue
             zeilen.append(
@@ -154,6 +197,33 @@ def _felder_zum_lesen(eintrag: Eintrag):
             yield {"name": block, "felder": zeilen}
 
 
+def _felder_zum_lesen(eintrag: Eintrag):
+    """Blöcke des aktuellen Standes eines Eintrags."""
+    verweise: dict[str, list] = {}
+    for verlinkung in eintrag.verlinkungen.order_by("ziel_id"):
+        verweise.setdefault(verlinkung.feld, []).append(verlinkung)
+    return bloecke_zum_lesen(eintrag.typ, eintrag.daten, verweise)
+
+
+def verweise_aus_schnappschuss(version) -> dict[str, list]:
+    """Die Verweise einer gespeicherten Fassung, nach Feld geordnet.
+
+    Sie kommen aus dem Schnappschuss, nicht aus der Datenbank – sonst zeigte
+    eine alte Fassung die heutigen Kompetenzen.
+    """
+    from types import SimpleNamespace
+
+    verweise: dict[str, list] = {}
+    for verweis in version.verlinkungen or []:
+        verweise.setdefault(verweis.get("feld", ""), []).append(
+            SimpleNamespace(
+                ziel_id=verweis.get("ziel_id", ""),
+                beschriftung=verweis.get("beschriftung", ""),
+            )
+        )
+    return verweise
+
+
 @login_required
 def eintrag_ansehen(request, schluessel: str, kennung: str):
     """Leseansicht zuerst – „Bearbeiten“ ist ein deutlicher Knopf (SPEC.md §12)."""
@@ -165,6 +235,32 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
         [v.feld for v in eintrag.verlinkungen.all() if v.feld],
     )
 
+    # Lesende sehen die zuletzt beschlossene Fassung, alle anderen den
+    # Arbeitsstand (SPEC.md §6).
+    zeigt_entwurf = rechte.zeigt_entwurf(request.user, eintrag)
+    if zeigt_entwurf or beschlossen is None:
+        bloecke = list(_felder_zum_lesen(eintrag))
+        angezeigter_titel = eintrag.titel
+    else:
+        bloecke = list(
+            bloecke_zum_lesen(
+                eintrag.typ, beschlossen.daten, verweise_aus_schnappschuss(beschlossen)
+            )
+        )
+        angezeigter_titel = beschlossen.titel
+
+    # Steht der Arbeitsstand neben einer beschlossenen Fassung, soll das
+    # sichtbar sein – sonst hält man den Entwurf für geltendes Recht.
+    entwurf_weicht_ab = bool(
+        beschlossen is not None
+        and eintrag.status != Status.BESCHLOSSEN
+        and (eintrag.titel != beschlossen.titel or eintrag.daten != beschlossen.daten)
+    )
+
+    angezeigter_status = (
+        eintrag.status if zeigt_entwurf or beschlossen is None else beschlossen.status
+    )
+
     return render(
         request,
         "kern/eintrag.html",
@@ -172,7 +268,12 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "dokument": eintrag.dokument,
             "eintrag": eintrag,
             "typ": eintrag.typ,
-            "bloecke": list(_felder_zum_lesen(eintrag)),
+            "bloecke": bloecke,
+            "angezeigter_titel": angezeigter_titel,
+            "angezeigter_status": angezeigter_status,
+            "angezeigter_status_text": Status(angezeigter_status).label,
+            "zeigt_entwurf": zeigt_entwurf,
+            "entwurf_weicht_ab": entwurf_weicht_ab,
             "baum": _gliederungsbaum(eintrag.dokument, request.user),
             "beschlossene_version": beschlossen,
             "beschluss": beschlossen.beschluss if beschlossen else None,
@@ -423,3 +524,80 @@ def fassungen(request, schluessel: str, kennung: str):
 def gesundheit(request):
     """Einfacher Endpunkt für Überwachung und Healthcheck."""
     return HttpResponse("ok", content_type="text/plain")
+
+
+@login_required
+def nextcloud_waehlen(request, schluessel: str, kennung: str):
+    """Dateiauswahl in der Nextcloud (SPEC.md §10, Stufe 1).
+
+    Zeigt einen Ordner zum Durchklicken. Die gewählte Datei wird als Anhang
+    mit Pfad und Link gespeichert – die Datei selbst bleibt in der Nextcloud.
+    """
+    from kern import nextcloud
+
+    eintrag = _eintrag_holen(request, schluessel, kennung)
+    if not rechte.darf_bearbeiten(request.user, eintrag):
+        raise PermissionDenied("Anhänge darf nur anlegen, wer den Eintrag bearbeiten darf.")
+
+    pfad = (request.GET.get("pfad") or "").strip("/")
+    eintraege, fehler = [], ""
+
+    if not nextcloud.ist_eingerichtet():
+        fehler = (
+            "Es ist kein Nextcloud-Zugang eingerichtet. Die Administration trägt "
+            "ihn in der .env ein – siehe DEPLOYMENT.md."
+        )
+    else:
+        try:
+            eintraege = nextcloud.auflisten(pfad)
+        except nextcloud.NextcloudFehler as problem:
+            fehler = str(problem)
+
+    return render(
+        request,
+        "kern/nextcloud.html",
+        {
+            "dokument": eintrag.dokument,
+            "eintrag": eintrag,
+            "pfad": pfad,
+            "eintraege": eintraege,
+            "brotkrumen": nextcloud.brotkrumen(pfad),
+            "fehler": fehler,
+        },
+    )
+
+
+@login_required
+@require_POST
+def nextcloud_verlinken(request, schluessel: str, kennung: str):
+    """Die gewählte Nextcloud-Datei als Anhang speichern."""
+    from kern import nextcloud
+
+    eintrag = _eintrag_holen(request, schluessel, kennung)
+    if not rechte.darf_bearbeiten(request.user, eintrag):
+        raise PermissionDenied("Anhänge darf nur anlegen, wer den Eintrag bearbeiten darf.")
+
+    pfad = (request.POST.get("pfad") or "").strip("/")
+    if not pfad:
+        messages.error(request, "Es wurde keine Datei ausgewählt.")
+        return redirect("kern:eintrag", schluessel=schluessel, kennung=kennung)
+
+    anhang, neu = Anhang.objects.get_or_create(
+        eintrag=eintrag,
+        nextcloud_pfad=pfad,
+        defaults={
+            "dokument": eintrag.dokument,
+            "dateiname": pfad.rsplit("/", 1)[-1],
+            "nextcloud_link": nextcloud.weblink(pfad),
+            "mimetype": request.POST.get("mimetype", ""),
+            "beschreibung": request.POST.get("beschreibung", ""),
+            "erstellt_von": request.user,
+        },
+    )
+
+    dienste.suchtext_aktualisieren(eintrag)
+    if neu:
+        messages.success(request, f"„{anhang.dateiname}“ ist jetzt verlinkt.")
+    else:
+        messages.info(request, f"„{anhang.dateiname}“ war schon verlinkt.")
+    return redirect("kern:eintrag", schluessel=schluessel, kennung=kennung)

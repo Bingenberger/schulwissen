@@ -1,0 +1,68 @@
+{% extends "grundlage.html" %}
+{% block titel %}Fahrplan Jahrgang {{ jahrgang }}{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:82rem">
+  <div>
+    {% include "deutsch/_auswertungsnavigation.html" %}
+
+    <h1>Fahrplan Jahrgang {{ jahrgang }}</h1>
+    <p class="leise">{{ plan.anzahl_vorhaben }} Vorhaben mit zusammen
+      {{ plan.stunden_gesamt }} Stunde{{ plan.stunden_gesamt|pluralize:"n" }}, dazu
+      {{ plan.rituale|length }} Ritual{{ plan.rituale|length|pluralize:"e" }}.</p>
+
+    <div class="fahrplan">
+      {% for quartal in plan.quartale %}
+        <section class="fahrplan-spalte">
+          <h2>{{ quartal.name }}
+            {% if quartal.stunden %}<span class="leise klein">{{ quartal.stunden }} Std.</span>{% endif %}
+          </h2>
+          {% for vorhaben in quartal.vorhaben %}
+            <article class="fahrplan-karte">
+              <a href="{% url 'kern:eintrag' dokument.schluessel vorhaben.kennung %}">
+                <span class="kennung">{{ vorhaben.kennung }}</span> {{ vorhaben.titel }}</a>
+              <p class="klein leise" style="margin:0.3rem 0 0">
+                {{ vorhaben.daten.zeitumfang_std|default:"?" }} Std.
+                {% if vorhaben.daten.leistung_bereich %} · {{ vorhaben.daten.leistung_bereich }}{% endif %}
+                {% if vorhaben.daten.klassenarbeit %} · <strong>Klassenarbeit</strong>{% endif %}
+              </p>
+              {% if vorhaben.status != 'beschlossen' %}
+                <span class="schild schild-klein schild-{{ vorhaben.status }}">{{ vorhaben.get_status_display }}</span>
+              {% endif %}
+            </article>
+          {% empty %}
+            <p class="leise klein">Noch nichts geplant.</p>
+          {% endfor %}
+        </section>
+      {% endfor %}
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Rituale in diesem Jahrgang</h2>
+      <p class="klein leise">Rituale laufen durchgehend. Hier steht, wie sie in
+        Jahrgang {{ jahrgang }} aussehen.</p>
+      <table class="tabelle">
+        <thead><tr><th>Kennung</th><th>Ritual</th><th class="zahl">Min./Woche</th><th>Ausprägung in Jg. {{ jahrgang }}</th></tr></thead>
+        <tbody>
+          {% for zeile in plan.rituale %}
+            <tr>
+              <td><span class="kennung">{{ zeile.eintrag.kennung }}</span></td>
+              <td><a href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.titel }}</a></td>
+              <td class="zahl">{{ zeile.minuten_pro_woche|default:"–" }}</td>
+              <td>
+                {% if zeile.auspraegung %}
+                  <div class="lesefeld-inhalt">{{ zeile.auspraegung|safe }}</div>
+                {% else %}
+                  <span class="abdeckung-fehlt">noch nicht ausgefüllt</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">Es gibt noch keine Rituale.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

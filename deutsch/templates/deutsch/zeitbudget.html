@@ -1,0 +1,100 @@
+{% extends "grundlage.html" %}
+{% load l10n %}
+{% block titel %}Zeitbudget{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:68rem">
+  <div>
+    {% include "deutsch/_auswertungsnavigation.html" %}
+
+    <h1>Zeitbudget der Rituale</h1>
+    <p class="leise">Wie viel der wöchentlichen Deutschzeit binden die Rituale?
+      Was übrig bleibt, steht für die Unterrichtsvorhaben zur Verfügung.</p>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Je Jahrgang</h2>
+      <table class="tabelle">
+        <thead>
+          <tr>
+            <th>Jahrgang</th>
+            <th class="zahl">Deutschstunden/Woche</th>
+            <th class="zahl">Minuten/Woche</th>
+            <th class="zahl">durch Rituale</th>
+            <th class="zahl">frei</th>
+            <th>Anteil Rituale</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for zeile in budget.zeilen %}
+            <tr>
+              <td>Jahrgang {{ zeile.jahrgang }}</td>
+              <td class="zahl">{{ zeile.stunden_pro_woche|default:"–" }}</td>
+              <td class="zahl">{{ zeile.minuten_pro_woche }}</td>
+              <td class="zahl">{{ zeile.minuten_durch_rituale }}</td>
+              <td class="zahl {% if zeile.ueberbucht %}abdeckung-fehlt{% endif %}">{{ zeile.minuten_frei }}</td>
+              <td>
+                <span class="balken" role="img" aria-label="{{ zeile.anteil_prozent }} Prozent">
+                  <span style="width:{% if zeile.anteil_prozent > 100 %}100{% else %}{{ zeile.anteil_prozent|unlocalize }}{% endif %}%"></span></span>
+                <span class="klein {% if zeile.ueberbucht %}abdeckung-fehlt{% endif %}">{{ zeile.anteil_prozent }} %</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <p class="klein leise">
+        Eine Unterrichtsstunde zählt {{ stunde_minuten }} Minuten. Die
+        Deutschstunden je Jahrgang stehen in den Einstellungen des Dokuments und
+        lassen sich in der Verwaltung ändern.
+      </p>
+      {% for zeile in budget.zeilen %}
+        {% if zeile.ueberbucht %}
+          <p class="meldung meldung-error">
+            Jahrgang {{ zeile.jahrgang }}: Die Rituale binden mehr Zeit, als die
+            Stundentafel hergibt. Entweder laufen einzelne Rituale fachübergreifend –
+            dann gehört das ins Feld „Bemerkungen“ – oder der Takt muss sinken.
+          </p>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Die Rituale im Einzelnen</h2>
+      <table class="tabelle">
+        <thead>
+          <tr><th>Kennung</th><th>Ritual</th><th class="zahl">Einheiten/Woche</th>
+            <th class="zahl">Minuten je Einheit</th><th class="zahl">Minuten/Woche</th></tr>
+        </thead>
+        <tbody>
+          {% for ritual in budget.rituale %}
+            <tr>
+              <td><span class="kennung">{{ ritual.kennung }}</span></td>
+              <td><a href="{% url 'kern:eintrag' dokument.schluessel ritual.kennung %}">{{ ritual.titel }}</a></td>
+              <td class="zahl">{{ ritual.daten.einheiten_pro_woche|default:"–" }}</td>
+              <td class="zahl">{{ ritual.daten.minuten_je_einheit|default:"–" }}</td>
+              <td class="zahl">{{ ritual.daten.minuten_pro_woche }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">Noch kein Ritual mit Zeitangabe.</td></tr>
+          {% endfor %}
+          {% if budget.rituale %}
+            <tr class="summe">
+              <th colspan="4">Zusammen</th>
+              <td class="zahl">{{ budget.minuten_durch_rituale }}</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+
+      {% if budget.ohne_angabe %}
+        <p class="meldung meldung-warning">
+          Ohne Zeitangabe und darum nicht mitgerechnet:
+          {% for ritual in budget.ohne_angabe %}
+            <a href="{% url 'kern:eintrag' dokument.schluessel ritual.kennung %}">{{ ritual.kennung }}</a>{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

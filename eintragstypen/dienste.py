@@ -164,9 +164,19 @@ def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = Non
         dokument, typ, roh, ergebnis, entstehende_kennungen or set()
     )
 
-    ergebnis.fehlende_pflichtfelder = typ.fehlende_pflichtfelder(
-        daten, [s for s, ziele in ergebnis.verweise.items() if ziele]
-    )
+    gefuellte_verweise = {s for s, ziele in ergebnis.verweise.items() if ziele}
+    if vorhanden is not None:
+        # Felder, die dieser Datensatz nicht nennt, behalten ihre Verweise –
+        # also zählen sie weiter als gefüllt.
+        unberuehrt = {f.schluessel for f in typ.verlinkungsfelder} - set(ergebnis.verweise)
+        gefuellte_verweise |= {
+            feld
+            for feld in vorhanden.verlinkungen.filter(feld__in=unberuehrt)
+            .values_list("feld", flat=True)
+            .distinct()
+        }
+
+    ergebnis.fehlende_pflichtfelder = typ.fehlende_pflichtfelder(daten, gefuellte_verweise)
     if ergebnis.fehlende_pflichtfelder:
         namen = ", ".join(f.label for f in ergebnis.fehlende_pflichtfelder)
         # Kein Fehler: als Entwurf speichern muss immer gehen (SPEC.md §7.4).
@@ -189,6 +199,11 @@ def _verweise_pruefen(
         )
 
     for feld in typ.verlinkungsfelder:
+        if feld.schluessel not in roh.verweise:
+            # Ein Feld, das der Datensatz gar nicht nennt, bleibt unberührt.
+            # Nur so kann ein Teil-Datensatz gespeichert werden, ohne die
+            # übrigen Verweise zu löschen.
+            continue
         ziele = [
             str(z).strip() for z in (roh.verweise.get(feld.schluessel) or []) if str(z).strip()
         ]
@@ -403,6 +418,21 @@ def suchtext_bauen(eintrag: Eintrag) -> str:
         teile.append(anhang.dateiname)
         teile.append(anhang.beschreibung)
         teile.append(anhang.extrahierter_text)
+
+    # Wird an einem beschlossenen Eintrag weitergearbeitet, zeigt die App
+    # Lesenden weiter die beschlossene Fassung. Dann muss diese auch auffindbar
+    # sein – sonst findet man nicht, was man sieht.
+    beschlossen = eintrag.beschlossene_version()
+    if beschlossen is not None and beschlossen.daten != eintrag.daten:
+        teile.append(beschlossen.titel)
+        for feld in typ.datenfelder:
+            wert = (beschlossen.daten or {}).get(feld.schluessel)
+            if wert in (None, "", []):
+                continue
+            if feld.typ == Feldtyp.RICHTEXT:
+                teile.append(html.als_text(str(wert)))
+            elif feld.typ in (Feldtyp.TEXT, Feldtyp.LANGTEXT, Feldtyp.AUSWAHL):
+                teile.append(feld.anzeige(wert))
 
     return " ".join(t for t in teile if t).strip()
 

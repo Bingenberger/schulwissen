@@ -2,17 +2,36 @@
 <nav class="navigation" aria-label="Gliederung des Dokuments">
   <h2>{{ dokument.titel }}</h2>
   {% for zeile in baum %}
-    <a class="baum-zeile baum-tiefe-{{ zeile.tiefe }}{% if eintrag and zeile.eintrag.pk == eintrag.pk %} ist-hier{% endif %}"
-       href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}"
-       {% if eintrag and zeile.eintrag.pk == eintrag.pk %}aria-current="page"{% endif %}>
-      <span class="baum-nummer">{{ zeile.eintrag.anzeige_nummer }}</span>{{ zeile.eintrag.titel }}
-      {% if zeile.eintrag.status != 'beschlossen' %}
-        <span class="schild schild-klein schild-{{ zeile.eintrag.status }}">{{ zeile.eintrag.get_status_display }}</span>
-      {% endif %}
-    </a>
+    {% if zeile.lesbar %}
+      <a class="baum-zeile baum-tiefe-{{ zeile.tiefe }}{% if eintrag and zeile.eintrag.pk == eintrag.pk %} ist-hier{% endif %}"
+         href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}"
+         {% if eintrag and zeile.eintrag.pk == eintrag.pk %}aria-current="page"{% endif %}>
+        <span class="baum-nummer">{{ zeile.eintrag.anzeige_nummer }}</span>{{ zeile.titel }}
+        {% if zeile.status != 'beschlossen' %}
+          <span class="schild schild-klein schild-{{ zeile.status }}">{{ zeile.eintrag.get_status_display }}</span>
+        {% endif %}
+      </a>
+    {% else %}
+      {% comment %}Noch nicht freigegeben: als Gerüst sichtbar, aber nicht zu
+      öffnen – sonst verlöre man die Orientierung im Dokument.{% endcomment %}
+      <span class="baum-zeile baum-tiefe-{{ zeile.tiefe }} ist-gesperrt"
+            title="Noch nicht beschlossen">
+        <span class="baum-nummer">{{ zeile.eintrag.anzeige_nummer }}</span>{{ zeile.titel }}
+      </span>
+    {% endif %}
   {% endfor %}
 
   <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
+  <h2>Auswertungen</h2>
   <a class="baum-zeile" href="{% url 'deutsch:abdeckung' dokument.schluessel %}">Abdeckungsmatrix</a>
+  <a class="baum-zeile" href="{% url 'deutsch:fahrplan' dokument.schluessel 1 %}">Fahrplan je Jahrgang</a>
+  <a class="baum-zeile" href="{% url 'deutsch:ritualprogression' dokument.schluessel %}">Ritual-Progression</a>
+  <a class="baum-zeile" href="{% url 'deutsch:zeitbudget' dokument.schluessel %}">Zeitbudget</a>
+  <a class="baum-zeile" href="{% url 'deutsch:leistung' dokument.schluessel %}">Leistungsübersicht</a>
+  <a class="baum-zeile" href="{% url 'deutsch:progressionspaare' dokument.schluessel %}">Progressionspaare</a>
   <a class="baum-zeile" href="{% url 'deutsch:pruefliste' dokument.schluessel %}">Prüfliste</a>
+
+  <hr style="border:0;border-top:1px solid var(--linie);margin:1rem 0">
+  <a class="baum-zeile" href="{% url 'kern:aenderungen' dokument.schluessel %}">Änderungen seit Beschluss</a>
+  <a class="baum-zeile" href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a>
 </nav>

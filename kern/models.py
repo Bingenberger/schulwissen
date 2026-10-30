@@ -362,6 +362,26 @@ class Eintrag(Zeitstempel):
             knoten = knoten.eltern
         return ".".join(reversed(kette))
 
+    @property
+    def pfad(self) -> list[Eintrag]:
+        """Die Kette der übergeordneten Einträge, von oben nach unten.
+
+        Daraus baut die Suche den Kontext eines Treffers:
+        „Arbeitsplan Deutsch › 2.1 Unterrichtsvorhaben › V-3-01“ (SPEC.md §9).
+        """
+        kette: list[Eintrag] = []
+        knoten = self.eltern
+        while knoten is not None and len(kette) < 10:
+            kette.append(knoten)
+            knoten = knoten.eltern
+        return list(reversed(kette))
+
+    @property
+    def kontext(self) -> str:
+        teile = [self.dokument.titel]
+        teile += [f"{k.anzeige_nummer} {k.titel}" for k in self.pfad]
+        return " › ".join(teile)
+
     def beschlossene_version(self):
         """Letzte durch einen Beschluss freigegebene Fassung – oder ``None``."""
         return (
@@ -493,13 +513,23 @@ class Beschluss(Zeitstempel):
         related_name="protokollierte_beschluesse",
     )
 
+    suchvektor = SearchVectorField(null=True, editable=False)
+
     class Meta:
         verbose_name = "Beschluss"
         verbose_name_plural = "Beschlüsse"
         ordering = ["-datum", "titel"]
+        indexes = [GinIndex(fields=["suchvektor"], name="beschluss_suchvektor")]
 
     def __str__(self) -> str:
         return f"{self.gremium} vom {self.datum:%d.%m.%Y}: {self.titel}"
+
+    def save(self, *args, **kwargs):
+        ergebnis = super().save(*args, **kwargs)
+        from kern.suchindex import beschluss_indexieren
+
+        beschluss_indexieren(self)
+        return ergebnis
 
     @property
     def herkunft(self) -> str:
@@ -612,14 +642,23 @@ class Anhang(Zeitstempel):
 
     extrahierter_text = models.TextField("extrahierter Text", blank=True, editable=False)
     index_stand = models.DateTimeField("indexiert am", null=True, blank=True, editable=False)
+    suchvektor = SearchVectorField(null=True, editable=False)
 
     class Meta:
         verbose_name = "Anhang"
         verbose_name_plural = "Anhänge"
         ordering = ["dateiname"]
+        indexes = [GinIndex(fields=["suchvektor"], name="anhang_suchvektor")]
 
     def __str__(self) -> str:
         return self.dateiname
+
+    def save(self, *args, **kwargs):
+        ergebnis = super().save(*args, **kwargs)
+        from kern.suchindex import anhang_indexieren
+
+        anhang_indexieren(self)
+        return ergebnis
 
     def clean(self) -> None:
         if not self.datei and not self.nextcloud_pfad and not self.nextcloud_link:

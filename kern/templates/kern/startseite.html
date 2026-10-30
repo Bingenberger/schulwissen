@@ -7,20 +7,24 @@
   <p class="leise">Arbeitspläne, Konzepte und Konferenzbeschlüsse – an einer Stelle,
     durchsuchbar und verlinkt.</p>
 
-  {# Großes Suchfeld mit Fokus beim Laden (SPEC.md §9). #}
-  <form class="start-suche" action="{% url 'kern:startseite' %}" method="get" role="search">
+  {% comment %}Großes Suchfeld mit Fokus beim Laden (SPEC.md §9).{% endcomment %}
+  <form class="start-suche" action="{% url 'suche:suchen' %}" method="get" role="search"
+        x-data="{ offen: false }" @click.outside="offen = false">
     <label for="start-suchfeld">Wonach suchst du?</label>
     <input type="search" id="start-suchfeld" name="q" value="{{ request.GET.q|default:'' }}"
            placeholder="z. B. Märchen, Lesezeit, Leistungsbewertung oder SC2.02D"
-           autocomplete="off" autofocus>
+           autocomplete="off" autofocus
+           role="combobox" aria-expanded="false" aria-controls="start-vorschlaege"
+           hx-get="{% url 'suche:vorschlaege' %}"
+           hx-trigger="input changed delay:200ms"
+           hx-target="#start-vorschlaege"
+           @input="offen = true" @focus="offen = true"
+           {% comment %}.prevent, weil ein Suchfeld bei Escape sonst seinen
+           Inhalt leert und das input-Ereignis die Liste sofort wieder
+           aufklappt.{% endcomment %}
+           @keydown.escape.prevent="offen = false">
+    <div class="vorschlaege" id="start-vorschlaege" x-show="offen" x-cloak></div>
   </form>
-
-  {% if request.GET.q %}
-    <div class="meldung meldung-info">
-      Die Suche kommt in Phase 2. Bis dahin führt der Weg über die Gliederung des
-      Dokuments – klicke unten auf den Arbeitsplan.
-    </div>
-  {% endif %}
 
   <h2>Dokumente</h2>
   {% for dokument in dokumente %}
@@ -59,6 +63,13 @@
       </ul>
     </div>
   {% endif %}
+
+  <p class="knopf-reihe" style="margin:1.5rem 0">
+    <a class="knopf" href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a>
+    {% if ist_redaktion %}
+      <a class="knopf" href="{% url 'kern:beschlussvorlage' %}">Beschlussvorlage</a>
+    {% endif %}
+  </p>
 
   {% if zuletzt_beschlossen %}
     <h2>Zuletzt beschlossen</h2>

@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "eintragstypen.apps.EintragstypenConfig",
     "fachdaten.apps.FachdatenConfig",
     "deutsch.apps.DeutschConfig",
+    "suche.apps.SucheConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -145,6 +146,15 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 DEFAULT_FROM_EMAIL = umgebung.text("SW_ABSENDER", "schulwissen@localhost")
+
+# --- Nextcloud (SPEC.md §10, Stufe 1) --------------------------------------
+
+# Ein technisches Konto mit App-Passwort darf die Ordner lesen, damit sich
+# Dateien im Browser durchklicken lassen. Ohne diese Werte bleibt die
+# Dateiauswahl einfach aus – die App läuft trotzdem.
+NEXTCLOUD_URL = umgebung.text("SW_NEXTCLOUD_URL", "").rstrip("/")
+NEXTCLOUD_NUTZER = umgebung.text("SW_NEXTCLOUD_NUTZER", "")
+NEXTCLOUD_PASSWORT = umgebung.text("SW_NEXTCLOUD_PASSWORT", "")
 
 # --- Sprache und Zeit ------------------------------------------------------
 

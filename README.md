@@ -11,15 +11,19 @@ Die vollständige fachliche Beschreibung steht in [SPEC.md](SPEC.md).
 
 ## Stand
 
-**Phase 1 ist umgesetzt** (SPEC.md §13): Kern, Rollen, Arbeitsplan Deutsch,
-Kompetenz-Stammdaten, Import aus der Arbeitsmappe, Eingabemasken.
+**Phase 1 und Phase 2 sind umgesetzt** (SPEC.md §13).
 
-Was schon geht, obwohl es erst für Phase 2 geplant war: die Abdeckungsmatrix
-und die Prüfliste. Beides fällt aus dem Datenmodell praktisch von selbst ab und
-war der beste Weg zu prüfen, ob die Kompetenzverlinkung stimmt.
+Phase 1: Kern, Rollen, Arbeitsplan Deutsch, Kompetenz-Stammdaten, Import aus
+der Arbeitsmappe, Eingabemasken.
 
-Noch nicht da: die Volltextsuche, Beschlüsse über die Oberfläche, die übrigen
-fünf Auswertungen, Nextcloud, Export und „Meine Planung“ (Phasen 2 bis 4).
+Phase 2: Volltextsuche mit Autovervollständigung und gruppierten Ergebnissen,
+Textextraktion aus Anhängen, Beschlüsse mit Statusworkflow, Fassungsvergleich,
+„Änderungen seit Beschluss“, alle sieben Auswertungen aus §7.5 und die
+Nextcloud-Verlinkung (Stufe 1).
+
+Noch nicht da (Phasen 3 und 4): „Meine Planung“, PDF-, JSON- und XLSX-Export,
+die Dokumenttypen „Konzept“ und „Konferenzprotokoll“, der generische
+JSON-Import, Nextcloud-Indexierung, OIDC und weitere Fächer.
 
 ## Schnellstart
 
@@ -51,8 +55,9 @@ den Server in [DEPLOYMENT.md](DEPLOYMENT.md).
 | `schulwissen/` | Einstellungen, URLs, WSGI |
 | `kern/` | Nutzer, Rollen, Dokument, Eintrag, Fassungen, Beschluss, Verlinkung, Anhang, Kommentar |
 | `eintragstypen/` | Registry der Feldschemata, Formular-Fabrik, gemeinsamer Schreibweg |
-| `fachdaten/` | Kompetenzerwartungen des Lehrplans und ihr Import |
+| `fachdaten/` | Kompetenzerwartungen des Lehrplans, ihr Import und ihre Suche |
 | `deutsch/` | Dokumenttyp „Arbeitsplan Deutsch“: Gliederung, Eintragstypen, XLSX-Import, Auswertungen |
+| `suche/` | Volltextsuche über alle Gruppen und die Autovervollständigung |
 | `vorlagen/`, `dateien/` | Seitengerüst und statische Dateien |
 | `frontend/` | Quelle des Rich-Text-Editors (für den Betrieb **nicht** nötig) |
 
@@ -103,6 +108,62 @@ unterscheidet sie. Alle Zugriffsentscheidungen stehen an einer Stelle:
 Arbeitsgruppe „Jahrgang N“ die Verantwortung für ein Vorhaben dieses Jahrgangs,
 sonst die Gruppe aus der Spalte „Verantwortlich“. Findet sich keine, bleibt das
 Feld leer – dann kommt nur die Redaktion heran und ordnet zu.
+
+## Die Suche
+
+Gesucht wird in vier Gruppen: **Arbeitspläne und Konzepte · Konferenzbeschlüsse ·
+Kompetenzerwartungen · Dateien**. Je Treffer gibt es Titel, Kontextpfad
+(„Arbeitsplan Deutsch › 2.1 › V-3-01“), einen hervorgehobenen Ausschnitt und
+ein Status-Schild. Beschlossenes steht vorn; Entwürfe sieht nur, wer darf.
+
+Drei Wege führen zum Treffer:
+
+1. **Volltext** mit deutschen Stammformen – „Märchen“ findet auch „Märchens“.
+   `websearch`-Syntax wird verstanden: Anführungszeichen für Wortgruppen, `-`
+   zum Ausschließen, `OR`.
+2. **Ähnlichkeit** (`pg_trgm`), wenn der Volltext keinen Eintrag findet – so
+   verzeiht die Suche Tippfehler wie „Maerchen“.
+3. **Wortlaut**, wenn die Eingabe nur aus Füllwörtern besteht. „Es war einmal“
+   ergibt eine leere Volltextanfrage; statt nichts zu finden, sucht die App
+   dann nach der genauen Zeichenfolge und sagt das auch.
+
+Anhänge werden mitdurchsucht. Der Text wird dafür **im Hintergrund** gelesen
+(`manage.py anhaenge_indexieren`, siehe DEPLOYMENT.md §5) – nicht beim
+Hochladen, damit niemand auf ein großes PDF warten muss.
+
+### Ein Wort zur Ähnlichkeitsschwelle
+
+`pg_trgm` vergleicht Buchstabengruppen und findet in langen Texten fast immer
+irgendetwas. „Märchen“ und „Recherchen“ teilen genug Dreiergruppen für einen
+Wert von 0,5 – obwohl keine einzige Kompetenzerwartung von Märchen handelt.
+Mit der ursprünglichen Schwelle von 0,35 kamen so 68 falsche Treffer heraus
+und begruben das eine richtige Ergebnis.
+
+Darum gelten in `fachdaten/suche.py` zwei Schwellen: **0,6 auf dem Volltext**
+(verzeiht „Gesprch“, lässt „Märchen“ gegen „Recherchen“ durchfallen) und
+**0,4 auf der Kennung**, wo kurze Zeichenketten verglichen werden.
+
+## Beschlüsse
+
+1. Die Gruppe stimmt einen Eintrag ab → Status „abgestimmt in Gruppe“.
+2. Die Redaktion stellt unter *Beschlussvorlage* zusammen, was in die Konferenz
+   soll (zum Ausdrucken genügt die Drucktaste des Browsers).
+3. Die Administration trägt den Beschluss ein und schaltet die Fassungen frei.
+
+Dabei gilt: die beschlossene Fassung ist **unveränderlich**. Wer an einem
+beschlossenen Eintrag weiterarbeitet, erzeugt einen neuen Entwurf – die
+beschlossene Fassung bleibt gültig, und **Lesende sehen weiterhin sie**, nicht
+den Entwurf. Bearbeitende sehen den Arbeitsstand mit einem Hinweis und einem
+Link auf die Unterschiede.
+
+## Auswertungen
+
+Alle sieben aus SPEC.md §7.5, jeweils umschaltbar zwischen „inklusive
+Entwürfe“ und „nur beschlossene“:
+
+Abdeckungsmatrix · Fahrplan je Jahrgang · Ritual-Progression · Zeitbudget ·
+Leistungsübersicht (die Sicht „Leistungskonzept“) · Progressionspaare ·
+Prüfliste.
 
 ## Import
 

@@ -1,0 +1,63 @@
+{% extends "grundlage.html" %}
+{% block titel %}{{ eintrag.kennung }}, Fassung {{ version.versionsnummer }}{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:62rem">
+  <div>
+    <p class="brotkrumen">
+      <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> ›
+      <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a> ›
+      Fassung {{ version.versionsnummer }}
+    </p>
+
+    <div class="ueberschrift-zeile">
+      <span class="kennung">{{ eintrag.kennung }}</span>
+      <h1 style="margin:0">{{ version.titel }}</h1>
+      <span class="schild schild-{{ version.status }}">{{ version.get_status_display }}</span>
+    </div>
+    <p class="leise klein">
+      Fassung {{ version.versionsnummer }} vom {{ version.zeitpunkt|date:"d.m.Y, H:i" }}
+      {% if version.autor %} von {{ version.autor.anzeigename }}{% endif %}
+      {% if version.beschluss %} · <a href="{% url 'kern:beschluss' version.beschluss.pk %}">{{ version.beschluss.herkunft }}</a>{% endif %}
+    </p>
+
+    {% if version.status == 'beschlossen' %}
+      <p class="hinweis-beschluss">Diese Fassung ist beschlossen und unveränderlich.</p>
+    {% elif version.status == 'archiviert' %}
+      <p class="hinweis-entwurf">Diese Fassung wurde von einem neueren Beschluss abgelöst.</p>
+    {% endif %}
+
+    {% for block in bloecke %}
+      <section class="block{% if block.name == 'Leistung' %} block-leistung{% endif %}">
+        <h2>{{ block.name }}</h2>
+        {% for zeile in block.felder %}
+          <div class="lesefeld">
+            <span class="feld-beschriftung">{{ zeile.feld.label }}</span>
+            {% if zeile.verweise %}
+              <ul class="kompetenzliste">
+                {% for verweis in zeile.verweise %}
+                  <li class="kompetenz">
+                    <span class="kompetenz-kennung">{{ verweis.ziel_id }}</span>
+                    <span class="kompetenz-text">{{ verweis.beschriftung }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% elif zeile.html %}
+              <div class="lesefeld-inhalt">{{ zeile.html|safe }}</div>
+            {% else %}
+              <div class="lesefeld-inhalt">{{ zeile.text|linebreaks }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% empty %}
+      <div class="karte"><p>Diese Fassung war leer.</p></div>
+    {% endfor %}
+
+    <p class="knopf-reihe">
+      <a class="knopf" href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Alle Fassungen</a>
+      <a class="knopf" href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ version.versionsnummer }}">Mit dem aktuellen Stand vergleichen</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

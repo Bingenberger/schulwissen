@@ -1,0 +1,82 @@
+{% extends "grundlage.html" %}
+{% block titel %}Leistungsübersicht{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:82rem">
+  <div>
+    {% include "deutsch/_auswertungsnavigation.html" %}
+
+    <h1>Leistungsübersicht</h1>
+    <p class="leise">Das ist die Sicht „Leistungskonzept“: alle Überprüfungen und
+      Klassenarbeiten je Jahrgang, zusammengetragen aus den Leistungsfeldern der
+      Vorhaben und Rituale. Sie wird nicht getrennt gepflegt, sondern entsteht
+      aus dem, was in den Steckbriefen steht.</p>
+
+    {% for spalte in uebersicht.jahrgaenge %}
+      <div class="karte block-leistung" style="border-left:5px solid var(--leistung-linie)">
+        <h2 style="margin-top:0">
+          Jahrgang {{ spalte.jahrgang }}
+          <span class="leise klein">
+            {{ spalte.zeilen|length }} Vorhaben ·
+            {{ spalte.schriftliche_arbeiten }} schriftliche Arbeiten ·
+            {{ spalte.klassenarbeiten }} Klassenarbeiten
+          </span>
+        </h2>
+        {% if spalte.zeilen %}
+          <table class="tabelle">
+            <thead>
+              <tr><th>Quartal</th><th>Vorhaben</th><th>Beurteilungsbereich</th>
+                <th>Form der Überprüfung</th><th>Kriterien</th><th>KA</th></tr>
+            </thead>
+            <tbody>
+              {% for zeile in spalte.zeilen %}
+                <tr>
+                  <td class="klein">{{ zeile.quartal|default:"–" }}</td>
+                  <td>
+                    <a href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}">
+                      <span class="kennung">{{ zeile.eintrag.kennung }}</span> {{ zeile.eintrag.titel }}</a>
+                  </td>
+                  <td class="klein">{{ zeile.bereich|default:"–" }}</td>
+                  <td class="klein">{% if zeile.form %}<div class="lesefeld-inhalt">{{ zeile.form|safe }}</div>{% else %}–{% endif %}</td>
+                  <td class="klein">{% if zeile.kriterien %}<div class="lesefeld-inhalt">{{ zeile.kriterien|safe }}</div>{% else %}<span class="abdeckung-fehlt">fehlt</span>{% endif %}</td>
+                  <td>{% if zeile.klassenarbeit %}<span class="schild schild-klein schild-abgestimmt">ja</span>{% else %}–{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="leise" style="margin:0">Für diesen Jahrgang ist noch nichts erfasst.</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="karte">
+      <h2 style="margin-top:0">Rituale: laufende Beobachtung</h2>
+      <table class="tabelle">
+        <thead><tr><th>Kennung</th><th>Ritual</th><th>Beurteilungsbereich</th><th>Feststellung und Kriterien</th></tr></thead>
+        <tbody>
+          {% for zeile in uebersicht.rituale %}
+            <tr>
+              <td><span class="kennung">{{ zeile.eintrag.kennung }}</span></td>
+              <td><a href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.titel }}</a></td>
+              <td class="klein">{{ zeile.bereich|default:"–" }}</td>
+              <td class="klein">{% if zeile.form %}<div class="lesefeld-inhalt">{{ zeile.form|safe }}</div>{% else %}<span class="abdeckung-fehlt">fehlt</span>{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4">Es gibt noch keine Rituale.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if uebersicht.ohne_angabe %}
+      <div class="meldung meldung-warning">
+        Ohne Beurteilungsbereich – das ist ein Pflichtfeld:
+        {% for eintrag in uebersicht.ohne_angabe %}
+          <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

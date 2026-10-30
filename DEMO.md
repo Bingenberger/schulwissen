@@ -59,7 +59,12 @@ Melde dich als **`lehrkraft@example.org`** an.
    Probiere auch:
    - `SC2.02` – Suche über die Kennung;
    - `Gesprch` (mit Tippfehler) – wird trotzdem gefunden;
+   - `Gedicht` – zwei Treffer;
    - die Filter **Bereich** und **Stufe**.
+
+   > `Märchen` liefert hier bewusst **nichts**: keine Kompetenzerwartung des
+   > Lehrplans handelt von Märchen. Lieber keine Treffer als vierzig falsche,
+   > von denen eine angehakt wird.
 
 6. **Formatierten Text schreiben.** Klicke im Feld „Didaktische Zugänge /
    Methoden“ in die weiße Fläche. Über dem Feld steht eine Werkzeugleiste:
@@ -141,7 +146,126 @@ Als Redaktion oder Administration lässt sich die Festlegung unter
 `/verwaltung/fachdaten/kompetenzerwartung/` eintragen – alle anderen Spalten
 sind dort nur lesbar, denn sie sind amtliche Vorgabe.
 
-## 6. Import mit Vorschau
+## 6. Die Suche (Phase 2)
+
+Melde dich als **`lehrkraft@example.org`** an.
+
+### Autovervollständigung
+
+Tippe oben im Suchfeld `Märchen`. Nach kurzem Zögern klappt eine Liste auf:
+Kennung, Titel, darunter der Weg dorthin. Das funktioniert auf jeder Seite.
+Mit **Esc** schließt die Liste, mit **Eingabe** kommst du zur Ergebnisseite.
+
+Probiere auch `V-3` (Kennung) und `SC2.02` (Kompetenz).
+
+### Die Abnahme aus SPEC.md §13
+
+Damit das klappt, braucht es eine Datei mit Inhalt. Lege sie schnell an:
+
+```bash
+docker compose exec app python manage.py shell -c "
+from kern.models import Anhang, Eintrag
+from eintragstypen.dienste import suchtext_aktualisieren
+v = Eintrag.objects.get(kennung='V-3-01')
+Anhang.objects.get_or_create(eintrag=v, dateiname='Merkmale von Maerchen.pdf',
+  defaults=dict(mimetype='application/pdf', beschreibung='Übersicht für die Kinder',
+  extrahierter_text='Merkmale von Märchen: Es war einmal, Gut und Böse, ein gutes Ende.'))
+k = Eintrag.objects.get(kennung='2.4')
+k.daten = {'text': '<p>Das selbst geschriebene Märchen wird nach den Kriterien aus dem Märchenraster bewertet.</p>'}
+k.save(); suchtext_aktualisieren(k); suchtext_aktualisieren(v)
+print('bereit')"
+```
+
+Suche jetzt nach **`Märchen`**. Die Ergebnisseite muss drei Dinge zeigen:
+
+1. das Vorhaben **V-3-01**,
+2. das Kapitel **2.4 Leistungsbewertung**,
+3. die Datei **Merkmale von Maerchen.pdf**.
+
+Die Treffer sind gruppiert, die Fundstellen gelb hervorgehoben, darunter steht
+jeweils der Weg („Arbeitsplan Deutsch › 2 › 2.1“).
+
+### Was die Suche sonst noch kann
+
+| Eingabe | Was passiert |
+| --- | --- |
+| `Märchens` | findet „Märchen“ – deutsche Stammformen |
+| `Maerchen` | Tippfehler; die App sagt „ähnlich geschrieben“ |
+| `Es war einmal` | nur Füllwörter; die App sucht nach dem genauen Wortlaut und sagt das |
+| `"Gut und Böse"` | Wortgruppe in Anführungszeichen |
+| `Märchen -Hörspiel` | schließt ein Wort aus |
+
+Unter **Filter** lässt sich nach Dokument, Status, Jahrgang und Fach
+einschränken.
+
+> **Probe:** Suche `Märchen` und sieh dir die Gruppe *Kompetenzerwartungen* an.
+> Sie muss **leer** sein – keine Kompetenzerwartung des Lehrplans handelt von
+> Märchen. Erschiene dort eine lange Liste, wäre die Ähnlichkeitsschwelle zu
+> niedrig (siehe README).
+
+## 7. Beschlüsse
+
+Als **`fachvorsitz@example.org`** (Redaktion):
+
+1. Öffne **V-3-01**, klicke *Bearbeiten*, setze den Status auf
+   **„abgestimmt in Gruppe“** und speichere. Geht nur, wenn alle Pflichtfelder
+   gefüllt sind – sonst nennt die App die fehlenden.
+2. Gehe auf **Beschlussvorlage** (Startseite oder linke Navigation). Dort steht
+   jetzt V-3-01.
+
+Als **`leitung@example.org`** (Administration):
+
+3. Öffne die **Beschlussvorlage**, lass das Häkchen stehen und klicke
+   **„Beschluss eintragen“**.
+4. Trage Datum (9.11.2026), Gremium (Fachkonferenz Deutsch), Titel und Text ein
+   und speichere.
+
+Öffne danach **V-3-01**: oben steht grün
+*„Gilt seit Beschluss der Fachkonferenz Deutsch vom 09.11.2026“*.
+
+### Die beschlossene Fassung ist unveränderlich
+
+5. Bearbeite V-3-01 erneut, ändere den Titel, speichere.
+6. Der Eintrag zeigt jetzt **beides**: den Beschluss *und* den Hinweis
+   „Angezeigt wird der Arbeitsstand“ mit Link auf die Unterschiede.
+7. Melde dich als **`ogs@example.org`** (Lesend) an und öffne V-3-01:
+   Du siehst den **beschlossenen** Titel, nicht den Entwurf, dazu den Hinweis,
+   dass es einen neueren Entwurf gibt.
+
+Das ist der Kern von SPEC.md §6: Lesende sehen, was gilt – nicht, woran gerade
+gearbeitet wird.
+
+### Vergleich und Änderungen
+
+- **Fassungen → Vergleich**: wortweise Gegenüberstellung, Entferntes rot,
+  Hinzugefügtes grün. Oben lassen sich beliebige zwei Fassungen wählen.
+- **Änderungen seit Beschluss** (linke Navigation): was ist neu, was wurde seit
+  der beschlossenen Fassung geändert, was ist unverändert.
+
+## 8. Die Auswertungen
+
+Alle sieben hängen in der linken Navigation unter *Auswertungen*. Oben auf
+jeder Seite lässt sich zwischen **„Inklusive Entwürfe“** und **„Nur
+beschlossene“** umschalten.
+
+| Auswertung | Worauf achten |
+| --- | --- |
+| **Abdeckungsmatrix** | Stimmt mit dem Blatt „Übersicht“ überein (siehe unten) |
+| **Fahrplan je Jahrgang** | Vorhaben nach Quartal, darunter die Rituale mit der Ausprägung *dieses* Jahrgangs |
+| **Ritual-Progression** | R-01 mit allen vier Jahrgängen nebeneinander; Jg. 2 und 3 sind rot, weil in der Mappe `[…]` steht |
+| **Zeitbudget** | R-01 bindet 60 Min./Woche; Jg. 1 hat 6 Stunden à 45 Min. = 270 Min., also 22,2 % |
+| **Leistungsübersicht** | Die Sicht „Leistungskonzept“: Überprüfungen und Klassenarbeiten je Jahrgang |
+| **Progressionspaare** | 26 Paare; die meisten rot, weil erst zwei Einträge erfasst sind |
+| **Prüfliste** | 20 offene schulische Festlegungen, 61 zu prüfende Stufen |
+
+## 9. Nextcloud
+
+Ohne Zugangsdaten erklärt die App das freundlich: Öffne einen Eintrag, rechts
+**„Nextcloud durchsuchen“**. Mit eingetragenem Zugang (DEPLOYMENT.md §6)
+lassen sich Ordner durchklicken und Dateien verlinken – die Datei bleibt in der
+Nextcloud.
+
+## 10. Import mit Vorschau
 
 ```bash
 docker compose exec app python manage.py arbeitsplan_importieren \
@@ -161,7 +285,7 @@ docker compose exec app python manage.py shell -c \
 
 Die Zahl ist vor und nach der Vorschau gleich.
 
-## 7. Tests
+## 11. Tests
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml \

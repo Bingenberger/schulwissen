@@ -1,0 +1,56 @@
+{% extends "grundlage.html" %}
+{% block titel %}Ritual-Progression{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:88rem">
+  <div>
+    {% include "deutsch/_auswertungsnavigation.html" %}
+
+    <h1>Ritual-Progression</h1>
+    <p class="leise">Jedes Ritual mit allen vier Jahrgängen nebeneinander. So sieht
+      man auf einen Blick, ob die Steigerung stimmt – und welche Jahrgangsgruppe
+      ihr Feld noch nicht gefüllt hat.</p>
+
+    {% for progression in progressionen %}
+      <div class="karte">
+        <div class="ueberschrift-zeile">
+          <span class="kennung">{{ progression.ritual.kennung }}</span>
+          <h2 style="margin:0">
+            <a href="{% url 'kern:eintrag' dokument.schluessel progression.ritual.kennung %}">{{ progression.ritual.titel }}</a>
+          </h2>
+          {% if progression.vollstaendig %}
+            <span class="schild schild-klein schild-beschlossen">vollständig</span>
+          {% else %}
+            <span class="schild schild-klein schild-entwurf">
+              offen: Jg. {% for jg in progression.offene_jahrgaenge %}{{ jg }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </span>
+          {% endif %}
+        </div>
+
+        {% if progression.ritual.daten.fester_ablauf %}
+          <div class="lesefeld">
+            <span class="feld-beschriftung">Fester Ablauf</span>
+            <div class="lesefeld-inhalt">{{ progression.ritual.daten.fester_ablauf|safe }}</div>
+          </div>
+        {% endif %}
+
+        <div class="progression">
+          {% for spalte in progression.spalten %}
+            <section class="progression-spalte{% if not spalte.gefuellt %} ist-offen{% endif %}">
+              <h3>Jahrgang {{ spalte.jahrgang }}</h3>
+              {% if spalte.gefuellt %}
+                <div class="lesefeld-inhalt">{{ spalte.auspraegung|safe }}</div>
+              {% else %}
+                <p class="abdeckung-fehlt" style="padding:0.4rem 0.6rem;border-radius:6px">
+                  noch nicht ausgefüllt</p>
+              {% endif %}
+            </section>
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="meldung meldung-info">Es gibt noch keine Rituale.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

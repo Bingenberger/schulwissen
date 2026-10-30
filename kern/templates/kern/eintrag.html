@@ -1,5 +1,5 @@
 {% extends "grundlage.html" %}
-{% block titel %}{{ eintrag.kennung }} {{ eintrag.titel }}{% endblock %}
+{% block titel %}{{ eintrag.kennung }} {{ angezeigter_titel }}{% endblock %}
 
 {% block inhalt %}
 <div class="geruest mit-nebenspalte">
@@ -14,8 +14,8 @@
 
     <div class="ueberschrift-zeile">
       <span class="kennung">{{ eintrag.kennung }}</span>
-      <h1 style="margin:0">{{ eintrag.titel }}</h1>
-      <span class="schild schild-{{ eintrag.status }}">{{ eintrag.get_status_display }}</span>
+      <h1 style="margin:0">{{ angezeigter_titel }}</h1>
+      <span class="schild schild-{{ angezeigter_status }}">{{ angezeigter_status_text }}</span>
     </div>
     <p class="leise klein">{{ typ.name }}{% if typ.beschreibung %} – {{ typ.beschreibung }}{% endif %}</p>
 
@@ -25,6 +25,20 @@
         {{ beschluss.herkunft }}
         <a href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Fassungen ansehen</a>
       </p>
+      {% if entwurf_weicht_ab %}
+        {% if zeigt_entwurf %}
+          <p class="hinweis-entwurf">
+            <strong>Angezeigt wird der Arbeitsstand</strong>, nicht die beschlossene
+            Fassung. Gültig ist weiterhin Fassung {{ beschlossene_version.versionsnummer }}.
+            <a href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ beschlossene_version.versionsnummer }}">Unterschiede ansehen</a>
+          </p>
+        {% else %}
+          <p class="hinweis-entwurf">
+            Angezeigt wird die beschlossene Fassung. Es gibt bereits einen neueren
+            Entwurf, der noch nicht beschlossen ist.
+          </p>
+        {% endif %}
+      {% endif %}
     {% elif eintrag.status != 'beschlossen' %}
       <p class="hinweis-entwurf">
         Noch nicht beschlossen – dieser Stand ist eine Arbeitsfassung.
@@ -89,6 +103,7 @@
               {% elif anhang.nextcloud_link %}
                 <a href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer">{{ anhang.dateiname }}</a>
                 <span class="schild schild-klein schild-idee">Nextcloud</span>
+                <br><span class="leise klein">{{ anhang.nextcloud_pfad }}</span>
               {% else %}{{ anhang.dateiname }}{% endif %}
               {% if anhang.beschreibung %}<span class="leise klein"> – {{ anhang.beschreibung }}</span>{% endif %}
             </li>
@@ -104,7 +119,10 @@
       <h3>Stand</h3>
       <ul class="liste-schlicht klein">
         <li><strong>Status:</strong>
-          <span class="schild schild-klein schild-{{ eintrag.status }}">{{ eintrag.get_status_display }}</span></li>
+          <span class="schild schild-klein schild-{{ angezeigter_status }}">{{ angezeigter_status_text }}</span>
+          {% if not zeigt_entwurf and entwurf_weicht_ab %}
+            <br><span class="leise">Der Arbeitsstand ist noch Entwurf.</span>
+          {% endif %}</li>
         <li><strong>Verantwortlich:</strong>
           {{ eintrag.verantwortlich_gruppe|default:eintrag.verantwortlich_person|default:eintrag.verantwortlich_text|default:"noch offen" }}</li>
         {% if eintrag.fassung_stand %}<li><strong>Fassung:</strong> {{ eintrag.fassung_stand|date:"d.m.Y" }}</li>{% endif %}
@@ -180,6 +198,11 @@
           {% endfor %}
           <button class="knopf" type="submit">Anhängen</button>
         </form>
+        <p class="klein leise" style="margin:0.8rem 0 0">
+          Oder eine Datei aus der Nextcloud verlinken:
+        </p>
+        <a class="knopf" href="{% url 'kern:nextcloud_waehlen' dokument.schluessel eintrag.kennung %}">
+          Nextcloud durchsuchen</a>
       </div>
     {% endif %}
   </aside>

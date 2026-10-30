@@ -1,0 +1,70 @@
+{% extends "grundlage.html" %}
+{% block titel %}Datei aus der Nextcloud{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:62rem">
+  <div>
+    <p class="brotkrumen">
+      <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> ›
+      <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a> ›
+      Nextcloud
+    </p>
+    <h1>Datei aus der Nextcloud verlinken</h1>
+    <p class="leise">Die Datei bleibt in der Nextcloud. Hier wird nur ein Verweis
+      gespeichert – wer ihn öffnet, meldet sich mit dem eigenen Nextcloud-Konto an.</p>
+
+    {% if fehler %}
+      <div class="meldung meldung-error">{{ fehler }}</div>
+    {% else %}
+      <nav class="brotkrumen" aria-label="Ordner">
+        {% for name, ziel in brotkrumen %}
+          {% if not forloop.last %}
+            <a href="?pfad={{ ziel|urlencode }}">{{ name }}</a> ›
+          {% else %}
+            <strong>{{ name }}</strong>
+          {% endif %}
+        {% endfor %}
+      </nav>
+
+      <div class="karte">
+        <table class="tabelle">
+          <thead><tr><th>Typ</th><th>Name</th><th class="zahl">Größe</th><th></th></tr></thead>
+          <tbody>
+            {% for datei in eintraege %}
+              <tr>
+                <td><span class="dateizeichen">{{ datei.zeichen }}</span></td>
+                <td>
+                  {% if datei.ist_ordner %}
+                    <a href="?pfad={{ datei.pfad|urlencode }}">{{ datei.name }}</a>
+                  {% else %}
+                    {{ datei.name }}
+                  {% endif %}
+                </td>
+                <td class="zahl klein">
+                  {% if not datei.ist_ordner %}{{ datei.groesse|filesizeformat }}{% endif %}
+                </td>
+                <td>
+                  {% if not datei.ist_ordner %}
+                    <form method="post" action="{% url 'kern:nextcloud_verlinken' dokument.schluessel eintrag.kennung %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="pfad" value="{{ datei.pfad }}">
+                      <input type="hidden" name="mimetype" value="{{ datei.mimetype }}">
+                      <button class="knopf" type="submit">Verlinken</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4">Dieser Ordner ist leer.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+
+    <p class="knopf-reihe">
+      <a class="knopf" href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">Zurück zum Eintrag</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

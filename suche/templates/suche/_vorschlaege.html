@@ -1,0 +1,26 @@
+{% comment %}
+  Autovervollständigung – von HTMX nachgeladen, ab zwei Zeichen,
+  mit 200 ms Verzögerung (SPEC.md §9).
+{% endcomment %}
+{% if zu_kurz %}
+  <p class="vorschlag-hinweis">Bitte mindestens zwei Zeichen eingeben.</p>
+{% elif begriff and not vorschlaege %}
+  <p class="vorschlag-hinweis">Nichts gefunden. Die Volltextsuche findet vielleicht mehr –
+    einfach Eingabetaste drücken.</p>
+{% elif vorschlaege %}
+  <ul class="vorschlagsliste" role="listbox" aria-label="Vorschläge">
+    {% for treffer in vorschlaege %}
+      <li role="option">
+        <a href="{{ treffer.url }}">
+          {% if treffer.kennung %}<span class="kennung">{{ treffer.kennung }}</span>{% endif %}
+          <span class="vorschlag-titel">{{ treffer.titel }}</span>
+          {% if treffer.status and treffer.ist_entwurf %}
+            <span class="schild schild-klein schild-{{ treffer.status }}">{{ treffer.status_text }}</span>
+          {% endif %}
+          {% if treffer.zusatz %}<span class="schild schild-klein schild-idee">{{ treffer.zusatz }}</span>{% endif %}
+          <span class="vorschlag-kontext">{{ treffer.kontext }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

@@ -118,7 +118,97 @@ docker compose cp ./Neue_Mappe.xlsx app:/tmp/mappe.xlsx
 docker compose exec app python manage.py arbeitsplan_importieren /tmp/mappe.xlsx --vorschau
 ```
 
-## 5. Konten für das Kollegium
+## 5. Anhänge durchsuchbar machen
+
+Der Text hochgeladener PDF-, Word-, ODT- und Textdateien wird **nicht** beim
+Hochladen gelesen – ein 200-seitiges PDF soll das Kollegium nicht warten
+lassen. Das erledigt ein Lauf im Hintergrund:
+
+```bash
+docker compose exec app python manage.py anhaenge_indexieren
+```
+
+Damit das regelmäßig geschieht, zwei Dateien anlegen:
+
+`/etc/systemd/system/schulwissen-index.service`
+
+```ini
+[Unit]
+Description=Schulwissen: Text aus Anhaengen lesen
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/schulwissen
+ExecStart=/usr/bin/docker compose exec -T app python manage.py anhaenge_indexieren
+```
+
+`/etc/systemd/system/schulwissen-index.timer`
+
+```ini
+[Unit]
+Description=Schulwissen: Anhaenge viertelstuendlich indexieren
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now schulwissen-index.timer
+systemctl list-timers schulwissen-index.timer
+```
+
+Jeder Lauf nimmt sich höchstens 50 Anhänge vor. `--alle` liest auch schon
+indexierte Dateien erneut – nötig etwa, wenn eine Datei ersetzt wurde.
+
+Dateien, aus denen sich kein Text holen lässt (Bilder, eingescannte PDFs ohne
+Texterkennung), bleiben über **Dateiname und Beschreibung** auffindbar. Es
+lohnt sich daher, beim Hochladen eine Beschreibung einzutragen.
+
+Falls sich am Suchindex etwas grundlegend ändert, lässt er sich neu aufbauen:
+
+```bash
+docker compose exec app python manage.py shell -c \
+  "from kern.suchindex import alles_neu_aufbauen; print(alles_neu_aufbauen())"
+```
+
+## 6. Nextcloud verbinden (optional)
+
+Damit das Kollegium Dateien aus der Nextcloud verlinken kann, braucht die App
+ein **eigenes technisches Konto** mit einem App-Passwort:
+
+1. In der Nextcloud ein Konto anlegen, etwa `schulwissen`.
+2. Diesem Konto **nur Leserechte** auf die Ordner geben, die verlinkt werden
+   sollen (über eine Gruppe oder gezielte Freigaben).
+3. Als dieses Konto anmelden → Einstellungen → Sicherheit → **App-Passwort
+   erzeugen**. Das Passwort erscheint nur einmal.
+4. In `.env` eintragen:
+
+```bash
+SW_NEXTCLOUD_URL=https://cloud.ggs-ndk.de
+SW_NEXTCLOUD_NUTZER=schulwissen
+SW_NEXTCLOUD_PASSWORT=das-app-passwort
+```
+
+```bash
+docker compose up -d        # damit die neuen Werte gelesen werden
+```
+
+**Was gespeichert wird:** der Pfad der Datei und ein Link in die
+Nextcloud-Oberfläche. Bewusst **kein** öffentlicher Freigabe-Link – wer den
+Link öffnet, meldet sich mit dem eigenen Nextcloud-Konto an und sieht nur, was
+er ohnehin sehen darf. Die Datei selbst bleibt in der Nextcloud, diese App
+kopiert sie nicht.
+
+Bleiben die Werte leer, fehlt nur die Dateiauswahl; alles andere läuft normal.
+
+## 7. Konten für das Kollegium
 
 Konten legt die Schulleitung unter `/verwaltung/` an (Menüpunkt „Nutzer“).
 Je Konto gehört **eine Rolle** dazu und gegebenenfalls **eine Arbeitsgruppe**:
@@ -135,7 +225,7 @@ angelegtes Konto soll nicht versehentlich Entwürfe sehen.
 Passwörter setzt sich jede Lehrkraft selbst über „Passwort vergessen“ – dafür
 muss der SMTP-Zugang in `.env` stehen.
 
-## 6. Dateien und Sicherung
+## 8. Dateien und Sicherung
 
 Es gibt zwei Docker-Volumes:
 
@@ -171,7 +261,7 @@ gunzip < /sicherung/schulwissen-2026-11-09.sql.gz \
     | docker compose exec -T db psql -U schulwissen schulwissen
 ```
 
-## 7. Aktualisieren
+## 9. Aktualisieren
 
 ```bash
 cd /opt/schulwissen
@@ -182,7 +272,7 @@ docker compose up -d --build
 Migrationen laufen beim Start automatisch. Vor einer größeren Aktualisierung
 lohnt eine Sicherung der Datenbank.
 
-## 8. Nachsehen, wenn etwas klemmt
+## 10. Nachsehen, wenn etwas klemmt
 
 ```bash
 docker compose ps              # läuft alles?
@@ -199,7 +289,7 @@ curl -s localhost:8001/gesundheit   # muss „ok" antworten
 | Seite ohne Gestaltung | `collectstatic` fehlgeschlagen – Abbild neu bauen |
 | „port is already allocated“ | Auf dem Port läuft schon etwas. `SW_PORT` in `.env` ändern |
 
-## 9. Betrieb ohne Docker (systemd und nginx)
+## 11. Betrieb ohne Docker (systemd und nginx)
 
 Compose ist der empfohlene Weg. Wer die App lieber direkt auf dem Host
 betreibt, braucht Python 3.12, PostgreSQL 16 und `uv`:

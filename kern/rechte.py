@@ -66,7 +66,22 @@ def darf_lesen(nutzer, eintrag) -> bool:
         return False
     if eintrag.status in OEFFENTLICHE_STATUS:
         return True
-    # Entwürfe und abgestimmte Fassungen: alles außer „Lesend“.
+    if not ist_nur_lesend(nutzer):
+        # Entwuerfe und abgestimmte Fassungen: alles ausser der Rolle Lesend.
+        return True
+    # Wird gerade an einem beschlossenen Eintrag gearbeitet, steht sein
+    # Arbeitsstand auf "entwurf". Die beschlossene Fassung gilt aber weiter und
+    # bleibt sichtbar (SPEC.md Paragraf 6) - sonst verschwaende ein
+    # beschlossener Eintrag fuer das halbe Kollegium, sobald jemand ihn anfasst.
+    return eintrag.versionen.filter(status=Status.BESCHLOSSEN).exists()
+
+
+def zeigt_entwurf(nutzer, eintrag=None) -> bool:
+    """Sieht dieser Nutzer den Arbeitsstand oder die beschlossene Fassung?
+
+    Lesende bekommen immer die zuletzt beschlossene Fassung zu sehen, alle
+    anderen den aktuellen Stand (SPEC.md Paragraf 6).
+    """
     return not ist_nur_lesend(nutzer)
 
 
@@ -75,7 +90,11 @@ def sichtbare_eintraege(nutzer, menge):
     if not _angemeldet(nutzer):
         return menge.none()
     if ist_nur_lesend(nutzer):
-        return menge.filter(status__in=OEFFENTLICHE_STATUS)
+        from django.db.models import Q
+
+        return menge.filter(
+            Q(status__in=OEFFENTLICHE_STATUS) | Q(versionen__status=Status.BESCHLOSSEN)
+        ).distinct()
     return menge
 
 

@@ -1,0 +1,120 @@
+{% extends "grundlage.html" %}
+{% block titel %}Suche: {{ begriff }}{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:68rem">
+  <div>
+    <h1>Suche</h1>
+
+    <form method="get" action="{% url 'suche:suchen' %}" role="search">
+      <div class="start-suche" style="margin:1rem 0 1.5rem">
+        <label class="nur-fuer-vorleser" for="suchfeld">Suchbegriff</label>
+        <input type="search" id="suchfeld" name="q" value="{{ begriff }}"
+               placeholder="z. B. Märchen, Lesezeit oder SC2.02D" autocomplete="off" autofocus>
+      </div>
+
+      <details class="karte" {% if hat_filter %}open{% endif %} style="padding:0.9rem 1.1rem">
+        <summary style="cursor:pointer;font-weight:600">Filter</summary>
+        <div class="filterreihe">
+          <div>
+            <label for="f-dokument">Dokument</label>
+            <select id="f-dokument" name="dokument">
+              <option value="">alle</option>
+              {% for d in dokumente %}
+                <option value="{{ d.schluessel }}" {% if filter.dokument == d.schluessel %}selected{% endif %}>{{ d.titel }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="f-status">Status</label>
+            <select id="f-status" name="status">
+              <option value="">alle</option>
+              {% for wert, text in statuswerte %}
+                <option value="{{ wert }}" {% if filter.status == wert %}selected{% endif %}>{{ text }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="f-jahrgang">Jahrgang</label>
+            <select id="f-jahrgang" name="jahrgang">
+              <option value="">alle</option>
+              {% for jg in "1234" %}
+                <option value="{{ jg }}" {% if filter.jahrgang == jg %}selected{% endif %}>Jahrgang {{ jg }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="f-fach">Fach</label>
+            <input type="text" id="f-fach" name="fach" value="{{ filter.fach }}" placeholder="z. B. deutsch">
+          </div>
+          <div style="align-self:end">
+            <button class="knopf" type="submit">Anwenden</button>
+            {% if hat_filter %}
+              <a class="knopf knopf-leise" href="{% url 'suche:suchen' %}?q={{ begriff|urlencode }}">Filter zurücksetzen</a>
+            {% endif %}
+          </div>
+        </div>
+      </details>
+    </form>
+
+    {% if zu_kurz %}
+      <div class="meldung meldung-info">Bitte mindestens zwei Zeichen eingeben.</div>
+    {% elif not begriff %}
+      <div class="meldung meldung-info">
+        Gesucht wird über Titel, Kennungen, alle Textfelder, Beschlusstexte,
+        Kompetenzerwartungen und den Inhalt angehängter Dateien.
+      </div>
+    {% elif ergebnis.leer %}
+      <div class="meldung meldung-warning">
+        Zu <strong>„{{ begriff }}“</strong> wurde nichts gefunden.
+        {% if ergebnis.nur_wortlaut %}
+          Die Eingabe besteht nur aus sehr häufigen Wörtern; gesucht wurde nach
+          dem genauen Wortlaut.
+        {% endif %}
+        Versuche es mit einem einzelnen Wort oder einer Kennung wie <code>V-3-01</code>.
+      </div>
+    {% else %}
+      <p class="leise">
+        {{ ergebnis.gesamt }} Treffer zu <strong>„{{ begriff }}“</strong>.
+        {% if ergebnis.ueber_aehnlichkeit %}
+          Nichts genau Passendes gefunden – das hier ist ähnlich geschrieben.
+        {% endif %}
+      </p>
+      {% if ergebnis.nur_wortlaut %}
+        <div class="meldung meldung-info">
+          „{{ begriff }}“ besteht nur aus sehr häufigen Wörtern. Gesucht wurde
+          deshalb nach dem genauen Wortlaut.
+        </div>
+      {% endif %}
+
+      {% for gruppe in ergebnis.gefuellte_gruppen %}
+        <section class="karte">
+          <h2 style="margin-top:0">{{ gruppe.name }} <span class="leise klein">({{ gruppe.gesamt }})</span></h2>
+          <ul class="trefferliste">
+            {% for treffer in gruppe.treffer %}
+              <li class="treffer">
+                <a class="treffer-titel" href="{{ treffer.url }}">
+                  {% if treffer.kennung %}<span class="kennung">{{ treffer.kennung }}</span>{% endif %}
+                  {{ treffer.titel }}
+                </a>
+                {% if treffer.status and treffer.ist_entwurf %}
+                  <span class="schild schild-klein schild-{{ treffer.status }}">{{ treffer.status_text }}</span>
+                {% endif %}
+                {% if treffer.zusatz %}<span class="leise klein"> · {{ treffer.zusatz }}</span>{% endif %}
+                {% if treffer.kontext %}<p class="treffer-kontext">{{ treffer.kontext }}</p>{% endif %}
+                {% if treffer.ausschnitt %}<p class="treffer-ausschnitt">{{ treffer.ausschnitt|safe }}</p>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+          {% if gruppe.mehr %}
+            <p class="klein leise" style="margin-bottom:0">
+              … und {{ gruppe.mehr }} weitere.
+              <a href="?q={{ begriff|urlencode }}&gruppe={{ gruppe.schluessel }}">Nur diese Gruppe zeigen</a>
+            </p>
+          {% endif %}
+        </section>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

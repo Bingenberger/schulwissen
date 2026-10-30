@@ -45,10 +45,14 @@
               <td class="zahl">{{ zeile.eintrag.anzeige_nummer }}</td>
               <td><span class="kennung">{{ zeile.eintrag.kennung }}</span></td>
               <td style="padding-left:{{ zeile.tiefe }}.5rem">
-                <a href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.eintrag.titel }}</a>
+                {% if zeile.lesbar %}
+                  <a href="{% url 'kern:eintrag' dokument.schluessel zeile.eintrag.kennung %}">{{ zeile.titel }}</a>
+                {% else %}
+                  <span class="leise">{{ zeile.titel }}</span>
+                {% endif %}
               </td>
               <td class="klein leise">{{ zeile.eintrag.typ.name }}</td>
-              <td><span class="schild schild-{{ zeile.eintrag.status }}">{{ zeile.eintrag.get_status_display }}</span></td>
+              <td><span class="schild schild-{{ zeile.status }}">{{ zeile.status }}</span></td>
             </tr>
           {% endfor %}
         </tbody>

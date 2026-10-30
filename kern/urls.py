@@ -3,7 +3,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from kern import views
+from kern import beschluss_views, views
 
 app_name = "kern"
 
@@ -56,6 +56,9 @@ urlpatterns = [
     # --- Dokumente und Einträge ---
     path("d/<slug:schluessel>", views.dokument_ansehen, name="dokument"),
     path("d/<slug:schluessel>/neu/<str:eintragstyp>", views.eintrag_neu, name="eintrag_neu"),
+    # Diese feste Route muss vor „<str:kennung>" stehen, sonst gilt
+    # „aenderungen" als Kennung eines Eintrags.
+    path("d/<slug:schluessel>/aenderungen", beschluss_views.aenderungen, name="aenderungen"),
     path("d/<slug:schluessel>/<str:kennung>", views.eintrag_ansehen, name="eintrag"),
     path(
         "d/<slug:schluessel>/<str:kennung>/bearbeiten",
@@ -77,5 +80,41 @@ urlpatterns = [
         "d/<slug:schluessel>/<str:kennung>/anhang",
         views.anhang_hochladen,
         name="anhang_hochladen",
+    ),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/nextcloud",
+        views.nextcloud_waehlen,
+        name="nextcloud_waehlen",
+    ),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/nextcloud/verlinken",
+        views.nextcloud_verlinken,
+        name="nextcloud_verlinken",
+    ),
+    # --- Fassungen und Vergleich ---
+    path(
+        "d/<slug:schluessel>/<str:kennung>/vergleich",
+        beschluss_views.fassungen_vergleichen,
+        name="vergleich",
+    ),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/fassung/<int:nummer>",
+        beschluss_views.version_ansehen,
+        name="version",
+    ),
+    # --- Beschlüsse ---
+    path("beschluesse", beschluss_views.beschluesse_liste, name="beschluesse"),
+    path("beschluesse/neu", beschluss_views.beschluss_anlegen, name="beschluss_anlegen"),
+    path("beschluesse/vorlage", beschluss_views.beschlussvorlage, name="beschlussvorlage"),
+    path(
+        "beschluesse/vorlage/<slug:schluessel>",
+        beschluss_views.beschlussvorlage,
+        name="beschlussvorlage_dokument",
+    ),
+    path("beschluesse/<int:beschluss_id>", beschluss_views.beschluss_ansehen, name="beschluss"),
+    path(
+        "beschluesse/<int:beschluss_id>/zuruecknehmen",
+        beschluss_views.beschluss_zuruecknehmen,
+        name="beschluss_zuruecknehmen",
     ),
 ]

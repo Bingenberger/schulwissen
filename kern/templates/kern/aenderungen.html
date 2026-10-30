@@ -1,0 +1,73 @@
+{% extends "grundlage.html" %}
+{% block titel %}Änderungen seit dem letzten Beschluss{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:68rem">
+  <div>
+    <p class="brotkrumen"><a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> › Änderungen</p>
+    <h1>Änderungen seit dem letzten Beschluss</h1>
+    <p class="leise">Der Blick vor einer Konferenz: Was ist neu, was wurde seit der
+      beschlossenen Fassung geändert, was ist unverändert.</p>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Geändert ({{ geaendert|length }})</h2>
+      {% if geaendert %}
+        <table class="tabelle">
+          <thead><tr><th>Kennung</th><th>Titel</th><th>Beschlossen</th><th>Jetzt</th><th></th></tr></thead>
+          <tbody>
+            {% for eintrag, beschlossen, aktuell in geaendert %}
+              <tr>
+                <td><span class="kennung">{{ eintrag.kennung }}</span></td>
+                <td><a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.titel }}</a></td>
+                <td class="zahl">Fassung {{ beschlossen.versionsnummer }}</td>
+                <td class="zahl">Fassung {{ aktuell.versionsnummer }}
+                  <span class="schild schild-klein schild-{{ eintrag.status }}">{{ eintrag.get_status_display }}</span></td>
+                <td class="klein">
+                  <a href="{% url 'kern:vergleich' dokument.schluessel eintrag.kennung %}?alt={{ beschlossen.versionsnummer }}&neu={{ aktuell.versionsnummer }}">Vergleichen</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="leise" style="margin:0">Nichts geändert seit dem letzten Beschluss.</p>
+      {% endif %}
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Noch nie beschlossen ({{ neu|length }})</h2>
+      {% if neu %}
+        <table class="tabelle">
+          <thead><tr><th>Kennung</th><th>Titel</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for eintrag in neu %}
+              <tr>
+                <td><span class="kennung">{{ eintrag.kennung }}</span></td>
+                <td><a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.titel }}</a></td>
+                <td><span class="schild schild-{{ eintrag.status }}">{{ eintrag.get_status_display }}</span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="leise" style="margin:0">Alle Einträge sind schon einmal beschlossen worden.</p>
+      {% endif %}
+    </div>
+
+    <div class="karte">
+      <h2 style="margin-top:0">Unverändert ({{ unveraendert|length }})</h2>
+      <p class="klein leise" style="margin-bottom:0">
+        {% for eintrag in unveraendert %}
+          <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% if not forloop.last %} · {% endif %}
+        {% empty %}Keine.{% endfor %}
+      </p>
+    </div>
+
+    {% if darf_beschliessen and geaendert %}
+      <p class="knopf-reihe">
+        <a class="knopf knopf-wichtig" href="{% url 'kern:beschlussvorlage_dokument' dokument.schluessel %}">Beschlussvorlage zusammenstellen</a>
+      </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

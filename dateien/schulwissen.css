@@ -805,3 +805,254 @@ h3 { font-size: 1.12rem; margin: 1.25rem 0 0.4rem; }
 
   body { background: #fff; font-size: 11pt; }
 }
+
+/* --- Suche ---------------------------------------------------------------- */
+
+.vorschlaege {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.3rem);
+  background: var(--papier);
+  border: 1px solid var(--linie-stark);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgb(27 34 41 / 18%);
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
+.vorschlaege:empty { display: none; }
+
+/* Das Suchfeld ist der Bezugspunkt für die Vorschlagsliste darunter. */
+.kopf-suche,
+.start-suche { position: relative; }
+
+.vorschlagsliste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.vorschlagsliste > li { border-bottom: 1px solid var(--flaeche-tief); }
+.vorschlagsliste > li:last-child { border-bottom: 0; }
+
+.vorschlagsliste a {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  min-height: var(--klickflaeche);
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.vorschlagsliste a:hover,
+.vorschlagsliste a:focus-visible { background: var(--akzent-leise); }
+
+.vorschlag-titel { font-weight: 600; }
+
+.vorschlag-kontext {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--text-leise);
+}
+
+.vorschlag-hinweis {
+  margin: 0;
+  padding: 0.75rem 0.8rem;
+  font-size: 0.93rem;
+  color: var(--text-leise);
+}
+
+.trefferliste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.treffer {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--flaeche-tief);
+}
+
+.treffer:last-child { border-bottom: 0; }
+
+.treffer-titel {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--akzent);
+  text-decoration: none;
+}
+
+.treffer-titel:hover { text-decoration: underline; }
+
+.treffer-kontext {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-leise);
+}
+
+.treffer-ausschnitt {
+  margin: 0.35rem 0 0;
+  line-height: 1.55;
+}
+
+/* Die Hervorhebung kommt aus PostgreSQL (SearchHeadline). */
+mark {
+  background: #ffe9a8;
+  color: inherit;
+  padding: 0 0.12em;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.filterreihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+
+.filterreihe label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.filterreihe select,
+.filterreihe input[type="text"] {
+  min-height: var(--klickflaeche);
+  font: inherit;
+  padding: 0 0.6rem;
+  border: 1px solid var(--linie-stark);
+  border-radius: 6px;
+  background: var(--papier);
+  color: var(--text);
+}
+
+/* --- Fassungsvergleich ---------------------------------------------------- */
+
+.vergleich { line-height: 1.8; }
+
+ins {
+  background: var(--gut-flaeche);
+  color: var(--gut);
+  text-decoration: none;
+  padding: 0.05em 0.15em;
+  border-radius: 3px;
+}
+
+del {
+  background: var(--fehler-flaeche);
+  color: var(--fehler);
+  padding: 0.05em 0.15em;
+  border-radius: 3px;
+}
+
+/* --- Auswertungen --------------------------------------------------------- */
+
+.auswertungen-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--linie);
+}
+
+.auswertungen-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--linie);
+  border-radius: 999px;
+  background: var(--papier);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.auswertungen-navigation a:hover { background: var(--akzent-leise); }
+
+.fahrplan {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.fahrplan-spalte {
+  background: var(--papier);
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+}
+
+.fahrplan-spalte > h2 {
+  margin: 0 0 0.7rem;
+  font-size: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--linie);
+}
+
+.fahrplan-karte {
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.6rem;
+}
+
+.fahrplan-karte a { color: var(--text); text-decoration: none; font-weight: 600; }
+.fahrplan-karte a:hover { text-decoration: underline; }
+
+.progression {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.progression-spalte {
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: 6px;
+  padding: 0.7rem 0.8rem;
+}
+
+.progression-spalte.ist-offen { background: var(--fehler-flaeche); border-color: var(--fehler); }
+
+.progression-spalte > h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--text-leise);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-thema="hell"]) mark { background: #6b5516; color: #fff; }
+}
+
+/* --- Nextcloud-Dateiauswahl ----------------------------------------------- */
+
+.dateizeichen {
+  display: inline-block;
+  min-width: 3.6rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background: var(--flaeche-tief);
+  color: var(--text-leise);
+}
+
+/* Noch nicht freigegebene Kapitel: als Gerüst sichtbar, aber nicht anklickbar. */
+.baum-zeile.ist-gesperrt {
+  color: var(--text-leise);
+  cursor: default;
+}
+
+.baum-zeile.ist-gesperrt:hover { background: transparent; }

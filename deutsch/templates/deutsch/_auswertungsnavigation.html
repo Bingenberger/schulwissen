@@ -1,0 +1,22 @@
+{% comment %}Gemeinsame Kopfzeile aller Auswertungen: Wechsel zwischen den
+Sichten und zwischen beschlossenem Stand und Entwürfen.{% endcomment %}
+<p class="brotkrumen">
+  <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a> › Auswertungen
+</p>
+
+<nav class="auswertungen-navigation" aria-label="Auswertungen">
+  <a href="{% url 'deutsch:abdeckung' dokument.schluessel %}">Abdeckung</a>
+  {% for jg in "1234" %}
+    <a href="{% url 'deutsch:fahrplan' dokument.schluessel jg %}">Fahrplan {{ jg }}</a>
+  {% endfor %}
+  <a href="{% url 'deutsch:ritualprogression' dokument.schluessel %}">Rituale</a>
+  <a href="{% url 'deutsch:zeitbudget' dokument.schluessel %}">Zeitbudget</a>
+  <a href="{% url 'deutsch:leistung' dokument.schluessel %}">Leistung</a>
+  <a href="{% url 'deutsch:progressionspaare' dokument.schluessel %}">Progression</a>
+  <a href="{% url 'deutsch:pruefliste' dokument.schluessel %}">Prüfliste</a>
+</nav>
+
+<div class="knopf-reihe" style="margin-bottom:1.5rem">
+  <a class="knopf {% if not nur_beschlossene %}knopf-wichtig{% endif %}" href="?stand=entwurf">Inklusive Entwürfe</a>
+  <a class="knopf {% if nur_beschlossene %}knopf-wichtig{% endif %}" href="?stand=beschlossen">Nur beschlossene</a>
+</div>

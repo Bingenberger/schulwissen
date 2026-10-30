@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.postgres.search import TrigramWordSimilarity
-from django.db.models import Q, Value
-from django.db.models.functions import Greatest
 from django.shortcuts import render
 
-from fachdaten.models import STUFEN_JE_JAHRGANG, Bereich, Kompetenzerwartung, Stufe
+from fachdaten.models import STUFEN_JE_JAHRGANG, Bereich, Stufe
+from fachdaten.suche import kompetenzen_finden
 
 #: Ab so vielen Zeichen wird gesucht (SPEC.md §9).
 MINDESTLAENGE = 2
@@ -32,33 +30,21 @@ def kompetenz_suche(request):
         if teil.strip()
     }
 
-    treffer = Kompetenzerwartung.objects.filter(fach=request.GET.get("fach") or "deutsch")
-    if bereich:
-        treffer = treffer.filter(bereich=bereich)
-    if stufe:
-        treffer = treffer.filter(stufe=stufe)
+    treffer = kompetenzen_finden(
+        begriff if len(begriff) >= MINDESTLAENGE else "",
+        bereich=bereich,
+        stufe=stufe,
+        fach=request.GET.get("fach") or "deutsch",
+    )
 
     vorgeschlagene_stufen: tuple[str, ...] = ()
     if jahrgang.isdigit():
         vorgeschlagene_stufen = STUFEN_JE_JAHRGANG.get(int(jahrgang), ())
 
-    if len(begriff) >= MINDESTLAENGE:
-        treffer = (
-            treffer.annotate(
-                naehe=Greatest(
-                    TrigramWordSimilarity(begriff, "id"),
-                    TrigramWordSimilarity(begriff, "suchtext"),
-                )
-            )
-            .filter(Q(id__icontains=begriff) | Q(suchtext__icontains=begriff) | Q(naehe__gte=0.4))
-            .order_by("-naehe", "bereich", "schwerpunkt_nr", "id")
-        )
-    elif vorgeschlagene_stufen:
+    if len(begriff) < MINDESTLAENGE and vorgeschlagene_stufen and not stufe:
         # Ohne Suchbegriff: die zum Jahrgang passenden Stufen vorschlagen –
         # ein Vorschlag, keine Einschränkung (SPEC.md §7.4).
-        treffer = treffer.filter(stufe__in=vorgeschlagene_stufen).annotate(naehe=Value(0.0))
-    else:
-        treffer = treffer.annotate(naehe=Value(0.0))
+        treffer = treffer.filter(stufe__in=vorgeschlagene_stufen)
 
     return render(
         request,
@@ -80,13 +66,9 @@ def kompetenz_uebersicht(request):
     stufe = (request.GET.get("stufe") or "").strip()
     begriff = (request.GET.get("q") or "").strip()
 
-    erwartungen = Kompetenzerwartung.objects.select_related("progressionspartner")
-    if bereich:
-        erwartungen = erwartungen.filter(bereich=bereich)
-    if stufe:
-        erwartungen = erwartungen.filter(stufe=stufe)
-    if begriff:
-        erwartungen = erwartungen.filter(Q(id__icontains=begriff) | Q(suchtext__icontains=begriff))
+    erwartungen = kompetenzen_finden(begriff, bereich=bereich, stufe=stufe).select_related(
+        "progressionspartner"
+    )
 
     return render(
         request,

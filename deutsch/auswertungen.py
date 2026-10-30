@@ -247,3 +247,343 @@ def pruefliste(fach: str = "deutsch") -> dict[str, list[Kompetenzerwartung]]:
             erwartungen.filter(ua_weiterer_inhalt=True).filter(schulische_festlegung="")
         ),
     }
+
+
+# --- 7.5.2 Fahrplan je Jahrgang -------------------------------------------
+
+
+@dataclass
+class Quartalsspalte:
+    schluessel: str
+    name: str
+    vorhaben: list = field(default_factory=list)
+
+    @property
+    def stunden(self) -> int:
+        return sum(int(v.daten.get("zeitumfang_std") or 0) for v in self.vorhaben)
+
+
+@dataclass
+class Fahrplan:
+    jahrgang: int
+    quartale: list[Quartalsspalte] = field(default_factory=list)
+    rituale: list = field(default_factory=list)
+
+    @property
+    def stunden_gesamt(self) -> int:
+        return sum(q.stunden for q in self.quartale)
+
+    @property
+    def anzahl_vorhaben(self) -> int:
+        return sum(len(q.vorhaben) for q in self.quartale)
+
+
+def fahrplan(dokument, jahrgang: int, nur_beschlossene: bool = False) -> Fahrplan:
+    """Was läuft in diesem Jahrgang wann? (SPEC.md §7.5.2)
+
+    Die Vorhaben stehen nach Quartal sortiert, die Rituale daneben – jeweils
+    mit der Ausprägung genau dieses Jahrgangs.
+    """
+    from deutsch.eintragstypen import QUARTALE
+
+    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
+    eintraege = dokument.eintraege.filter(status__in=status)
+
+    plan = Fahrplan(jahrgang=jahrgang)
+    vorhaben = eintraege.filter(eintragstyp="vorhaben", daten__jahrgang=jahrgang).order_by(
+        "kennung"
+    )
+
+    for schluessel, name in QUARTALE:
+        spalte = Quartalsspalte(schluessel=schluessel, name=name)
+        spalte.vorhaben = [v for v in vorhaben if v.daten.get("quartal") == schluessel]
+        plan.quartale.append(spalte)
+
+    for ritual in eintraege.filter(eintragstyp="ritual").order_by("kennung"):
+        plan.rituale.append(
+            {
+                "eintrag": ritual,
+                "auspraegung": ritual.daten.get(f"auspraegung_jg{jahrgang}") or "",
+                "minuten_pro_woche": ritual.daten.get("minuten_pro_woche"),
+            }
+        )
+
+    return plan
+
+
+# --- 7.5.3 Ritual-Progression ---------------------------------------------
+
+
+@dataclass
+class Progressionsspalte:
+    jahrgang: int
+    auspraegung: str = ""
+
+    @property
+    def gefuellt(self) -> bool:
+        return bool(self.auspraegung.strip())
+
+
+@dataclass
+class Ritualprogression:
+    ritual: object
+    spalten: list[Progressionsspalte] = field(default_factory=list)
+
+    @property
+    def vollstaendig(self) -> bool:
+        return all(s.gefuellt for s in self.spalten)
+
+    @property
+    def offene_jahrgaenge(self) -> list[int]:
+        return [s.jahrgang for s in self.spalten if not s.gefuellt]
+
+
+def ritualprogressionen(dokument, nur_beschlossene: bool = False) -> list[Ritualprogression]:
+    """Jedes Ritual mit seinen vier Jahrgängen nebeneinander (SPEC.md §7.5.3).
+
+    Zeigt zugleich, welche Jahrgangsgruppe ihr Feld noch nicht gefüllt hat.
+    """
+    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
+    ergebnis = []
+    for ritual in dokument.eintraege.filter(eintragstyp="ritual", status__in=status).order_by(
+        "kennung"
+    ):
+        progression = Ritualprogression(ritual=ritual)
+        for jahrgang in (1, 2, 3, 4):
+            progression.spalten.append(
+                Progressionsspalte(
+                    jahrgang=jahrgang,
+                    auspraegung=ritual.daten.get(f"auspraegung_jg{jahrgang}") or "",
+                )
+            )
+        ergebnis.append(progression)
+    return ergebnis
+
+
+# --- 7.5.4 Zeitbudget ------------------------------------------------------
+
+#: Eine Unterrichtsstunde in Minuten.
+STUNDE_MINUTEN = 45
+
+
+@dataclass
+class Zeitbudgetzeile:
+    jahrgang: int
+    stunden_pro_woche: int
+    minuten_durch_rituale: int
+
+    @property
+    def minuten_pro_woche(self) -> int:
+        return self.stunden_pro_woche * STUNDE_MINUTEN
+
+    @property
+    def anteil(self) -> float:
+        if not self.minuten_pro_woche:
+            return 0.0
+        return self.minuten_durch_rituale / self.minuten_pro_woche
+
+    @property
+    def anteil_prozent(self) -> float:
+        return round(self.anteil * 100, 1)
+
+    @property
+    def minuten_frei(self) -> int:
+        return self.minuten_pro_woche - self.minuten_durch_rituale
+
+    @property
+    def ueberbucht(self) -> bool:
+        return self.minuten_frei < 0
+
+
+@dataclass
+class Zeitbudget:
+    zeilen: list[Zeitbudgetzeile] = field(default_factory=list)
+    rituale: list = field(default_factory=list)
+    ohne_angabe: list = field(default_factory=list)
+
+    @property
+    def minuten_durch_rituale(self) -> int:
+        return sum(int(r.daten.get("minuten_pro_woche") or 0) for r in self.rituale)
+
+
+def zeitbudget(dokument, nur_beschlossene: bool = False) -> Zeitbudget:
+    """Wie viel der Deutschzeit binden die Rituale? (SPEC.md §7.5.4)
+
+    Die Deutschstunden je Jahrgang stehen in den Einstellungen des Dokuments
+    (``einstellungen["deutschstunden_pro_woche"]``) und lassen sich in der
+    Verwaltung ändern.
+    """
+    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
+    budget = Zeitbudget()
+
+    rituale = list(
+        dokument.eintraege.filter(eintragstyp="ritual", status__in=status).order_by("kennung")
+    )
+    budget.rituale = [r for r in rituale if r.daten.get("minuten_pro_woche")]
+    budget.ohne_angabe = [r for r in rituale if not r.daten.get("minuten_pro_woche")]
+
+    stundentafel = (dokument.einstellungen or {}).get("deutschstunden_pro_woche") or {}
+    gebunden = budget.minuten_durch_rituale
+
+    for jahrgang in (1, 2, 3, 4):
+        try:
+            stunden = int(stundentafel.get(str(jahrgang), 0))
+        except (TypeError, ValueError):
+            stunden = 0
+        budget.zeilen.append(
+            Zeitbudgetzeile(
+                jahrgang=jahrgang,
+                stunden_pro_woche=stunden,
+                minuten_durch_rituale=gebunden,
+            )
+        )
+
+    return budget
+
+
+# --- 7.5.5 Leistungsübersicht („Leistungskonzept") -------------------------
+
+
+@dataclass
+class Leistungszeile:
+    eintrag: object
+    bereich: str = ""
+    form: str = ""
+    kriterien: str = ""
+    klassenarbeit: bool = False
+    quartal: str = ""
+
+    @property
+    def ist_ritual(self) -> bool:
+        return self.eintrag.eintragstyp == "ritual"
+
+
+@dataclass
+class Leistungsjahrgang:
+    jahrgang: int
+    zeilen: list[Leistungszeile] = field(default_factory=list)
+
+    @property
+    def klassenarbeiten(self) -> int:
+        return sum(1 for z in self.zeilen if z.klassenarbeit)
+
+    @property
+    def schriftliche_arbeiten(self) -> int:
+        return sum(1 for z in self.zeilen if z.bereich == "Schriftliche Arbeiten")
+
+
+@dataclass
+class Leistungsuebersicht:
+    jahrgaenge: list[Leistungsjahrgang] = field(default_factory=list)
+    rituale: list[Leistungszeile] = field(default_factory=list)
+    ohne_angabe: list = field(default_factory=list)
+
+
+def leistungsuebersicht(dokument, nur_beschlossene: bool = False) -> Leistungsuebersicht:
+    """Alle Überprüfungen und Klassenarbeiten je Jahrgang (SPEC.md §7.5.5).
+
+    Das ist die Sicht „Leistungskonzept": sie entsteht aus den Leistungsfeldern
+    der Vorhaben und Rituale, nicht aus einem eigenen Dokument.
+    """
+    status = (Status.BESCHLOSSEN,) if nur_beschlossene else STATUS_MIT_ENTWUERFEN
+    eintraege = dokument.eintraege.filter(status__in=status)
+    uebersicht = Leistungsuebersicht()
+
+    for jahrgang in (1, 2, 3, 4):
+        spalte = Leistungsjahrgang(jahrgang=jahrgang)
+        for vorhaben in eintraege.filter(eintragstyp="vorhaben", daten__jahrgang=jahrgang).order_by(
+            "daten__quartal", "kennung"
+        ):
+            daten = vorhaben.daten
+            spalte.zeilen.append(
+                Leistungszeile(
+                    eintrag=vorhaben,
+                    bereich=daten.get("leistung_bereich") or "",
+                    form=daten.get("leistung_form") or "",
+                    kriterien=daten.get("leistung_kriterien") or "",
+                    klassenarbeit=bool(daten.get("klassenarbeit")),
+                    quartal=daten.get("quartal") or "",
+                )
+            )
+        uebersicht.jahrgaenge.append(spalte)
+
+    for ritual in eintraege.filter(eintragstyp="ritual").order_by("kennung"):
+        uebersicht.rituale.append(
+            Leistungszeile(
+                eintrag=ritual,
+                bereich=ritual.daten.get("leistung_bereich") or "",
+                form=ritual.daten.get("leistung_feststellung") or "",
+            )
+        )
+
+    uebersicht.ohne_angabe = [
+        e
+        for e in eintraege.filter(eintragstyp__in=("ritual", "vorhaben"))
+        if not e.daten.get("leistung_bereich")
+    ]
+    return uebersicht
+
+
+# --- 7.5.6 Progressionspaare ----------------------------------------------
+
+
+@dataclass
+class Progressionspaar:
+    sep: object
+    """Erwartung am Ende der Schuleingangsphase."""
+    klasse4: object
+    sep_eintraege: list = field(default_factory=list)
+    klasse4_eintraege: list = field(default_factory=list)
+
+    @property
+    def beide_abgedeckt(self) -> bool:
+        return bool(self.sep_eintraege) and bool(self.klasse4_eintraege)
+
+    @property
+    def luecke(self) -> str:
+        if self.beide_abgedeckt:
+            return ""
+        if not self.sep_eintraege and not self.klasse4_eintraege:
+            return "beide Stufen fehlen"
+        if not self.sep_eintraege:
+            return "Schuleingangsphase fehlt"
+        return "Klasse 4 fehlt"
+
+
+def progressionspaare(
+    dokument, nur_beschlossene: bool = False, fach: str = "deutsch"
+) -> list[Progressionspaar]:
+    """S- und K-Erwartung nebeneinander mit den Vorhaben dazu (SPEC.md §7.5.6).
+
+    Zeigt, wo eine Kompetenz zwar angebahnt, aber nie vertieft wird – oder
+    umgekehrt.
+    """
+    matrix = abdeckungsmatrix(dokument, nur_beschlossene=nur_beschlossene, fach=fach)
+    nach_kennung = {z.erwartung.pk: z for z in matrix.zeilen}
+
+    paare: list[Progressionspaar] = []
+    gesehen: set[str] = set()
+
+    for zeile in matrix.zeilen:
+        erwartung = zeile.erwartung
+        partner_kennung = erwartung.progressionspartner_id
+        if not partner_kennung or erwartung.pk in gesehen:
+            continue
+        partnerzeile = nach_kennung.get(partner_kennung)
+        if partnerzeile is None:
+            continue
+
+        gesehen.update({erwartung.pk, partner_kennung})
+        sep = zeile if erwartung.stufe == "S" else partnerzeile
+        klasse4 = partnerzeile if erwartung.stufe == "S" else zeile
+
+        paare.append(
+            Progressionspaar(
+                sep=sep.erwartung,
+                klasse4=klasse4.erwartung,
+                sep_eintraege=sep.als_schwerpunkt,
+                klasse4_eintraege=klasse4.als_schwerpunkt,
+            )
+        )
+
+    return sorted(paare, key=lambda p: p.sep.pk)

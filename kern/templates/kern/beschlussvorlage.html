@@ -1,0 +1,73 @@
+{% extends "grundlage.html" %}
+{% block titel %}Beschlussvorlage{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:68rem">
+  <div>
+    <h1>Beschlussvorlage</h1>
+    <p class="leise">Alles, was in der Gruppe abgestimmt ist und der Konferenz
+      vorgelegt werden kann. Zum Ausdrucken reicht die Drucktaste des Browsers –
+      Navigation und Knöpfe werden dabei ausgeblendet.</p>
+
+    <form method="get" class="knopf-reihe" style="margin-bottom:1.5rem">
+      <label for="dok">Dokument</label>
+      <select id="dok" name="dokument" onchange="this.form.submit()">
+        <option value="">alle</option>
+        {% for d in dokumente %}
+          <option value="{{ d.schluessel }}" {% if dokument and dokument.schluessel == d.schluessel %}selected{% endif %}>{{ d.titel }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button class="knopf" type="submit">Anzeigen</button></noscript>
+    </form>
+
+    {% if kandidaten %}
+      <form method="post" action="{% url 'kern:beschluss_anlegen' %}">
+        {% csrf_token %}
+        <div class="karte">
+          <table class="tabelle">
+            <thead>
+              <tr>
+                {% if darf_beschliessen %}<th><span class="nur-fuer-vorleser">Auswahl</span></th>{% endif %}
+                <th>Kennung</th><th>Titel</th><th>Dokument</th><th>Verantwortlich</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for eintrag in kandidaten %}
+                <tr>
+                  {% if darf_beschliessen %}
+                    <td><input type="checkbox" name="eintrag" value="{{ eintrag.pk }}" checked
+                               aria-label="{{ eintrag.kennung }} in den Beschluss aufnehmen"></td>
+                  {% endif %}
+                  <td><span class="kennung">{{ eintrag.kennung }}</span></td>
+                  <td><a href="{% url 'kern:eintrag' eintrag.dokument.schluessel eintrag.kennung %}">{{ eintrag.titel }}</a></td>
+                  <td class="klein">{{ eintrag.dokument.titel }}</td>
+                  <td class="klein">{{ eintrag.verantwortlich_gruppe|default:eintrag.verantwortlich_text|default:"–" }}</td>
+                  <td class="klein">
+                    <a href="{% url 'kern:vergleich' eintrag.dokument.schluessel eintrag.kennung %}">Änderungen</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if darf_beschliessen %}
+          <div class="knopf-reihe">
+            <button class="knopf knopf-wichtig" type="submit">Beschluss eintragen</button>
+          </div>
+        {% else %}
+          <p class="meldung meldung-info">
+            Den Beschluss selbst trägt die Administration ein.
+          </p>
+        {% endif %}
+      </form>
+    {% else %}
+      <div class="meldung meldung-info">
+        Es ist nichts abgestimmt. In die Vorlage kommt, was den Status
+        <strong>„abgestimmt in Gruppe“</strong> hat – diesen Status setzt die Redaktion,
+        wenn alle Pflichtfelder gefüllt sind.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

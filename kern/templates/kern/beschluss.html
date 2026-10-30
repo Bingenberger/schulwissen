@@ -1,0 +1,66 @@
+{% extends "grundlage.html" %}
+{% block titel %}{{ beschluss.titel }}{% endblock %}
+
+{% block inhalt %}
+<div class="geruest ohne-navigation" style="max-width:68rem">
+  <div>
+    <p class="brotkrumen"><a href="{% url 'kern:beschluesse' %}">Konferenzbeschlüsse</a> › {{ beschluss.datum|date:"d.m.Y" }}</p>
+    <h1>{{ beschluss.titel }}</h1>
+    <p class="hinweis-beschluss" style="font-weight:400">{{ beschluss.herkunft }}</p>
+
+    {% if beschluss.text %}
+      <div class="karte">
+        <h2 style="margin-top:0">Beschlusstext</h2>
+        <p>{{ beschluss.text|linebreaks }}</p>
+      </div>
+    {% endif %}
+
+    <div class="karte">
+      <h2 style="margin-top:0">Freigegebene Fassungen ({{ versionen|length }})</h2>
+      <p class="klein leise">Diese Fassungen sind durch den Beschluss gültig geworden
+        und bleiben unverändert erhalten.</p>
+      <table class="tabelle">
+        <thead>
+          <tr><th>Kennung</th><th>Titel</th><th class="zahl">Fassung</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for version in versionen %}
+            <tr>
+              <td><span class="kennung">{{ version.eintrag.kennung }}</span></td>
+              <td><a href="{% url 'kern:eintrag' version.eintrag.dokument.schluessel version.eintrag.kennung %}">{{ version.titel }}</a></td>
+              <td class="zahl">{{ version.versionsnummer }}</td>
+              <td><span class="schild schild-{{ version.status }}">{{ version.get_status_display }}</span></td>
+              <td class="klein">
+                <a href="{% url 'kern:version' version.eintrag.dokument.schluessel version.eintrag.kennung version.versionsnummer %}">Wortlaut</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">Dieser Beschluss hat keine Fassungen freigegeben.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if beschluss.protokoll_anhang %}
+      <div class="karte">
+        <h2 style="margin-top:0">Protokoll</h2>
+        <p><a href="{{ beschluss.protokoll_anhang.datei.url }}">{{ beschluss.protokoll_anhang.dateiname }}</a></p>
+      </div>
+    {% endif %}
+
+    {% if darf_beschliessen and versionen %}
+      <div class="karte">
+        <h2 style="margin-top:0">Zurücknehmen</h2>
+        <p class="klein leise">Nur für den Fall, dass beim Eintragen etwas schiefging.
+          Die Fassungen werden wieder „abgestimmt in Gruppe“, die zuvor gültige
+          Fassung wird reaktiviert. Eine inhaltliche Rücknahme ist ein neuer Beschluss.</p>
+        <form method="post" action="{% url 'kern:beschluss_zuruecknehmen' beschluss.pk %}"
+              onsubmit="return confirm('Diesen Beschluss wirklich zurücknehmen?')">
+          {% csrf_token %}
+          <button class="knopf" type="submit">Beschluss zurücknehmen</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

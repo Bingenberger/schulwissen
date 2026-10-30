@@ -10,6 +10,12 @@ dependencies = [
     "whitenoise>=6.8",
     "nh3>=0.2.20",
     "openpyxl>=3.1.5",
+    # Volltext aus Anhaengen (SPEC.md Paragraf 9)
+    "pypdf>=5.1",
+    "python-docx>=1.1",
+    "odfpy>=1.4.1",
+    # Nextcloud ueber WebDAV (SPEC.md Paragraf 10, Stufe 1)
+    "httpx>=0.28",
 ]
 
 [dependency-groups]

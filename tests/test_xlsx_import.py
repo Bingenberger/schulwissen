@@ -256,3 +256,50 @@ def test_vorschau_schreibt_nichts(dokument, kompetenzen, arbeitsmappe):
     assert bericht.geschrieben == 0
     # Im Dokument stehen nur die zehn Kapitel der Gliederung.
     assert dokument.eintraege.count() == 10
+
+
+def test_teildatensatz_laesst_fremde_verweise_stehen(importierter_arbeitsplan):
+    """Ein Datensatz, der ein Verweisfeld nicht nennt, darf es nicht leeren.
+
+    Das trifft den generischen JSON-Import: wer nur die Schwerpunkte schickt,
+    will nicht die berührten Kompetenzen und die Ritualbezüge verlieren.
+    """
+    from eintragstypen.dienste import Rohsatz, pruefen, speichern
+
+    vorhaben = importierter_arbeitsplan.eintraege.get(kennung="V-3-01")
+    vorher_beruehrt = vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_BERUEHRT).count()
+    assert vorher_beruehrt == 4
+
+    roh = Rohsatz(
+        kennung="V-3-01",
+        eintragstyp="vorhaben",
+        titel=vorhaben.titel,
+        daten=dict(vorhaben.daten),
+        verweise={"kompetenzen_schwerpunkt": ["SC2.02D"]},
+    )
+    speichern(importierter_arbeitsplan, pruefen(importierter_arbeitsplan, roh))
+
+    vorhaben.refresh_from_db()
+    assert vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_SCHWERPUNKT).count() == 1
+    # Unberührt geblieben:
+    assert vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_BERUEHRT).count() == 4
+    assert vorhaben.verlinkungen.filter(art=Verlinkungsart.BEZUG_RITUAL).count() == 1
+
+
+def test_leere_liste_loescht_die_verweise_doch(importierter_arbeitsplan):
+    """Ausdrücklich leer heißt leer – anders als „gar nicht genannt"."""
+    from eintragstypen.dienste import Rohsatz, pruefen, speichern
+
+    vorhaben = importierter_arbeitsplan.eintraege.get(kennung="V-3-01")
+    roh = Rohsatz(
+        kennung="V-3-01",
+        eintragstyp="vorhaben",
+        titel=vorhaben.titel,
+        daten=dict(vorhaben.daten),
+        verweise={"kompetenzen_beruehrt": []},
+    )
+    speichern(importierter_arbeitsplan, pruefen(importierter_arbeitsplan, roh))
+
+    vorhaben.refresh_from_db()
+    assert vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_BERUEHRT).count() == 0
+    assert vorhaben.verlinkungen.filter(art=Verlinkungsart.KOMPETENZ_SCHWERPUNKT).count() == 5
