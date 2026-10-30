@@ -1,0 +1,701 @@
+{
+  "datum": "2026-10-30T13:17:34.520Z",
+  "breiten": [
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "ansichten": [
+    {
+      "seite": "01-startseite",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "01-styleguide",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "02-suche",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "02-suche-leer",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "03-eintrag",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "03-ritual",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "03-grundlagen",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "03-bearbeiten",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-dokument",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-abdeckung",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-fahrplan",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-zeitbudget",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-leistung",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-rituale",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-progression",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-pruefliste",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-kompetenzen",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "05-planung",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "05-beschluesse",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "05-beschlussvorlage",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "05-import",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "05-verwaltung",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    }
+  ],
+  "browserfehler": [],
+  "bedienung": {
+    "suchauswahl": true,
+    "escape": true,
+    "pflichtfeldfortschritt": true,
+    "pflichtfeldsprung": true
+  },
+  "nachpruefungVerwaltung": "2026-10-30T16:15:15.707Z"
+}

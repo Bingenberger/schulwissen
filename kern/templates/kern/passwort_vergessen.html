@@ -12,9 +12,9 @@
         {{ form.email }}
         {% for fehler in form.email.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
       </div>
-      <button class="knopf knopf-wichtig" type="submit" style="width:100%">Link schicken</button>
+      <button class="knopf knopf-wichtig vollbreit" type="submit">Link schicken</button>
     </form>
-    <p class="klein" style="margin-bottom:0"><a href="{% url 'kern:anmelden' %}">Zurück zur Anmeldung</a></p>
+    <p class="klein"><a href="{% url 'kern:anmelden' %}">Zurück zur Anmeldung</a></p>
   </div>
 </div>
 {% endblock %}
