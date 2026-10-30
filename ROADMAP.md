@@ -1,0 +1,269 @@
+# Roadmap: Schulwissen als Wissensbasis und Prozesswerkzeug
+
+Stand: 30.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Diese Datei plant kommende Implementierungssitzungen; sie erklärt keine der neuen Funktionen als bereits umgesetzt.
+
+**Nächstes Arbeitspaket: AP01.**
+
+Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
+
+## 1. Verbindlicher Schwerpunkt
+
+Der Nutzer wünscht ausdrücklich ein Werkzeug, mit dem die Schule Arbeitsabläufe definieren und als „Was passiert, wenn …?“-Grafik veranschaulichen kann. Prozessschritte benennen Funktionen wie **Sonderpädagogin**, deren Besetzung im Backend aus dem vorhandenen Nutzerstamm erfolgt. Alle Lehrkräfte können die für das Kollegium freigegebenen Abläufe aufrufen.
+
+Der erste nutzbare Prozesseditor wird vor Jahreskalender, Aufgabenverwaltung und weiterem Fachausbau fertiggestellt. Sicherheits- und Integritätslücken des aktuellen Fundaments werden vorher geschlossen. Das Werkzeug bleibt eine Hilfe zum Nachschlagen allgemeiner Abläufe; es führt keine personenbezogenen Schülerfälle aus.
+
+Grundlagen:
+
+- [Produktanalyse](docs/PRODUKTANALYSE_GRUNDSCHULE.md): Befunde und Informationslandkarte.
+- [Spezifikation des Prozesswerkzeugs](docs/PROZESSWERKZEUG.md): fachliche und technische Entscheidungen für AP04–AP08.
+- [SPEC.md](SPEC.md): bestehende Funktionen und Grenzen. Die Roadmap beschreibt geplante Erweiterungen, insbesondere andere fachliche Freigabewege und Schulhandbuchtypen.
+- [DESIGN.md](DESIGN.md): bestätigte Gestaltung, Schulgrün und Duzen. Die bereits freigegebene Richtung weiterverwenden.
+- [Bisheriger Protokollworkflow](docs/protokoll-workflow.md): gegen Regressionen schützen.
+
+## 2. Arbeitsweise für kommende Coding-Sitzungen
+
+1. Zu Beginn `git status`, vorhandene Projektanweisungen, diese Roadmap und die betroffenen Ist-Implementierungen lesen. Versionsangaben hier sind eine Ausgangsbasis, keine Aufforderung, auf einen alten Commit zurückzugehen.
+2. Ohne genauer bezeichnetes Ziel das erste geplante Paket mit erfüllten Abhängigkeiten bearbeiten. Ein Paket ist eine zusammenhängende Einheit; es darf mehrere Sitzungen brauchen. Keine festen Stundenschätzungen voraussetzen.
+3. Status nur nach tatsächlichem Fortschritt ändern: **geplant → in Arbeit → fertig**, gegebenenfalls mit konkret dokumentiertem Hindernis. Keine Fertigmarkierung ohne Abnahmekriterien.
+4. Pro Sitzung das konkrete Ziel eingrenzen, implementieren und angemessen prüfen. Sinnvolle Regressionstests für Rechte, Fassungen, Datenintegrität und Prozesslogik ergänzen. Für UI Änderungen Tastatur und 390/768/1024/1440 Pixel prüfen, Screenshots bei 1440/768 Pixeln in `docs/screenshots/` ablegen.
+5. Keine produktiven Schultexte, Funktionsbesetzungen oder Gremienentscheidungen erfinden. Beispiele nur in Tests oder ausdrücklich gekennzeichneten Demonstrationen. Bestehende Daten nicht für eine schönere Vorschau umschreiben.
+6. Vorhandene Django-/HTMX-/Alpine-Struktur, Registry, Schreibdienste und Versionshistorie weiterverwenden. Kein separates Prozess-Silo mit eigener, widersprüchlicher Freigabelogik errichten.
+7. Änderungen, verbleibende Aufgaben, tatsächliche Prüfungen und Migrationen in dieser Datei dokumentieren. Mit deutscher Commit-Nachricht sichern; bestehende fremde Änderungen erhalten.
+8. Eine Sitzung endet mit einem nachvollziehbaren Zwischenstand. Bereits autorisierte Arbeit benötigt keinen pauschalen neuen Freigabestopp. Echte fachliche Entscheidungen und fehlende Zugangsdaten konkret benennen; unabhängige Arbeit fortsetzen.
+
+**Definition „fertig“:** Abnahmekriterien erfüllt, passende Tests grün, notwendige Migrationen vorhanden und geprüft, relevante Rollen und UI Zustände berücksichtigt, Dokumentation und Übergabe aktualisiert. „Technisch fertig“ ersetzt keine fachliche Freigabe eines echten schulischen Verfahrens.
+
+## 3. Meilensteine und Reihenfolge
+
+| Meilenstein | Pakete | Nutzbarer Stand |
+| --- | --- | --- |
+| M1: verlässliche Grundlage | AP01–AP03 | Gleiche Lesefassung in allen Zugängen, klar abgegrenzte Rechte, geschützte Zusammenarbeit |
+| M2: Prozesswerkzeug | AP04–AP08 | Funktionen aus dem Nutzerstamm besetzen, Prozesse erstellen, grafisch/geführt lesen, freigeben und drucken |
+| M3: gepflegtes Schulhandbuch | AP09–AP10 | Gültigkeit und Dateien absichern, Vorlagen und Pflegeverantwortung im Schulalltag nutzen |
+| M4: schulische Organisation | AP11–AP12 | Fachliche Beschlüsse, Folgeaufträge und wiederkehrender Jahreslauf |
+| M5: Breite und Orientierung | AP13–AP15 | Weitere Fächer, Einarbeitung, aktuelle Änderungen und Schulentwicklung |
+| Betriebsfreigabe | B01–B02 | Nachgewiesener Betrieb und kontrollierte Übernahme des Bestandswissens |
+
+B01 wird parallel geplant und vor dem verbindlichen breiten Produktiveinsatz abgenommen. Fehlende Nextcloud-Zugänge blockieren weder lokale Entwicklung noch Tests mit lokalen Konten. OIDC ist optional.
+
+```mermaid
+flowchart LR
+    A[AP01–03: Grundlage] --> B[AP04: Funktionen und Personen]
+    B --> C[AP05: Prozessdaten]
+    C --> D[AP06: Editor]
+    D --> E[AP07: Grafik und geführte Ansicht]
+    E --> F[AP08: Veröffentlichung und Pilot]
+    F --> G[AP09–15: Schulhandbuch und Organisation]
+```
+
+## 4. Abarbeitbare Pakete
+
+### AP01 — Lesefassungen und Suchsichtbarkeit vereinheitlichen
+
+**Status:** geplant. **Abhängigkeiten:** keine.
+
+- Den bestätigten Befund beheben: Treffer dürfen für „Lesend“ keine Titel, Status oder Ausschnitte des neueren Arbeitsstands zeigen.
+- Eine gemeinsame Auflösung der für Nutzer und gewünschten Stand sichtbaren Fassung einführen beziehungsweise vorhandene Helfer zusammenführen.
+- Suche, Vorschläge, Kontextpfade, Rückverweise, Filter und Trefferzahlen sowie Anhänge und Exporte prüfen. Veröffentlichung eines Eintrags darf andere unzulässige Metadaten nicht nebenbei sichtbar machen.
+- An Lesefassungen angemessene Indizes/Abfragen anbinden; aktuelle und freigegebene Texte nicht ununterscheidbar ausgeben.
+
+**Abnahme:** Eine freigegebene Fassung mit abweichendem geheim gehaltenem Test-Arbeitsstand liefert Lesenden überall ausschließlich erlaubte Angaben; Bearbeitende können den Arbeitsstand weiter nutzen. Tests prüfen Inhalte und Metadaten, nicht nur Kennungen. Nicht erlaubte Rückverweise fehlen auch als Titel oder Zählung.
+
+**Berührungspunkte:** `kern/rechte.py`, `kern/views.py`, `suche/`, `kern/suchindex.py`, `eintragstypen/dienste.py`, Exporte und Anhangzugriffe.
+
+### AP02 — Dokumentzugänge und redaktionelle Bereiche
+
+**Status:** geplant. **Abhängigkeiten:** AP01.
+
+- Lesen, Bearbeiten und fachlich Freigeben getrennt modellieren; Zugänge für Dokumente/Bereiche und redaktionelle Zuständigkeiten ergänzen.
+- Bestehende kollegiumsweite Inhalte in der Migration weiterhin für das Kollegium verfügbar halten. Gruppenmitgliedschaft und Zuständigkeit nicht ungeprüft als Leseberechtigung interpretieren.
+- Normale Lehrkräfte können kollegiumsweit freigegebene Prozesse später lesen; eine Schulfunktionsbesetzung verleiht keine technischen Sonderrechte.
+- Oberfläche und APIs einschließlich Suche, Download und Django-Verwaltung auf dieselben Entscheidungen stützen.
+
+**Abnahme:** Eine für Deutsch zuständige Redaktion erhält dadurch keine fremden redaktionellen Bereiche. OGS/Lesend sehen ausschließlich erlaubte Inhalte. Anonyme und unberechtigte Zugriffe, direkte URLs, Vorschläge und Dateien werden getestet. Vorhandene Arbeitspläne bleiben erreichbar.
+
+### AP03 — Gemeinsames Schreiben ohne stilles Überschreiben
+
+**Status:** geplant. **Abhängigkeiten:** AP01; vor dem gemeinsamen Prozesseditor abschließen.
+
+- Im normalen Schreibweg eine erwartete Ausgangsversion prüfen und den Vergleich samt Speicherung atomar durchführen.
+- Bei Konflikt Eingaben erhalten, verständlichen Hinweis und Vergleich anbieten. Kein automatisches Ersetzen fremder Änderungen.
+- Die vorhandene Standprüfung der Protokollgenehmigung erhalten. Import- und Verwaltungswege bewusst berücksichtigen.
+
+**Abnahme:** Zwei gleichzeitig geöffnete Formulare können widersprüchliche Änderungen nicht unbemerkt überschreiben. Der zweite Bearbeiter kann seine Eingabe wiederverwenden. Bereits freigegebene Fassungen bleiben unverändert. Der spätere grafische Editor nutzt denselben Schutz.
+
+### AP04 — Schulfunktionsrollen und Besetzung aus dem Nutzerstamm
+
+**Status:** geplant. **Abhängigkeiten:** AP02.
+
+- Schulfunktionsrollen unabhängig von Berechtigungsrollen und Arbeitsgruppen anlegen, etwa Sonderpädagogin, Schulleitung, IT-Ansprechperson oder Ganztagskoordination.
+- Besetzungen mit Verweis auf das bestehende `Nutzer`-Modell im Backend verwalten: Aufgabe, Person, Hauptzuständigkeit/Vertretung, zeitliche Gültigkeit und gegebenenfalls Geltungsbereich.
+- Aktive Nutzer per Suche/Autocomplete auswählen. Konten nicht für jede Funktion duplizieren; eine Person darf mehrere Funktionen haben.
+- Vakante, abgelaufene oder durch deaktivierte Konten nicht mehr erreichbare Besetzungen ausdrücklich anzeigen. Mehrere Zuständige bewusst als Team oder getrennte Bereiche unterstützen; nicht zufällig die erste Person auswählen.
+- Kleines lesbares Funktionsverzeichnis und zentralen Resolver für spätere Prozessschritte bereitstellen.
+
+**Abnahme:** Eine Funktion wird mit einer vorhandenen Lehrkraft besetzt. Ein Personalwechsel aktualisiert die aktuelle Kontaktanzeige aller verknüpften Abläufe, ohne deren Text zu bearbeiten. Vertretung und Vakanz sind sichtbar; Zuordnung verändert keine Zugriffsrechte. Historische Besetzungen werden nicht überschrieben.
+
+**Details:** [PROZESSWERKZEUG.md, Funktionsmodell](docs/PROZESSWERKZEUG.md).
+
+### AP05 — Versionierbare Prozessdaten und Graphprüfung
+
+**Status:** geplant. **Abhängigkeiten:** AP01–AP04.
+
+- Eintragstyp `prozess` und einen passenden Schulhandbuch-Dokumenttyp in die Registry aufnehmen. Bestehende Dokumente unverändert weiterführen.
+- Start, Handlung, Entscheidung und Ende sowie beschriftete Verbindungen und explizite Rücksprünge modellieren.
+- Prozessschritte referenzieren Schulfunktionsrollen, gültige Wissenseinträge und zulässige Formulare/Dateien.
+- Struktur und Schema serverseitig prüfen. Unvollständige Entwürfe speichern können; nur vollständige, erreichbare und verständliche Abläufe veröffentlichen.
+- Suche, Versionierung, Import-/Export-Schema und unveränderliche freigegebene Stände berücksichtigen. Keine zweite unabhängige Versionshistorie einführen.
+
+**Abnahme:** Ein Testablauf mit Ja-/Nein-Verzweigung lässt sich speichern und als Fassung vergleichen. Fehlende Ziele, unerreichbare Knoten, doppelte IDs und Kreise ohne Ausgang verhindern die Freigabe. Unzulässige Zielverweise geben keine fremden Inhalte preis.
+
+### AP06 — Prozesseditor mit automatischer Vorschau
+
+**Status:** geplant. **Abhängigkeiten:** AP03 und AP05.
+
+- Eine verständliche Autorenoberfläche für Schulleitung und berechtigte Redaktion bauen: Schritt hinzufügen, Art wählen, Frage/Handlung eintragen, Funktion auswählen und Folgeschritte verbinden.
+- Verzweigungen standardmäßig mit „Ja“/„Nein“ anbieten, weitere eindeutige Auswahlmöglichkeiten ermöglichen.
+- Änderungen in einer automatisch erzeugten grafischen Vorschau sichtbar machen. Keine Kenntnis einer Diagrammsprache verlangen.
+- Verbindungen über auswählbare Folgeschritte bearbeiten; Maus und Touch unterstützen, ohne Drag-and-drop vorauszusetzen. Tastaturbedienung und stabile Knoten-IDs erhalten.
+- Prüfung mit Sprung zum betroffenen Schritt, Entwurfsspeicherung und Konfliktschutz integrieren.
+
+**Abnahme:** Ein berechtigter Nutzer kann über die Oberfläche einen vollständigen verzweigten Beispielprozess erstellen und ändern. Nach Neuladen sind Texte, Funktionen und Verbindungen erhalten. Fehler erklären den nächsten Korrekturschritt. Bearbeitung funktioniert bei 768 Pixeln und mit Tastatur.
+
+### AP07 — Ablaufgrafik und geführtes „Was passiert, wenn …?“
+
+**Status:** geplant. **Abhängigkeiten:** AP06.
+
+- Eine lesbare, automatisch angeordnete Ablaufgrafik aus denselben Prozessdaten rendern; Auswahl eines Schritts öffnet Erklärung, aktuelle zuständige Funktion/Person und passende Ressourcen.
+- Zusätzlich eine geführte Ansicht anbieten: Frage beantworten, nächsten passenden Schritt sehen, zurückgehen oder neu beginnen.
+- Kleine Bildschirme erhalten eine gut bedienbare Schrittansicht; Textalternative und Druckansicht entstehen aus derselben Quelle.
+- Entscheidungsantworten bleiben im ersten Stand im Browser-Arbeitsspeicher. Keine personenbezogenen Fälle, Fallakten oder automatischen Tätigkeitsnachweise anlegen.
+- Aktuelle Ansprechpartner und archivierte Prozessfassungen verständlich auseinanderhalten.
+
+**Abnahme:** Eine Lehrkraft kann jeden gültigen Zweig durchlaufen, zurückgehen und die zugehörige aktuelle Besetzung erkennen. Derselbe Ablauf wird grafisch und als Text ohne inhaltliche Widersprüche ausgegeben. Rücksprünge verursachen keine endlose Darstellung. Farben sind nicht die einzigen Informationsträger.
+
+### AP08 — Prozessveröffentlichung und erster schulischer Pilot
+
+**Status:** geplant. **Abhängigkeiten:** AP01–AP07; B01 vor verbindlichem breitem Einsatz.
+
+- Gültiger Lesestand, Arbeitsstand und angemessene fachliche Freigabe für Prozesse sichtbar machen. Eine reine Personenumbesetzung benötigt keine Änderung der freigegebenen Prozesslogik.
+- Suche nach Prozess, Anlass und Schulfunktionsrolle anbinden; Verweise, Zugänge und Kontaktauflösung gemeinsam prüfen.
+- Freigegebene Prozesse für alle vorgesehenen Lehrkräfte leicht erreichbar machen. Entwurfsbearbeitung und Backend-Besetzung bleiben berechtigungsgesteuert.
+- Kurze Demoanleitung und einen vollständigen, ausdrücklich fiktiven Testablauf bereitstellen. Echte Verfahrensinhalte und Personen werden erst nach fachlicher Bestätigung übernommen.
+- Bei verbindlichen veränderlichen Dateianhängen schon hier eine nachprüfbare Fassung oder einen deutlichen Prüf-/Änderungsstatus vorsehen; fehlende Absicherung nicht durch eine scheinbar vollständige Freigabe verdecken.
+
+**Abnahme M2:** Prozess im Frontend erstellen → Funktion im Backend mit vorhandenem Nutzer besetzen → Ablauf freigeben → Lehrkraft findet und durchläuft die Grafik → Person wechselt → aktuelle Kontaktanzeige ändert sich, Prozessfassung bleibt erhalten. Export/Druck, Rechte, Konflikte und mobile Ansichten sind geprüft.
+
+**Dies ist der erste vollständige Lieferstand des ausdrücklich gewünschten Prozesswerkzeugs.**
+
+### AP09 — Gültigkeit, Quellen und Wissenspflege ausbauen
+
+**Status:** geplant. **Abhängigkeiten:** AP08.
+
+- Inhaltsart, Verbindlichkeit, Sichtbarkeit und Bearbeitungszustand getrennt behandeln. Angemessene Freigabe ohne Konferenzzwang für jede Routineinformation ermöglichen.
+- Wirksam ab/bis, ersetzt durch, letzter Prüfstand und nächster Prüftermin ergänzen; Prüfdatum ist kein automatisches Außerkrafttreten.
+- Pflegeverantwortung und Vertretung über Funktionen zuweisen. Übersicht über überfällige Prüfungen und gemeldete Fehler anbieten.
+- Freigegebene Anlagen zuverlässig an Dateifassungen binden; dynamische Materiallinks ausdrücklich unterscheiden.
+
+**Abnahme:** Eine künftig wirksame Regel verdrängt die aktuelle nicht vorzeitig. Ein Rollenwechsel übergibt Pflegeaufgaben ohne Kopieren. Ein geänderter normativer Anhang bleibt nicht unbemerkt als unverändert gültig dargestellt.
+
+### AP10 — Schulhandbuch, Formularverzeichnis und zehn häufige Abläufe
+
+**Status:** geplant. **Abhängigkeiten:** AP08–AP09.
+
+- Handbuchnavigation nach schulischen Aufgaben, Kurzantworten und gepflegte Schlagwörter/Synonyme ergänzen.
+- Formulare/Vorlagen mit Verwendungszweck, gültigem Stand und Prozessbezug verzeichnen. Erlaubte freigegebene PDFs für Lehrkräfte zugänglich machen; keine pauschalen Rechte auf vollständige Arbeitsstandsexporte vergeben.
+- Mit den Verantwortlichen die zehn wichtigsten echten Abläufe aufnehmen und fachlich prüfen. Beispiele aus der Produktanalyse dienen der Auswahl, nicht als ungeprüfte fertige Schulregel.
+
+**Abnahme:** Ausflug, eigene Abwesenheit, IT-Störung und Materialbestellung werden mit der jeweils richtigen Zuständigkeit und Vorlage ohne Kenntnis alter Ordnernamen gefunden. Mehrere Einstiege führen zur selben maßgeblichen Quelle.
+
+### AP11 — Sitzungen, fachliche Beschlüsse und Umsetzungsaufträge
+
+**Status:** geplant. **Abhängigkeiten:** AP09; AP04 für Zuständigkeiten nutzen.
+
+- Genehmigung einer Niederschrift von fachlichen Entscheidungen ihrer Tagesordnungspunkte trennen. Informationen und Beratungen als solche erkennbar halten.
+- Agenda/Themeneingabe und Folgeaufträge mit zuständiger Funktion, Termin, Bearbeitungsstand und Ergebnis ergänzen.
+- Bestehende Genehmigungen samt Herkunft erhalten; historische Protokolle nicht automatisch in erfundene Einzelbeschlüsse zerlegen.
+- Persönliche Häkchen und Notizen der Lehrkräfte nicht zu einem Leitungsmonitor umdeuten.
+
+**Abnahme:** Vom TOP gelangt man zur konkreten Entscheidung, deren Wissenseinträgen und zugehörigen Folgeaufträgen. Ein genehmigter Informationstext erscheint nicht als neu beschlossene Schulregel. Bestehende Freigaben und Rücknahmen funktionieren weiterhin.
+
+### AP12 — Schuljahresfahrplan und wiederkehrende Fristen
+
+**Status:** geplant. **Abhängigkeiten:** AP10–AP11.
+
+- Wiederkehrende schulische Ereignisse mit Vorbereitung, Fristen, zuständigen Funktionen und Prozessbezügen abbilden.
+- Jahreswechsel und Vertretung berücksichtigen. Mit vorhandenen Kalendern verbinden, statt ungefragt eine vollständige Stunden-/Vertretungsplanung neu zu bauen.
+
+**Abnahme:** Ein Ereignis wird ins nächste Schuljahr übernommen, seine Inhalte bleiben verlinkt und Termine werden bewusst bestätigt. Zuständige finden anstehende Vorbereitungen. Keine unbestätigten Feiertags-/Ferientermine erfinden.
+
+### AP13 — Fachliche Breite und Planungskontext
+
+**Status:** geplant. **Abhängigkeiten:** AP09; Datenbereitstellung/fachliche Prüfung durch die Schule.
+
+- Amtliche Daten der acht weiteren Fächer kontrolliert importieren; markierte Stufen und offene schulische Festlegungen nachbearbeiten.
+- Fachgerechte Felder und jahrgangsübergreifende Lerngruppen unterstützen. Klasse/Schuljahr und mehrere Fachpläne sinnvoll zusammenführen.
+
+**Abnahme:** Fachwechsel zeigt ausschließlich passende Kompetenzen und Felder. Eine jahrgangsübergreifende Gruppe ist abbildbar. Quellen und fachliche Prüfung sind dokumentiert; keine unbekannten Lehrplaninhalte ergänzen, um eine leere Ansicht zu füllen.
+
+### AP14 — Einarbeitung und relevante Änderungen
+
+**Status:** geplant. **Abhängigkeiten:** AP09–AP10.
+
+- Einarbeitungspakete nach Aufgaben und Funktionen, gemerkte Bereiche sowie relevante wesentliche Änderungen anbieten.
+- Benachrichtigungen sparsam und nachvollziehbar bündeln; zunächst eine In-App-Übersicht. Externe Nachrichten erst mit bewusst eingerichteter und autorisierter Versandfunktion.
+
+**Abnahme:** Eine neue Kollegin findet erste Schritte, aktuelle Kontakte und Regeln. Nach Abwesenheit findet eine Lehrkraft relevante Änderungen. Keine heimliche Protokollierung individueller Lektüre.
+
+### AP15 — Schulentwicklung und Wissenstransfer
+
+**Status:** geplant. **Abhängigkeiten:** AP11–AP14.
+
+- Ziele, Maßnahmen, Fortbildungswissen, Meilensteine und fachliche Überprüfung verknüpfen.
+- Auswertungen auf hinreichend anonymisierte schulische Ergebnisse begrenzen; keine Schüler- oder Personalakten nachbilden.
+
+**Abnahme:** Ein Entwicklungsziel lässt sich über eine Maßnahme bis zur dokumentierten Überprüfung verfolgen; Beteiligte erkennen Verantwortung und nächsten Schritt.
+
+### B01 — Betrieb und gewünschte Dateianbindung nachweisen
+
+**Status:** geplant. **Abhängigkeiten:** paralleler Betriebsstrang; echte Zugangsdaten und Zielbetrieb erforderlich.
+
+- Nextcloud-Zugriffe mit einem passend begrenzten technischen Konto einrichten und Rechte zwischen Dateisystem und Wissensbasis prüfen.
+- Lokale Konten erhalten; OIDC bei tatsächlichem Bedarf anbinden. Keine Zugangsdaten in Dokumentation oder Git ablegen.
+- Automatische Sicherung, Medien-/Dateibestand, Wiederherstellung, Updates, Überwachung und Betriebsvertretung nachweisen. Geeignete unabhängige Fassung besonders wichtigen Handlungswissens festlegen.
+
+**Abnahme:** Dokumentierter Wiederherstellungstest in isolierter Umgebung, kontrollierter Indexierungsfehler und Entzug einer Dateiberechtigung sind geprüft. Nachweis vorhandener Konfiguration von erfolgreicher Live-Prüfung unterscheiden.
+
+### B02 — Bestandswissen geordnet übernehmen
+
+**Status:** geplant. **Abhängigkeiten:** B01, AP09–AP10.
+
+- Vorhandene Ordner, Word-/PDF-Dateien und Pinnwandeinträge sichten; maßgebliche Quelle, Pflegefunktion, Dubletten und Ablageort festlegen.
+- Importvorschau, bei Bedarf OCR und kontrollierte Übergabe an passende Handbuch-/Prozesstypen nutzen.
+- Vertrauliche Fallakten und ungeprüfte Bereiche nicht pauschal in den allgemeinen Suchindex übernehmen.
+
+**Abnahme:** Ein begrenzter Bestand wird nachvollziehbar übernommen, geprüft und gefunden. Quelle und laufende Pflege sind festgelegt; die bisherige Ablage wird erst nach erfolgreicher Abnahme bewusst abgelöst.
+
+## 5. Übergreifende Abnahme des Prozesswerkzeugs
+
+- [ ] Eine Schulfunktionsrolle ist im Backend mit einem aktiven vorhandenen Nutzer besetzbar.
+- [ ] Hauptzuständigkeit, Vertretung, Team/Geltungsbereich und unbesetzte Funktionen werden eindeutig angezeigt.
+- [ ] Eine Personenumbesetzung aktualisiert aktuelle Kontakte in allen betreffenden Abläufen.
+- [ ] Dadurch entstehen keine neuen technischen Berechtigungen und keine veränderten Prozessfassungen.
+- [ ] Berechtigte Autoren können ohne Diagrammcode einen Ablauf mit mindestens einer Verzweigung erstellen.
+- [ ] Lehrkräfte erreichen veröffentlichte Abläufe über Suche und einen klaren Einstieg.
+- [ ] Grafik, geführte Ansicht, Textalternative und Druck stimmen überein.
+- [ ] Fragen, Verbindungen, Ausgänge und Rücksprünge werden serverseitig geprüft.
+- [ ] Versionskonflikte, Entwurfsrechte und Freigaben bleiben durchgängig geschützt.
+- [ ] Es werden keine personenbezogenen Fallverläufe und keine Antwortprotokolle angelegt.
+- [ ] Ein repräsentativer Ablauf wird mit einer Lehrkraft am iPad erprobt; die fachliche Richtigkeit bestätigt die zuständige Funktion.
+
+## 6. Übergabeprotokoll für die nächste Sitzung
+
+Planungsstand: Alle Pakete sind **geplant**, keine neue Funktion aus dieser Roadmap ist umgesetzt. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP01**, anschließend die Abhängigkeiten beachten.
+
+Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
+
+| Datum / Paket | Ergebnis und Commit | Tatsächliche Prüfungen | Offen / nächster konkreter Schritt |
+| --- | --- | --- | --- |
+| 30.10.2026 / Planung | Roadmap und Prozessspezifikation erstellt | Abgleich mit Produktanalyse und vorhandenem Rollen-/Nutzermodell; keine App-Funktionen geändert | AP01: konsistente Lesefassungen und Suchsichtbarkeit |

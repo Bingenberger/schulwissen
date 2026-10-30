@@ -33,6 +33,17 @@ Kompetenzdaten müssen fachweise importiert werden.
 Einrichtung und Abnahme stehen in [PHASE4.md](PHASE4.md).
 Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPORT.md).
 
+## Geplante Weiterentwicklung
+
+Die [Roadmap](ROADMAP.md) übersetzt die
+[Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
+priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
+Coding-Sitzungen. Nächster Einstieg ist **AP01**. Den ersten großen Ausbau bildet
+das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
+„Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
+Personen aus dem vorhandenen Nutzerstamm besetzen. Diese Erweiterungen sind
+geplant und noch nicht umgesetzt.
+
 ## Schnellstart
 
 Voraussetzung: Docker mit Compose-Plugin (`docker compose version`).
