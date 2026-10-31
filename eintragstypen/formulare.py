@@ -67,10 +67,9 @@ def _formularfeld(feld):
     }
 
     if feld.typ == Feldtyp.PROZESSGRAPH:
-        # AP05 stellt die Datenbasis bereit; der schrittweise Editor folgt in AP06.
-        # Keine verpflichtende JSON-Eingabe für Kolleginnen und keine Serialisierung
-        # eines Textfelds zurück in den Graphen.
-        return forms.CharField(disabled=True, widget=forms.Textarea(attrs={"rows": 8}), **gemeinsam)
+        from kern.prozesseditor import ProzessFeld
+
+        return ProzessFeld(**gemeinsam)
     if feld.typ == Feldtyp.DATUM:
         return forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), **gemeinsam)
 
@@ -117,7 +116,7 @@ class EintragFormular(forms.Form):
         widget=forms.TextInput(attrs={"autofocus": "autofocus"}),
     )
 
-    def __init__(self, *args, eintragstyp: str, eintrag=None, **kwargs):
+    def __init__(self, *args, eintragstyp: str, eintrag=None, nutzer=None, dokument=None, **kwargs):
         self.typ = registry.holen(eintragstyp)
         self.eintrag = eintrag
         super().__init__(*args, **kwargs)
@@ -129,6 +128,15 @@ class EintragFormular(forms.Form):
                 )
             elif not feld.ist_berechnet:
                 self.fields[DATEN + feld.schluessel] = _formularfeld(feld)
+
+        if "f_ablauf" in self.fields:
+            from kern.prozesseditor import LEER
+
+            feld = self.fields["f_ablauf"]
+            feld.initial = LEER
+            feld.widget.nutzer = nutzer
+            feld.widget.dokument = dokument or (eintrag.dokument if eintrag else None)
+            feld.widget.eintrag = eintrag
 
         self.fields["status"] = forms.ChoiceField(
             label="Status",
@@ -154,7 +162,9 @@ class EintragFormular(forms.Form):
             if feld.typ == Feldtyp.JANEIN and isinstance(wert, bool):
                 wert = "ja" if wert else "nein"
             self.fields[DATEN + feld.schluessel].initial = (
-                feld.anzeige(wert) if feld.typ == Feldtyp.PROZESSGRAPH and wert else wert
+                {"schema_version": 1, "knoten": [], "verbindungen": []}
+                if feld.typ == Feldtyp.PROZESSGRAPH and wert is None
+                else wert
             )
         for feld in self.typ.verlinkungsfelder:
             ziele = eintrag.verlinkungen.filter(art=feld.verlinkungsart, feld=feld.schluessel)
@@ -216,8 +226,6 @@ class EintragFormular(forms.Form):
             if feld.ist_berechnet:
                 continue
             wert = self.cleaned_data.get(DATEN + feld.schluessel)
-            if feld.typ == Feldtyp.PROZESSGRAPH:
-                wert = self.eintrag.daten.get(feld.schluessel) if self.eintrag else None
             if wert in (None, "", []):
                 continue
             daten[feld.schluessel] = wert

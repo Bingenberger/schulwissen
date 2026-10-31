@@ -1,0 +1,30 @@
+<div class="prozess-editor" data-prozess-editor data-optionen="{{ widget.optionen_id }}">
+  {% include "django/forms/widgets/hidden.html" %}
+  {{ widget.optionen|json_script:widget.optionen_id }}
+  <h3 id="prozess-editor-titel" tabindex="-1">Ablauf bearbeiten</h3>
+  <p>Füge Schritte hinzu und wähle, wie es danach weitergeht. Eine Entscheidung erhält zunächst die Zweige „Ja“ und „Nein“.</p>
+  <noscript><p class="meldung meldung-warning">Zum Bearbeiten des Ablaufs brauchst du JavaScript. Die vorhandenen Daten bleiben beim Speichern erhalten.</p></noscript>
+  <div class="knopf-reihe prozess-werkzeuge">
+    <div class="feld"><label for="prozess-neue-art">Neuer Schritt</label><select id="prozess-neue-art" data-neue-art><option value="start">Start</option><option value="handlung">Handlung</option><option value="entscheidung">Entscheidung</option><option value="ende">Ende</option></select></div>
+    <button type="button" class="knopf" data-schritt-neu>Schritt hinzufügen</button>
+    <button type="button" class="knopf knopf-leise" data-wiederherstellen disabled>Entfernten Schritt wiederherstellen</button>
+    <button type="button" class="knopf knopf-leise" data-vorschau-zeigen>Zur Vorschau</button>
+  </div>
+  <div class="prozess-arbeitsbereich">
+    <nav aria-label="Schritte bearbeiten"><h4>Deine Schritte</h4><ol data-schrittliste class="prozess-schrittliste"></ol><p data-leer>Noch keine Schritte. Füge zuerst einen Start hinzu.</p></nav>
+    <section data-schritt-details aria-label="Ausgewählten Schritt bearbeiten"></section>
+  </div>
+  <section data-verwaiste-verbindungen hidden></section>
+  <section class="prozess-pruefung" aria-labelledby="prozess-prueftitel">
+    <div class="knopf-reihe"><h4 id="prozess-prueftitel">Prüfung vor der Freigabe</h4><button type="button" class="knopf" data-pruefen>Ablauf prüfen</button></div>
+    <p data-pruefstatus role="status" aria-live="polite">Du kannst unvollständige Abläufe als Entwurf speichern.</p>
+    <ul data-pruefmeldungen></ul>
+  </section>
+  <section aria-labelledby="prozess-vorschautitel">
+    <h4 id="prozess-vorschautitel">Automatische Vorschau</h4>
+    <p class="klein leise">Wähle einen Schritt in der Grafik, um ihn zu bearbeiten. Die Grafik lässt sich bei Bedarf verschieben.</p>
+    <div class="prozess-vorschau-scroll" role="region" aria-label="Ablaufvorschau, bei Bedarf verschiebbar" tabindex="0" data-vorschau></div>
+    <details><summary>Vorschau als Text</summary><div data-textvorschau></div></details>
+  </section>
+  <p class="klein leise" data-editor-status role="status" aria-live="polite"></p>
+</div>

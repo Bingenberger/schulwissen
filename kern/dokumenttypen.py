@@ -45,7 +45,7 @@ registry.registrieren(
                 Feldtyp.PROZESSGRAPH,
                 Block.UEBERBLICK,
                 pflicht=True,
-                hilfe="Der Ablauf ist hier zur Ansicht dargestellt.",
+                hilfe="Lege Schritte an und wähle ihre Folgeschritte.",
             ),
         ),
     )

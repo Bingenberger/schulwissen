@@ -435,7 +435,9 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
         return redirect("kern:eintrag", schluessel=schluessel, kennung=kennung)
 
     if request.method == "POST":
-        formular = EintragFormular(request.POST, eintragstyp=eintrag.eintragstyp, eintrag=eintrag)
+        formular = EintragFormular(
+            request.POST, eintragstyp=eintrag.eintragstyp, eintrag=eintrag, nutzer=request.user
+        )
         gueltig = formular.is_valid()
         if getattr(eintrag, "entfernt", False):
             _entfernt_anzeigen(formular)
@@ -444,7 +446,9 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
             if antwort is not None:
                 return antwort
     else:
-        formular = EintragFormular(eintragstyp=eintrag.eintragstyp, eintrag=eintrag)
+        formular = EintragFormular(
+            eintragstyp=eintrag.eintragstyp, eintrag=eintrag, nutzer=request.user
+        )
         formular.initial["ausgangsstand"] = token_fuer_eintrag(request.user, eintrag)
 
     return render(
@@ -482,13 +486,15 @@ def eintrag_neu(request, schluessel: str, eintragstyp: str):
         )
 
     if request.method == "POST":
-        formular = EintragFormular(request.POST, eintragstyp=eintragstyp)
+        formular = EintragFormular(
+            request.POST, eintragstyp=eintragstyp, dokument=dokument, nutzer=request.user
+        )
         if formular.is_valid():
             antwort = _speichern(request, dokument, formular, None, None)
             if antwort is not None:
                 return antwort
     else:
-        formular = EintragFormular(eintragstyp=eintragstyp)
+        formular = EintragFormular(eintragstyp=eintragstyp, dokument=dokument, nutzer=request.user)
 
     return render(
         request,
@@ -536,8 +542,18 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
 
     befundsatz = dienste.pruefen(dokument, roh, nutzer=request.user)
     if not befundsatz.ok:
-        for befund in befundsatz.fehler:
-            formular.add_error(None, befund.text)
+        if roh.eintragstyp == "prozess":
+            from kern.prozesseditor import meldungen
+
+            formular.fields["f_ablauf"].widget.meldungen = meldungen(
+                [b.text for b in befundsatz.fehler], befundsatz.daten.get("ablauf")
+            )
+        if roh.eintragstyp == "prozess":
+            for meldung in formular.fields["f_ablauf"].widget.meldungen:
+                formular.add_error(None, meldung["text"])
+        else:
+            for befund in befundsatz.fehler:
+                formular.add_error(None, befund.text)
         return None
 
     # Der Wechsel auf „abgestimmt in Gruppe“ setzt vollständige Pflichtfelder

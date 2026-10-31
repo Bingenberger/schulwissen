@@ -4,6 +4,7 @@
 {% block kopf_zusatz %}
   {% load static %}
   <script src="{% static 'vendor/editor.js' %}" defer></script>
+  {% if typ.schluessel == 'prozess' %}<link rel="stylesheet" href="{% static 'prozesseditor.css' %}"><script src="{% static 'prozesseditor.js' %}" defer></script>{% endif %}
 {% endblock %}
 
 {% block inhalt %}
@@ -34,7 +35,7 @@
       jederzeit als Entwurf sichern und später weiterarbeiten.
     </div>
 
-    <form method="post" data-eintragsformular x-data="{ jahrgang: '{{ formular.f_jahrgang.value|default:'' }}' }">
+    <form method="post" class="{% if typ.schluessel == 'prozess' %}prozessformular{% endif %}" data-eintragsformular x-data="{ jahrgang: '{{ formular.f_jahrgang.value|default:'' }}' }">
       {% csrf_token %}
       {{ formular.ausgangsstand }}
 
@@ -59,7 +60,7 @@
         </section>
       {% endif %}
 
-      {% if formular.errors and not formular.schreibkonflikt %}<div class="meldung meldung-error" role="alert"><strong>Bitte prüfe die markierten Felder.</strong><ul>{% for feld in formular %}{% if feld.errors %}<li><a href="#{% if feld.name|slice:":2" == 'v_' %}suche_{{ feld.name|slice:"2:" }}{% else %}{{ feld.id_for_label }}{% endif %}">{{ feld.label }}: {{ feld.errors|striptags }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+      {% if formular.errors and not formular.schreibkonflikt %}<div class="meldung meldung-error" role="alert"><strong>Bitte prüfe die markierten Felder.</strong><ul>{% for feld in formular %}{% if feld.errors %}<li><a href="#{% if feld.name == 'f_ablauf' %}prozess-editor-titel{% elif feld.name|slice:":2" == 'v_' %}suche_{{ feld.name|slice:"2:" }}{% else %}{{ feld.id_for_label }}{% endif %}">{{ feld.label }}: {{ feld.errors|striptags }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
       {% if formular.non_field_errors %}
         {% for fehler in formular.non_field_errors %}
           <div class="meldung meldung-error">{{ fehler }}</div>
@@ -84,6 +85,9 @@
           {% for zeile in block.felder %}
             {% if zeile.feld.ist_verlinkung and zeile.feld.zieltyp == 'kompetenz' %}
               {% include "kern/_kompetenzauswahl.html" %}
+            {% elif zeile.feld.typ == 'prozessgraph' %}
+              {{ zeile.gebunden }}
+              {% for fehler in zeile.gebunden.errors %}<p class="feld-fehler">{{ fehler }}</p>{% endfor %}
             {% elif zeile.feld.ist_berechnet %}
               <div class="feld">
                 <span class="feld-beschriftung">{{ zeile.feld.label }}</span>

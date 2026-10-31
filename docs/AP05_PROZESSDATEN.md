@@ -8,7 +8,7 @@ Der neue Dokumenttyp **Schulhandbuch** erlaubt `grundlagenkapitel` und `prozess`
 
 Abläufe können über den gemeinsamen Schreibdienst, die Verwaltung und den vorhandenen JSON-Import mit Vorschau angelegt werden. Sie nutzen **Eintrag → Eintragsversion**, den bestehenden Schreibschutz, Suche, Fassungsvergleich und Export. Es entsteht keine zweite Prozesshistorie. Bestehende Dokumente und ihre Eintragstypen bleiben erhalten.
 
-Die normale Eingabemaske zeigt den Ablauf vorerst als lesbaren, nicht bearbeitbaren Text. Änderungen an Titel und Begleitangaben erhalten den gespeicherten Graphen; übermittelte Textfeldwerte ersetzen ihn nicht. Eine leere Prozesshülle ist als Entwurf möglich. Niemand muss für die normale Eingabemaske Diagrammcode oder JSON schreiben. Die bedienbare Schrittbearbeitung ist ausdrücklich noch AP06.
+Der AP05-Lieferstand zeigte den Ablauf in der normalen Eingabemaske zunächst als lesbaren, nicht bearbeitbaren Text. Seit [AP06](AP06_PROZESSEDITOR.md) ersetzt ihn der bedienbare Schritteditor. Änderungen an Titel und Begleitangaben erhalten den gespeicherten Graphen; übermittelte Textfeldwerte ersetzen ihn nicht. Eine leere Prozesshülle ist als Entwurf möglich. Niemand muss für die normale Eingabemaske Diagrammcode oder JSON schreiben. Die nachfolgend beschriebene technische Übergabe an AP06 ist inzwischen umgesetzt.
 
 ## Ablauf-Schema Version 1
 

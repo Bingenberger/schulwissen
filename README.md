@@ -38,8 +38,8 @@ Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPO
 Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
-Coding-Sitzungen. AP01–AP05 (Lesefassungen, Dokumentzugänge, Schreibschutz,
-Schulfunktionen und Prozessdaten) sind umgesetzt; nächster Einstieg ist **AP06**.
+Coding-Sitzungen. AP01–AP06 (Lesefassungen, Dokumentzugänge, Schreibschutz,
+Schulfunktionen, Prozessdaten und Autoreneditor) sind umgesetzt; nächster Einstieg ist **AP07**.
 Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
@@ -48,7 +48,9 @@ bereits über **Zuständigkeiten** im Benutzermenü erreichbar; die Pflege erfol
 der Verwaltung. Einrichtung, Vertretung und Personalwechsel:
 [AP04_SCHULFUNKTIONEN.md](docs/AP04_SCHULFUNKTIONEN.md). Die
 [Prozessdatenbasis](docs/AP05_PROZESSDATEN.md) unterstützt bereits Entwürfe,
-Prüfung und Fassungen. Schritteditor, Grafik und Pilot folgen in AP06–AP08. Die Abnahme von AP01 steht in
+Prüfung und Fassungen. Der [Prozesseditor](docs/AP06_PROZESSEDITOR.md) bietet
+Schritte, Verzweigungen, Zuständigkeiten, Materialien und eine automatische
+Vorschau ohne Diagrammcode. Lese-Grafik, geführte Ansicht und Pilot folgen in AP07–AP08. Die Abnahme von AP01 steht in
 [AP01_LESEFASSUNGEN.md](docs/AP01_LESEFASSUNGEN.md).
 
 ## Schnellstart

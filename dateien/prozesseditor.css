@@ -1,0 +1,42 @@
+.prozessformular .formular-fortschritt { display:none; }
+.prozess-editor { min-width:0; }
+.prozess-editor h3 { font-size:var(--schrift-abschnitt); margin-top:0; }
+.prozess-editor h4 { font-size:var(--schrift-normal); margin:0 0 var(--abstand-4); }
+.prozess-werkzeuge { margin:var(--abstand-5) 0; align-items:flex-end; }
+.prozess-werkzeuge .feld { margin:0; }
+.prozess-arbeitsbereich { display:grid; grid-template-columns:minmax(180px,1fr) minmax(0,2fr); gap:var(--abstand-5); align-items:start; }
+.prozess-arbeitsbereich>* { min-width:0; }
+.prozess-schrittliste { list-style:none; padding:0; display:grid; gap:var(--abstand-2); }
+.prozess-schrittliste button { display:block; width:100%; text-align:left; overflow-wrap:anywhere; }
+.prozess-schrittliste [aria-current] { background:var(--akzent-leise); border-color:var(--akzent); box-shadow:inset 4px 0 var(--akzent); }
+.prozess-art { display:block; color:var(--text-leise); font-size:var(--schrift-klein); }
+.prozess-editor fieldset { min-width:0; margin:var(--abstand-5) 0; padding:var(--abstand-4); border:1px solid var(--linie-stark); border-radius:var(--radius); }
+.prozess-editor legend { font-weight:600; padding:0 var(--abstand-2); }
+.prozess-verbindung { border-bottom:1px solid var(--linie); padding-bottom:var(--abstand-4); margin-bottom:var(--abstand-4); }
+.prozess-checkbox { display:flex; align-items:center; gap:var(--abstand-2); min-height:var(--klickflaeche); margin:var(--abstand-3) 0; }
+.prozess-checkbox input { width:var(--klickflaeche); min-width:var(--klickflaeche); height:var(--klickflaeche); accent-color:var(--akzent); }
+.prozess-editor input:not([type=checkbox]),.prozess-editor textarea,.prozess-editor select { width:100%; max-width:100%; box-sizing:border-box; }
+.prozess-material li { overflow-wrap:anywhere; margin-bottom:var(--abstand-3); }
+.prozess-material li button { margin:var(--abstand-2) 0; }
+.prozess-schritt-aktionen { margin-bottom:var(--abstand-5); }
+.prozess-pruefung { border-top:1px solid var(--linie); padding-top:var(--abstand-5); margin-top:var(--abstand-5); }
+.prozess-pruefung li { margin:var(--abstand-2) 0; }
+.prozess-pruefung button { text-align:left; }
+.prozess-vorschau-scroll { max-width:100%; max-height:min(900px,85vh); overflow:auto; border:1px solid var(--linie-stark); border-radius:var(--radius); background:var(--flaeche); }
+.prozess-vorschau-scroll svg { display:block; max-width:none; font-family:var(--schrift); }
+.prozess-kante { fill:none; stroke:var(--text-leise); stroke-width:2; }
+.prozess-pfeil { fill:var(--text-leise); }
+.ist-ruecksprung { stroke-dasharray:7 4; }
+.prozess-kantenlabel { fill:var(--text); font-size:14px; paint-order:stroke; stroke:var(--flaeche); stroke-width:5; stroke-linejoin:round; }
+.prozess-knoten rect,.prozess-knoten polygon { fill:var(--papier); stroke:var(--linie-stark); stroke-width:2; }
+.prozess-knoten.ist-gewaehlt rect,.prozess-knoten.ist-gewaehlt polygon { fill:var(--akzent-leise); stroke:var(--akzent); stroke-width:3; }
+.prozess-knoten:focus-visible { outline:none; }
+.prozess-knoten:focus-visible rect,.prozess-knoten:focus-visible polygon { stroke:var(--fokus); stroke-width:5; }
+.prozess-svg-art { fill:var(--text-leise); font-size:13px; }
+.prozess-svg-titel { fill:var(--text); font-size:15px; }
+.prozess-editor details { margin-top:var(--abstand-4); }
+.prozess-editor details summary { cursor:pointer; min-height:var(--klickflaeche); }
+@media(max-width:620px) { .prozess-arbeitsbereich { grid-template-columns:minmax(0,1fr); } .prozess-schrittliste { max-height:270px; overflow:auto; } }
+@media print { .prozess-werkzeuge,.prozess-arbeitsbereich,.prozess-pruefung { display:none; } .prozess-vorschau-scroll { max-height:none; overflow:visible; } }
+
+.prozess-editor input[type=search] { min-height:var(--klickflaeche); padding:var(--abstand-2) var(--abstand-3); border:1px solid var(--linie-stark); border-radius:var(--radius-feld); background:var(--papier); color:var(--text); font:inherit; }

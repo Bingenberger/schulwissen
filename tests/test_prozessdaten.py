@@ -430,13 +430,13 @@ def test_frontend_bearbeitung_bewahrt_graph_ohne_jsonpflicht(handbuch, funktion)
             "titel": "Neuer Titel",
             "status": "entwurf",
             "f_anlass": "Neuer Anlass",
-            "f_ablauf": "manipulierter Text",
+            "f_ablauf": json.dumps(e.daten["ablauf"]),
         },
         eintragstyp="prozess",
         eintrag=e,
     )
     assert f.is_valid()
-    assert f.fields["f_ablauf"].disabled
+    assert not f.fields["f_ablauf"].disabled
     assert f.als_rohsatz(e.kennung).daten["ablauf"] == e.daten["ablauf"]
 
 

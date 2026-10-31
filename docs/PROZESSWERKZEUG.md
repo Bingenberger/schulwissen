@@ -1,6 +1,6 @@
 # Prozesswerkzeug: Abläufe erklären und Zuständigkeiten auflösen
 
-Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Funktionsmodell und Prozessdaten aus AP04–AP05 sind umgesetzt. Editor, Grafik und durchgängige Veröffentlichung samt Pilot aus AP06–AP08 sind weiterhin geplant.
+Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Funktionsmodell, Prozessdaten und Autoreneditor aus AP04–AP06 sind umgesetzt. Lese-Grafik, geführte Ansicht und durchgängige Veröffentlichung samt Pilot aus AP07–AP08 sind weiterhin geplant.
 
 ## 1. Nutzerziel
 
@@ -119,7 +119,7 @@ Eine unvollständige Zeichnung bleibt als Entwurf speicherbar, soweit sie strukt
 
 ## 5. Definieren im Editor
 
-Vorgesehener Ablauf:
+Seit AP06 verfügbarer Autorenablauf; Bedienung und Grenzen: [AP06_PROZESSEDITOR.md](AP06_PROZESSEDITOR.md).
 
 1. Prozess anlegen, Titel und Anlass eingeben.
 2. „Schritt hinzufügen“ wählen: Handlung, Entscheidung oder Ende.
