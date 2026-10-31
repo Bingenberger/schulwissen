@@ -1,4 +1,6 @@
 {% if pflege %}<section class="block"><h2>Gültigkeit und Wissenspflege</h2>
+{% if pflege.quelle.aufgabe %}<p>Schulische Aufgabe: <a href="{% url 'kern:handbuch' %}?aufgabe={{ pflege.quelle.aufgabe|urlencode }}">{{ pflege.quelle.get_aufgabe_display }}</a></p>{% endif %}
+{% if pflege.quelle.suchbegriffe %}<p>Schlagwörter und Synonyme: {{ pflege.quelle.suchbegriffe }}</p>{% endif %}
 <p><strong>{{ pflege.quelle.get_inhaltsart_display }}</strong> · {{ pflege.quelle.get_verbindlichkeit_display }}</p>
 <p>{{ pflege.zeitraum }}</p>{% if pflege.status %}<p class="meldung meldung-warning">{{ pflege.status }}</p>{% endif %}
 {% if pflege.quelle.geprueft_am %}<p>Zuletzt fachlich geprüft: {{ pflege.quelle.geprueft_am|date:"d.m.Y" }}</p>{% endif %}

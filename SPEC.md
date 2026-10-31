@@ -117,6 +117,13 @@ Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 - Eine rechtegebundene Pflegeübersicht zeigt aktuell überfällige Prüfungen und ausdrücklich gemeldete Fehler, höchstens zwölf je Seite. Rollenwechsel aktualisieren Ansprechpartner ohne Inhaltskopien oder neue Rechte.
 - Verbindliche Anlagen werden als geschützte, bytegenaue Freigabekopie mit SHA-256 an die Eintragsversion gebunden. Externe Anlagen benötigen geprüfte Kopie und Versionsnachweis; reine Live-Links bleiben dynamisches Material. Originaländerungen werden angezeigt, Freigabekopien bleiben unverändert. Anleitung und Grenzen: [AP09_WISSENSPFLEGE.md](docs/AP09_WISSENSPFLEGE.md).
 
+### Schulhandbuch und Formularverzeichnis (AP10)
+
+- Aufgabe, Kurzantwort/Verwendungszweck und Suchbegriffe/Synonyme sind gemeinsame versionierte Wissensangaben. Bestehende Quellen können über eine freigegebene Aufgaben-Zuordnung im Handbuch erscheinen, ohne ihre Inhalte zu kopieren.
+- Handbuch und Formularverzeichnis zeigen ausschließlich heute gültige zugängliche Fassungen mit höchstens zwölf Einträgen je Seite. Die allgemeine Suche enthält die Gruppe „Schulhandbuch und Formulare“; mehrere Einstiege verweisen auf dieselbe Quelle.
+- Formulare sind die fachliche Inhaltsart vorhandener Einträge. Neue Freigaben benötigen Verwendungszweck und verbindliche Dateifassung. Das Verzeichnis zeigt geprüfte Downloads, aktuellen Pflegekontakt und gültige zugängliche Prozessbezüge; es erweitert keine Rechte auf Arbeitsstandsexporte.
+- Die schulische Auswahl und Aufnahme zehn echter Abläufe ist offen. Ein Aufnahmeplan und zehn nicht freigabefähige Aufnahmeentwürfe stehen bereit; keine tatsächliche Schulregel wurde daraus automatisch erzeugt. Anleitung: [AP10_SCHULHANDBUCH.md](docs/AP10_SCHULHANDBUCH.md).
+
 ### Prozesse (AP05–AP08)
 
 - Der Dokumenttyp `schulhandbuch` erlaubt `grundlagenkapitel` und `prozess`; bestehende Typen bleiben erhalten.

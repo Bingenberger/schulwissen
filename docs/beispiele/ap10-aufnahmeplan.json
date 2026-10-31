@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "dokument": "aufnahme-schulhandbuch",
+  "eintraege": [
+    {
+      "kennung": "PR-AUF-01",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Ausflug planen",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "fahrten",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-02",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Eigene Abwesenheit melden",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "abwesenheit",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-03",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: IT-Störung melden",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "it",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-04",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Material bestellen",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "material",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-05",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Vertretung vorbereiten",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "abwesenheit",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-06",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Unfall melden – allgemeiner Ablauf",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "sicherheit",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-07",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Beurlaubung bearbeiten – allgemeines Verfahren",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "eltern",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-08",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Förderanliegen abstimmen – allgemeines Verfahren",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "unterricht",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-09",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Elternanliegen weiterleiten",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "eltern",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    },
+    {
+      "kennung": "PR-AUF-10",
+      "eintragstyp": "prozess",
+      "titel": "Aufnahme offen: Neue Kolleginnen und Kollegen einarbeiten",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Vorschlag zur schulischen Auswahl. Anlass, bestätigte Schritte, Zuständigkeiten, Quellen und blanke Formulare mit den Verantwortlichen aufnehmen. Noch keine Handlungsanweisung.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [],
+          "verbindungen": []
+        }
+      },
+      "wissensangaben": {
+        "aufgabe": "zusammenarbeit",
+        "kurzantwort": "Die fachliche Aufnahme ist offen. Es liegt noch keine bestätigte Handlungsanweisung vor.",
+        "suchbegriffe": "",
+        "inhaltsart": "anleitung",
+        "verbindlichkeit": "ungeklaert",
+        "quelle": "Quelle, fachliche Zuständigkeit und Freigabenachweis noch zu benennen."
+      }
+    }
+  ]
+}

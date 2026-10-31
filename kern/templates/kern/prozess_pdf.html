@@ -7,6 +7,7 @@ h1 { font-size:21pt; } h2 { font-size:16pt; } h3,h4 { font-size:12pt; break-afte
 p,li,a { overflow-wrap:anywhere; } a { color:#111; } .klein { font-size:9pt; }
 .prozess-kontakt { border-left:2pt solid #477426; padding-left:9pt; }
 </style></head><body><p>{{ kennung }} · Schulwissen</p><h1>{{ titel }}</h1>
+{% if pflege.quelle.kurzantwort %}<h2>Kurzantwort</h2><p>{{ pflege.quelle.kurzantwort }}</p>{% endif %}
 {% if prozess.fehler %}<p>{{ prozess.fehler }}</p>{% else %}
 <p>{{ prozess.fassung_text }}. Aktuelle Kontakte: {{ prozess.kontaktstand|date:'d.m.Y, H:i' }}.</p>
 {% if prozess.historisch %}<p>Historische Prozessschritte; die Ansprechpersonen sind aktuell, keine damalige Besetzung.</p>{% endif %}

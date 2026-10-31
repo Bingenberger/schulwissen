@@ -112,7 +112,7 @@ zugeordnet werden; Text im Protokoll allein schaltet keine Inhalte frei.
 
 ## Wissensangaben (AP09)
 
-Optional enthält ein Eintrag `wissensangaben` mit `inhaltsart`, `verbindlichkeit`, `wirksam_ab`, `wirksam_bis`, `geprueft_am`, `pruefen_am`, `quelle`, `pflege_funktion`, `pflege_vertretung` und `ersetzt_durch`. Datumswerte sind ISO-Daten oder `null`. Funktionen verwenden vorhandene aktive Schlüssel; Nachfolger sind Objekte mit `dokument` und `kennung`. Beide Ziele müssen bereits vorhanden und zugänglich sein. Fehlende Wissensangaben bleiben beim Import unverändert. Änderungen erzeugen Arbeitsstände und keine Freigaben. Details und Grenzen: [AP09_WISSENSPFLEGE.md](docs/AP09_WISSENSPFLEGE.md).
+Optional enthält ein Eintrag `wissensangaben` mit `aufgabe`, `kurzantwort`, `suchbegriffe`, `inhaltsart`, `verbindlichkeit`, `wirksam_ab`, `wirksam_bis`, `geprueft_am`, `pruefen_am`, `quelle`, `pflege_funktion`, `pflege_vertretung` und `ersetzt_durch`. Datumswerte sind ISO-Daten oder `null`. Funktionen verwenden vorhandene aktive Schlüssel; Nachfolger sind Objekte mit `dokument` und `kennung`. Beide Ziele müssen bereits vorhanden und zugänglich sein. Fehlende Wissensangaben bleiben beim Import unverändert. Änderungen erzeugen Arbeitsstände und keine Freigaben. Details und Grenzen: [AP09_WISSENSPFLEGE.md](docs/AP09_WISSENSPFLEGE.md).
 
 ## Export und Rundlauf
 
@@ -159,3 +159,5 @@ werden beim Dokumentimport nicht automatisch angelegt oder mit Personen besetzt.
 Wissensverweise verwenden Dokument-Schlüssel und Eintragskennung. Anlagen-IDs
 beziehen sich auf den vorhandenen Datenbestand. Ein Dokumentexport überträgt keine
 Nutzerkonten und ist keine automatische Neuinstallation aller externen Ressourcen.
+
+Die [AP10-Aufnahmevorlage](docs/beispiele/ap10-aufnahmeplan.json) enthält zehn ausdrücklich unvollständige Aufnahmeentwürfe. Sie setzt ein passendes Schulhandbuch voraus, veröffentlicht nichts und ersetzt keine fachliche Bestätigung. Aufgaben verwenden die in der Wissensangaben-Maske angebotenen Schlüssel. Kurzantworten sind auf 600, Suchbegriffe auf 500 Zeichen begrenzt.

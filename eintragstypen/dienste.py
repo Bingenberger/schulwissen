@@ -498,7 +498,13 @@ def _verlinkungen_setzen(eintrag: Eintrag, typ, verweise: dict) -> None:
 def suchtext_bauen(eintrag: Eintrag) -> str:
     """Alles, was zu diesem Eintrag durchsuchbar sein soll, als Klartext."""
     typ = registry.holen(eintrag.eintragstyp)
-    teile: list[str] = [eintrag.kennung, eintrag.titel]
+    teile: list[str] = [
+        eintrag.kennung,
+        eintrag.titel,
+        html.als_text(eintrag.kurzantwort),
+        html.als_text(eintrag.suchbegriffe),
+        eintrag.get_aufgabe_display() if eintrag.aufgabe else "",
+    ]
 
     for feld in typ.datenfelder:
         wert = eintrag.daten.get(feld.schluessel)

@@ -67,7 +67,7 @@ def verzeichnis(request):
     karten = [
         {
             "titel": e.lese_titel,
-            "anlass": e.lese_daten.get("anlass", ""),
+            "anlass": e.lese_kurzantwort or e.lese_daten.get("anlass", ""),
             "dokument": e.dokument.titel,
             "kennung": e.kennung,
             "status": e.lese_status,

@@ -50,6 +50,9 @@ def version_indexieren(version) -> None:
             version.eintrag.kennung,
             version.titel,
             texte(daten),
+            texte(version.kurzantwort),
+            texte(version.suchbegriffe),
+            version.get_aufgabe_display() if version.aufgabe else "",
             texte(verweise),
         ]
     )

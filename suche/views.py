@@ -48,6 +48,7 @@ def vorschlaege(request):
     gefunden = dienste.vorschlaege(request.user, begriff)
     gruppen = []
     for zusatz, name in (
+        ("Handbuch", "Schulhandbuch und Formulare"),
         ("Prozess", "Veröffentlichte Abläufe"),
         ("", "Arbeitspläne & Konzepte"),
         ("Beschluss", "Beschlüsse"),

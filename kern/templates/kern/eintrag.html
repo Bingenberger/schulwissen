@@ -30,6 +30,7 @@
     {% if prozess %}<p class="knopf-reihe"><a class="knopf" href="{% url 'kern:prozesse' %}">Alle veröffentlichten Abläufe</a>{% if darf_prozess_freigeben and angezeigter_status != 'beschlossen' and angezeigter_status != 'archiviert' %}<a class="knopf knopf-wichtig" href="{% url 'kern:prozess_freigeben' dokument.schluessel eintrag.kennung %}">Ablauf freigeben</a>{% endif %}</p>{% endif %}
     <nav class="inhaltsspruenge" aria-label="In diesem Eintrag">{% for block in bloecke %}<a href="#block-{{ forloop.counter }}">{{ block.name }}</a>{% endfor %}</nav>
     {% if zeigt_entwurf and offene_pflichtfelder %}<details class="accordion pflichtfeld-hinweis"><summary>Für „abgestimmt in Gruppe“ fehlen noch Pflichtfelder.</summary><div><ul>{% for feld in offene_pflichtfelder %}<li>{{ feld.label }}</li>{% endfor %}</ul></div></details>{% endif %}
+    {% if pflege.quelle.kurzantwort %}<section class="block"><h2>Kurzantwort{% if pflege.quelle.inhaltsart == 'formular' %} / Verwendungszweck{% endif %}</h2><p>{{ pflege.quelle.kurzantwort|linebreaksbr }}</p></section>{% endif %}
     {% for block in bloecke %}
       <section id="block-{{ forloop.counter }}" class="block{% if block.name == 'Leistung' %} block-leistung{% endif %}">
         <h2>{% if block.name == 'Leistung' %}{% include "kern/_symbol.html" with name="raster" %} {% endif %}{{ block.name }}</h2>

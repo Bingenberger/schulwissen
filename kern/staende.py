@@ -70,7 +70,17 @@ def lesemenge(nutzer, menge, *, nur_beschlossene=False):
 
     menge = rechte.sichtbare_eintraege(nutzer, menge)
     versionen = gueltige_versionen().filter(eintrag_id=OuterRef("pk"))
-    felder = ("titel", "daten", "status", "suchtext", "suchvektor")
+    felder = (
+        "titel",
+        "daten",
+        "status",
+        "suchtext",
+        "suchvektor",
+        "aufgabe",
+        "kurzantwort",
+        "suchbegriffe",
+        "inhaltsart",
+    )
     if nur_beschlossene:
         menge = menge.exclude(status=Status.ARCHIVIERT).filter(
             pk__in=gueltige_versionen().values("eintrag_id")

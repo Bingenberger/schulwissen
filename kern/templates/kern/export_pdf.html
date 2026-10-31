@@ -31,6 +31,7 @@ ins { background:#d9eedc; text-decoration:none; } del { background:#f5dcdc; }
 {% if feld.verweise %}<ul>{% for v in feld.verweise %}<li>{{ v.beschriftung|default:v.ziel_id }}</li>{% endfor %}</ul>
 {% elif feld.html %}{{ feld.html|safe }}{% else %}{{ feld.text|linebreaksbr }}{% endif %}
 </dd>{% endfor %}</dl>{% endfor %}
+{% if z.wissensangaben.kurzantwort %}<h3>Kurzantwort / Verwendungszweck</h3><p>{{ z.wissensangaben.kurzantwort }}</p>{% endif %}{% if z.wissensangaben.aufgabe %}<p>{{ z.wissensangaben.get_aufgabe_display }}</p>{% endif %}
 <h3>Gültigkeit und Quellen</h3><p>{{ z.wissensangaben.get_inhaltsart_display }} · {{ z.wissensangaben.get_verbindlichkeit_display }}</p>
 {% if z.wissensangaben.wirksam_ab %}<p>Wirksam ab {{ z.wissensangaben.wirksam_ab|date:"d.m.Y" }}</p>{% endif %}{% if z.wissensangaben.wirksam_bis %}<p>Wirksam bis einschließlich {{ z.wissensangaben.wirksam_bis|date:"d.m.Y" }}</p>{% endif %}
 {% if z.wissensangaben.geprueft_am %}<p>Zuletzt geprüft {{ z.wissensangaben.geprueft_am|date:"d.m.Y" }}</p>{% endif %}{% if z.wissensangaben.pruefen_am %}<p>Nächste Prüfung {{ z.wissensangaben.pruefen_am|date:"d.m.Y" }} · kein automatisches Außerkrafttreten</p>{% endif %}

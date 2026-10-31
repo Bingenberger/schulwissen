@@ -386,7 +386,24 @@ class Status(models.TextChoices):
 STATUS_VOR_BESCHLUSS = (Status.IDEE, Status.ENTWURF, Status.ABGESTIMMT)
 
 
+AUFGABENBEREICHE = [
+    ("fahrten", "Ausflüge und Veranstaltungen"),
+    ("abwesenheit", "Eigene Abwesenheit und Vertretung"),
+    ("it", "IT und Medien"),
+    ("material", "Material und Räume"),
+    ("unterricht", "Unterricht und Förderung"),
+    ("eltern", "Eltern und Kommunikation"),
+    ("sicherheit", "Sicherheit und Hilfe"),
+    ("zeugnisse", "Leistung und Zeugnisse"),
+    ("uebergaenge", "Einschulung und Übergänge"),
+    ("zusammenarbeit", "Zusammenarbeit und Organisation"),
+]
+
+
 PFLEGE_FELDER = (
+    "aufgabe",
+    "kurzantwort",
+    "suchbegriffe",
     "inhaltsart",
     "verbindlichkeit",
     "wirksam_ab",
@@ -403,6 +420,15 @@ PFLEGE_FELDER = (
 class Wissensangaben(models.Model):
     """Versionierte fachliche Angaben; Zugangsrechte bleiben am Dokument."""
 
+    aufgabe = models.CharField(
+        "Schulische Aufgabe", max_length=30, choices=AUFGABENBEREICHE, blank=True, default=""
+    )
+    kurzantwort = models.TextField(
+        "Kurzantwort / Verwendungszweck", max_length=600, blank=True, default=""
+    )
+    suchbegriffe = models.CharField(
+        "Schlagwörter und Synonyme", max_length=500, blank=True, default=""
+    )
     inhaltsart = models.CharField(
         "Inhaltsart",
         max_length=25,
@@ -786,7 +812,9 @@ class Eintragsversion(Wissensangaben):
         version_indexieren(self)
         if self.status == Status.BESCHLOSSEN and self.beschluss_id:
             from kern.dateifassungen import sichern
+            from kern.handbuch import formular_pruefen
 
+            formular_pruefen(self)
             sichern(self)
         return ergebnis
 

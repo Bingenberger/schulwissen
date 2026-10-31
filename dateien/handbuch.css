@@ -1,0 +1,9 @@
+.handbuch-karten { display:grid; gap:var(--abstand-4); }
+.handbuch-karten .karte { min-width:0; overflow-wrap:anywhere; }
+.handbuch-aufgaben nav { display:flex; flex-wrap:wrap; gap:var(--abstand-2); padding:var(--abstand-3) 0; }
+.handbuch-aufgaben a { display:block; padding:var(--abstand-2) var(--abstand-3); min-height:var(--klickflaeche); border:1px solid var(--linie); border-radius:var(--radius); text-decoration:none; }
+.handbuch-aufgaben a[aria-current] { background:var(--akzent-leise); color:var(--akzent); border-color:var(--akzent); font-weight:600; }
+.handbuch-kurzantwort { font-size:var(--schrift-abschnitt); }
+.handbuch-materialien { list-style:none; padding:0; }
+.handbuch-materialien .knopf { white-space:normal; text-align:left; overflow-wrap:anywhere; }
+@media print { .handbuch-aufgaben, .handbuch form, .handbuch>nav, .handbuch>details:not(.handbuch-aufgaben) { display:none; } }

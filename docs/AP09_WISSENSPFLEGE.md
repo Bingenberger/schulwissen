@@ -2,6 +2,8 @@
 
 Stand: 31.10.2026. AP09 erweitert das vorhandene Wissens- und Freigabemodell. Inhaltsart, Verbindlichkeit, Dokumentzugang und Bearbeitungsstand sind getrennte Angaben. Vorhandene Inhalte werden nicht automatisch als verbindliche Schulregel eingeordnet.
 
+Seit [AP10](AP10_SCHULHANDBUCH.md) gehören Aufgabe, Kurzantwort und Suchbegriffe ebenfalls zu diesen versionierten Wissensangaben.
+
 ## Wissensangaben pflegen
 
 Berechtigte Bearbeitende öffnen am Eintrag **Wissensangaben bearbeiten**. Die Angaben gelten für genau diese Inhaltsfassung:

@@ -39,7 +39,7 @@ Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
 Coding-Sitzungen. AP01–AP07 (Lesefassungen, Dokumentzugänge, Schreibschutz,
-Schulfunktionen, Prozessdaten, Autoreneditor und Leseansichten) sind umgesetzt; AP08 ergänzt Veröffentlichung und Prozesssuche. AP09 ergänzt [Gültigkeit, Quellen und Wissenspflege](docs/AP09_WISSENSPFLEGE.md) sowie verbindliche Dateikopien. Die echte fachliche Pilotabnahme bleibt offen.
+Schulfunktionen, Prozessdaten, Autoreneditor und Leseansichten) sind umgesetzt; AP08 ergänzt Veröffentlichung und Prozesssuche. AP09 ergänzt [Gültigkeit, Quellen und Wissenspflege](docs/AP09_WISSENSPFLEGE.md) sowie verbindliche Dateikopien. [AP10](docs/AP10_SCHULHANDBUCH.md) ergänzt Handbuch nach Aufgaben, Kurzantworten/Synonyme und das Formularverzeichnis mit geschützten Downloads. Die Aufnahme zehn echter Schulabläufe und die fachliche Pilotabnahme bleiben offen; nächstes Coding-Paket ist **AP11**.
 Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit

@@ -11,6 +11,7 @@ from kern import (
     export_views,
     funktionen,
     gestaltung,
+    handbuch,
     import_views,
     oidc,
     planung,
@@ -25,6 +26,8 @@ from kern import (
 app_name = "kern"
 
 urlpatterns = [
+    path("handbuch", handbuch.verzeichnis, name="handbuch"),
+    path("formulare", handbuch.formulare, name="formulare"),
     path("wissenspflege", wissenspflege.uebersicht, name="wissenspflege"),
     path("dateifassung/<int:pk>", dateifassungen.download, name="dateifassung"),
     path(

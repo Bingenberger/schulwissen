@@ -1,7 +1,8 @@
 """Die Suche – das Herzstück der App (SPEC.md §9).
 
-Gesucht wird in fünf Gruppen: veröffentlichte Abläufe, Arbeitspläne und Konzepte,
-Konferenzbeschlüsse, Kompetenzerwartungen und Dateien. Je Treffer gibt es Titel, Kontext
+Gesucht wird in sechs Gruppen: Schulhandbuch/Formulare, veröffentlichte Abläufe,
+Arbeitspläne und Konzepte, Konferenzbeschlüsse, Kompetenzerwartungen und Dateien.
+Je Treffer gibt es Titel, Kontext
 („Arbeitsplan Deutsch › 2.1 › V-3-01“), einen Trefferausschnitt mit
 Hervorhebung und ein Status-Schild.
 
@@ -188,6 +189,7 @@ def suchen(
     prozessmenge = _gefiltert(nutzer, dokument, status, jahrgang, fach, prozesse=True)
 
     bauer = {
+        "handbuch": lambda: _handbuch_suchen(nutzer, begriff, dokument, status, jahrgang, fach),
         "prozesse": lambda: _prozesse_suchen(nutzer, prozessmenge, begriff),
         "eintraege": lambda: _eintraege_suchen(nutzer, grundmenge, begriff, wortlaut),
         "beschluesse": lambda: _beschluesse_suchen(nutzer, begriff, wortlaut),
@@ -242,7 +244,9 @@ def _gefiltert(nutzer, dokument: str, status: str, jahrgang: str, fach: str, *, 
 
 
 def _eintraege_suchen(nutzer, menge, begriff: str, wortlaut: bool = False) -> Gruppe:
-    menge = menge.exclude(eintragstyp="prozess")
+    from kern.handbuch import kanonisch
+
+    menge = menge.exclude(eintragstyp="prozess").exclude(pk__in=kanonisch().values("pk"))
     if wortlaut:
         treffer = (
             menge.filter(Q(lese_titel__icontains=begriff) | Q(lese_suchtext__icontains=begriff))
@@ -277,6 +281,36 @@ def _eintraege_suchen(nutzer, menge, begriff: str, wortlaut: bool = False) -> Gr
                 status=eintrag.lese_status,
                 status_text=Status(eintrag.lese_status).label,
                 zusatz=eintrag.typ.name if eintrag.typ else "",
+            )
+        )
+    return gruppe
+
+
+def _handbuch_suchen(nutzer, begriff, dokument="", status="", jahrgang="", fach=""):
+    from kern import handbuch
+
+    menge = handbuch.menge(nutzer).exclude(eintragstyp="prozess")
+    if dokument:
+        menge = menge.filter(dokument__schluessel=dokument)
+    if status:
+        menge = menge.filter(lese_status=status)
+    if jahrgang.isdigit():
+        menge = menge.filter(lese_daten__jahrgang=int(jahrgang))
+    if fach:
+        menge = menge.filter(dokument__fach=fach)
+    treffer = handbuch.suchen(menge, begriff).order_by("lese_titel", "pk")
+    gruppe = Gruppe("handbuch", "Schulhandbuch und Formulare", gesamt=treffer.count())
+    for e in treffer[:TREFFER_JE_GRUPPE]:
+        gruppe.treffer.append(
+            Treffer(
+                titel=e.lese_titel,
+                url=handbuch.leselink(e),
+                kontext=e.dokument.titel,
+                ausschnitt=escape(e.lese_kurzantwort[:600]),
+                kennung=e.kennung,
+                status=Status.BESCHLOSSEN,
+                status_text="Veröffentlicht",
+                zusatz="Handbuch",
             )
         )
     return gruppe
@@ -449,8 +483,11 @@ def _dateien_suchen(
 
 def _aehnlich_suchen(nutzer, menge, begriff: str) -> Gruppe:
     """Letzter Versuch: ähnlich geschriebene Titel und Kennungen."""
+    from kern.handbuch import kanonisch
+
     treffer = (
         menge.exclude(eintragstyp="prozess")
+        .exclude(pk__in=kanonisch().values("pk"))
         .annotate(
             naehe=Greatest(
                 TrigramWordSimilarity(begriff, "lese_titel"),
@@ -494,12 +531,20 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
     if len(begriff) < MINDESTLAENGE:
         return []
 
-    from kern import prozesse
+    from kern import handbuch, prozesse
 
-    gefunden = _prozesse_suchen(nutzer, prozesse.menge(nutzer), begriff).treffer[:anzahl]
+    gefunden = _handbuch_suchen(nutzer, begriff).treffer[:anzahl]
+    gefunden.extend(
+        _prozesse_suchen(nutzer, prozesse.menge(nutzer), begriff).treffer[: anzahl - len(gefunden)]
+    )
 
     eintraege = (
-        lesemenge(nutzer, Eintrag.objects.exclude(eintragstyp="prozess"))
+        lesemenge(
+            nutzer,
+            Eintrag.objects.exclude(eintragstyp="prozess").exclude(
+                pk__in=handbuch.kanonisch().values("pk")
+            ),
+        )
         .select_related("dokument", "eltern")
         .annotate(
             naehe=Greatest(

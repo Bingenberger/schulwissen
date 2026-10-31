@@ -30,6 +30,7 @@
     </p>
 
     {% if prozess %}<nav class="knopf-reihe" aria-label="Abläufe und Fassungen"><a class="knopf" href="{% url 'kern:prozesse' %}">Alle veröffentlichten Abläufe</a>{% if not ist_nur_lesend %}<a class="knopf" href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">Arbeitsstand ansehen</a>{% endif %}</nav>{% endif %}
+    {% if pflege.quelle.kurzantwort %}<section class="block"><h2>Kurzantwort{% if pflege.quelle.inhaltsart == 'formular' %} / Verwendungszweck{% endif %}</h2><p>{{ pflege.quelle.kurzantwort|linebreaksbr }}</p></section>{% endif %}
     {% for block in bloecke %}
       <section class="block{% if block.name == 'Leistung' %} block-leistung{% endif %}">
         <h2>{{ block.name }}</h2>

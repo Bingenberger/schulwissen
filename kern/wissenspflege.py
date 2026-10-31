@@ -28,7 +28,14 @@ class PflegeFormular(forms.ModelForm):
             f: forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
             for f in ["wirksam_ab", "wirksam_bis", "geprueft_am", "pruefen_am"]
         }
+        widgets["kurzantwort"] = forms.Textarea(attrs={"rows": 3})
         help_texts = {
+            "aufgabe": "Ordne den Inhalt einem Einstieg im Schulhandbuch zu.",
+            "kurzantwort": "Was muss ich wissen? Bei Formularen: Wofür ist die Vorlage?",
+            "suchbegriffe": (
+                "Gebräuchliche Wörter und alternative Bezeichnungen, "
+                "zum Beispiel IT-Störung, Computer, Support."
+            ),
             "pruefen_am": "Ein fälliger Prüftermin setzt einen Inhalt nicht außer Kraft.",
             "quelle": (
                 "Maßgebliche Quellen und überprüfbare Versionsnachweise; keine "
