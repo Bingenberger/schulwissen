@@ -1,6 +1,6 @@
 # Prozesswerkzeug: Abläufe erklären und Zuständigkeiten auflösen
 
-Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Das Funktionsmodell aus AP04 ist umgesetzt; Prozessdaten, Editor, Grafik und Veröffentlichung aus AP05–AP08 sind weiterhin geplant.
+Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Funktionsmodell und Prozessdaten aus AP04–AP05 sind umgesetzt. Editor, Grafik und durchgängige Veröffentlichung samt Pilot aus AP06–AP08 sind weiterhin geplant.
 
 ## 1. Nutzerziel
 
@@ -65,9 +65,9 @@ Zeitliche Überschneidungen und das Verhältnis Hauptzuständigkeit/Vertretung s
 
 ## 3. Prozess und gespeicherte Fassungen
 
-Ein Prozess nutzt die bestehende Einheit **Dokument → Eintrag → Eintragsversion**. Vorgesehen sind ein Schulhandbuch-Dokumenttyp und ein Eintragstyp `prozess`, beispielsweise mit Kennungen `PR-01`. Die genaue Migration ergänzt die vorhandene Registry und die Dokumentanlage.
+Ein Prozess nutzt die bestehende Einheit **Dokument → Eintrag → Eintragsversion**. AP05 ergänzt den Schulhandbuch-Dokumenttyp und den Eintragstyp `prozess`, beispielsweise mit Kennungen `PR-01`. Datenvertrag, Prüfung und weitere Schnittstellen: [AP05_PROZESSDATEN.md](AP05_PROZESSDATEN.md).
 
-Geplante Angaben:
+Angaben der Datenbasis und geplanter weiterer Ausbau:
 
 - Titel, Anlass/Kurzantwort, Zielgruppe, Schlagwörter und gegebenenfalls Synonyme.
 - Inhaltliche Pflegefunktion und fachlicher Freigabeweg.

@@ -660,6 +660,7 @@ class Eintragsversion(models.Model):
     def __str__(self) -> str:
         return f"{self.eintrag.kennung} – Fassung {self.versionsnummer}"
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         if self.pk is not None:
             vorher = Eintragsversion.objects.filter(pk=self.pk).values("status").first()
@@ -671,6 +672,18 @@ class Eintragsversion(models.Model):
                     f"Fassung {self.versionsnummer} von {self.eintrag.kennung} ist beschlossen "
                     "und kann nicht geändert werden. Bearbeiten erzeugt eine neue Fassung."
                 )
+        if self.eintrag.eintragstyp == "prozess":
+            from kern import prozessdaten
+
+            graph = prozessdaten.normalisieren(
+                self.daten.get("ablauf", {"schema_version": 1, "knoten": [], "verbindungen": []})
+            )
+            ziele = (
+                prozessdaten.freigabe_pruefen(self.daten)
+                if self.status == Status.BESCHLOSSEN
+                else prozessdaten.referenzen(graph)
+            )
+            self.verlinkungen = prozessdaten.schnappschuss_verweise(ziele, self.verlinkungen or [])
         if self.status == Status.BESCHLOSSEN and self.beschluss_id:
             self.freigegeben_am = timezone.now()
         ergebnis = super().save(*args, **kwargs)
@@ -765,6 +778,8 @@ class Beschluss(Zeitstempel):
 
 
 class Zieltyp(models.TextChoices):
+    SCHULFUNKTION = "schulfunktion", "Schulfunktion"
+    FUNKTIONSBEREICH = "funktionsbereich", "Funktionsbereich"
     EINTRAG = "eintrag", "Eintrag"
     KOMPETENZ = "kompetenz", "Kompetenzerwartung"
     ANHANG = "anhang", "Anhang"
@@ -773,6 +788,7 @@ class Zieltyp(models.TextChoices):
 
 
 class Verlinkungsart(models.TextChoices):
+    PROZESS_BEZUG = "prozess_bezug", "Prozessbezug"
     VERWEIST_AUF = "verweist_auf", "verweist auf"
     NUTZT = "nutzt", "nutzt"
     ERSETZT = "ersetzt", "ersetzt"
@@ -1066,9 +1082,14 @@ class Funktionsbereich(models.Model):
         self.name = " ".join(self.name.split())
         self.schluessel = self.schluessel.strip().lower()
         vorher = type(self).objects.filter(pk=self.pk).first()
+        from kern.prozessdaten import wird_verwendet
+
         if vorher and (
             vorher.schluessel != self.schluessel
-            or (vorher.name != self.name and self.besetzungen.exists())
+            or (
+                vorher.name != self.name
+                and (self.besetzungen.exists() or wird_verwendet(Zieltyp.FUNKTIONSBEREICH, self.pk))
+            )
         ):
             raise ValidationError(
                 "Verwendete Bereiche behalten ihre Bedeutung. Bitte lege für eine neue "
@@ -1151,11 +1172,29 @@ class Schulfunktion(Zeitstempel):
         if vorher:
             if vorher.schluessel != self.schluessel:
                 raise ValidationError({"schluessel": "Die Kennung bleibt dauerhaft bestehen."})
-            if vorher.besetzungsmodus != self.besetzungsmodus and self.besetzungen.exists():
+            from kern.prozessdaten import wird_verwendet
+
+            if (
+                self.archiviert
+                and not vorher.archiviert
+                and wird_verwendet(Zieltyp.SCHULFUNKTION, self.pk, nur_gueltig=True)
+            ):
+                raise ValidationError(
+                    {
+                        "archiviert": (
+                            "Diese Funktion wird in gültigen Prozessfassungen verwendet. "
+                            "Ändere zuerst die betroffenen Abläufe."
+                        )
+                    }
+                )
+            if vorher.besetzungsmodus != self.besetzungsmodus and (
+                self.besetzungen.exists() or wird_verwendet(Zieltyp.SCHULFUNKTION, self.pk)
+            ):
                 raise ValidationError(
                     {
                         "besetzungsmodus": (
-                            "Bei vorhandenen Besetzungen bleibt der Modus erhalten. "
+                            "Bei vorhandenen Besetzungen oder Prozessbezügen bleibt "
+                            "der Modus erhalten. "
                             "Lege bei geänderter Bedeutung eine neue Funktion an."
                         )
                     }

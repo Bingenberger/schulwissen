@@ -37,7 +37,13 @@ class DokumentFormular(forms.ModelForm):
             *Fach.objects.values_list("schluessel", "name"),
         ]
         self.fields["dokumenttyp"].queryset = Dokumenttyp.objects.filter(
-            schluessel__in=["arbeitsplan_deutsch", "arbeitsplan", "konzept", "protokoll"]
+            schluessel__in=[
+                "arbeitsplan_deutsch",
+                "arbeitsplan",
+                "konzept",
+                "protokoll",
+                "schulhandbuch",
+            ]
         )
 
     def clean(self):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -148,16 +148,23 @@ def beschluss_anlegen(request):
         if formular.is_valid():
             beschluss = formular.save(commit=False)
             beschluss.erstellt_von = request.user
-            beschluss.save()
-            bericht = beschluesse.beschluss_fassen(beschluss, eintraege, nutzer=request.user)
-            messages.success(
-                request,
-                f"Beschluss eingetragen: {bericht.beschlossen} Fassungen sind jetzt gültig, "
-                f"{bericht.archiviert} ältere wurden archiviert.",
-            )
-            for hinweis in bericht.uebersprungen:
-                messages.warning(request, hinweis)
-            return redirect("kern:beschluss", beschluss_id=beschluss.pk)
+            try:
+                with transaction.atomic():
+                    beschluss.save()
+                    bericht = beschluesse.beschluss_fassen(
+                        beschluss, eintraege, nutzer=request.user
+                    )
+            except ValidationError as fehler:
+                formular.add_error(None, " ".join(fehler.messages))
+            else:
+                messages.success(
+                    request,
+                    f"Beschluss eingetragen: {bericht.beschlossen} Fassungen sind jetzt gültig, "
+                    f"{bericht.archiviert} ältere wurden archiviert.",
+                )
+                for hinweis in bericht.uebersprungen:
+                    messages.warning(request, hinweis)
+                return redirect("kern:beschluss", beschluss_id=beschluss.pk)
     else:
         formular = BeschlussFormular(nutzer=request.user)
 

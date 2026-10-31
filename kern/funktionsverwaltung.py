@@ -128,6 +128,7 @@ class SchulfunktionAdmin(RevisionAdmin):
             *(["schluessel"] if obj else []),
             *(["besetzungsmodus"] if obj and obj.besetzungen.exists() else []),
             "besetzungen_anzeigen",
+            "prozessverwendungen",
         ]
 
     def get_prepopulated_fields(self, request, obj=None):
@@ -144,6 +145,45 @@ class SchulfunktionAdmin(RevisionAdmin):
             obj.pk,
             reverse("admin:kern_funktionsbesetzung_add"),
             obj.pk,
+        )
+
+    @admin.display(description="Verwendung in Prozessen (auch frühere Fassungen)")
+    def prozessverwendungen(self, obj):
+        from django.db.models import Q
+        from django.utils.html import format_html_join
+
+        from kern.models import Eintrag, Zieltyp
+        from kern.prozessdaten import FELD
+
+        if not obj or not obj.pk:
+            return "Nach dem Speichern verfügbar."
+        ziel = {"ziel_typ": Zieltyp.SCHULFUNKTION, "ziel_id": str(obj.pk), "feld": FELD}
+        eintraege = (
+            Eintrag.objects.filter(
+                Q(
+                    verlinkungen__ziel_typ=Zieltyp.SCHULFUNKTION,
+                    verlinkungen__ziel_id=str(obj.pk),
+                    verlinkungen__feld=FELD,
+                )
+                | Q(versionen__verlinkungen__contains=[ziel])
+            )
+            .distinct()
+            .select_related("dokument")
+        )
+        return (
+            format_html_join(
+                " · ",
+                '<a href="{}">{}: {}</a>',
+                (
+                    (
+                        reverse("kern:eintrag", args=[e.dokument.schluessel, e.kennung]),
+                        e.kennung,
+                        e.titel,
+                    )
+                    for e in eintraege
+                ),
+            )
+            or "Noch in keinem Prozess verwendet."
         )
 
 

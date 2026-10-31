@@ -65,6 +65,25 @@ def beschluss_fassen(beschluss: Beschluss, eintraege, nutzer=None) -> Beschlussb
         not rechte.darf_beschliessen(nutzer, e.dokument) for e in eintraege
     ):
         raise PermissionDenied("Für mindestens ein Dokument fehlt die Freigabeberechtigung.")
+    # Vor jeder Freigabe den tatsächlich gewählten Schnappschuss prüfen.
+    # Auch bei mehreren Einträgen darf kein Teilbeschluss zurückbleiben.
+    from kern.models import Schulfunktion
+    from kern.prozessdaten import freigabe_pruefen, normalisieren
+
+    prozessversionen = [e.letzte_version() for e in eintraege if e.eintragstyp == "prozess"]
+    funktionen = set()
+    for version in prozessversionen:
+        if version is not None:
+            graph = normalisieren(
+                version.daten.get("ablauf", {"schema_version": 1, "knoten": [], "verbindungen": []})
+            )
+            funktionen.update(k["funktion"] for k in graph["knoten"] if k.get("funktion"))
+    # Auch über mehrere Prozesse global dieselbe Sperrreihenfolge verwenden.
+    list(Schulfunktion.objects.select_for_update().filter(schluessel__in=funktionen).order_by("pk"))
+    for version in prozessversionen:
+        if version is not None:
+            freigabe_pruefen(version.daten, nutzer=nutzer)
+
     # Der Rahmen bleibt auch erhalten, wenn später eine Freigabe zurückgenommen wird.
     dokument_ids = {e.dokument_id for e in eintraege}
     if beschluss.protokoll_eintrag_id:

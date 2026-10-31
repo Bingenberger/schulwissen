@@ -126,7 +126,7 @@ class EintragAdminFormular(forms.ModelForm):
             fassung_stand=daten.get("fassung_stand"),
             quelle="Verwaltung",
         )
-        self.befundsatz = dienste.pruefen(dokument, roh)
+        self.befundsatz = dienste.pruefen(dokument, roh, nutzer=self.nutzer)
         for befund in self.befundsatz.fehler:
             self.add_error("daten", befund.text)
         if status == Status.ABGESTIMMT and self.befundsatz.fehlende_pflichtfelder:

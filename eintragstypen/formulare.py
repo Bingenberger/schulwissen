@@ -66,6 +66,11 @@ def _formularfeld(feld):
         "required": False,
     }
 
+    if feld.typ == Feldtyp.PROZESSGRAPH:
+        # AP05 stellt die Datenbasis bereit; der schrittweise Editor folgt in AP06.
+        # Keine verpflichtende JSON-Eingabe für Kolleginnen und keine Serialisierung
+        # eines Textfelds zurück in den Graphen.
+        return forms.CharField(disabled=True, widget=forms.Textarea(attrs={"rows": 8}), **gemeinsam)
     if feld.typ == Feldtyp.DATUM:
         return forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), **gemeinsam)
 
@@ -148,7 +153,9 @@ class EintragFormular(forms.Form):
             wert = eintrag.daten.get(feld.schluessel)
             if feld.typ == Feldtyp.JANEIN and isinstance(wert, bool):
                 wert = "ja" if wert else "nein"
-            self.fields[DATEN + feld.schluessel].initial = wert
+            self.fields[DATEN + feld.schluessel].initial = (
+                feld.anzeige(wert) if feld.typ == Feldtyp.PROZESSGRAPH and wert else wert
+            )
         for feld in self.typ.verlinkungsfelder:
             ziele = eintrag.verlinkungen.filter(art=feld.verlinkungsart, feld=feld.schluessel)
             kennungen = [
@@ -209,6 +216,8 @@ class EintragFormular(forms.Form):
             if feld.ist_berechnet:
                 continue
             wert = self.cleaned_data.get(DATEN + feld.schluessel)
+            if feld.typ == Feldtyp.PROZESSGRAPH:
+                wert = self.eintrag.daten.get(feld.schluessel) if self.eintrag else None
             if wert in (None, "", []):
                 continue
             daten[feld.schluessel] = wert

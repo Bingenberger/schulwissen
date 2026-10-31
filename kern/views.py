@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Count, Q
 from django.http import FileResponse, Http404, HttpResponse
@@ -534,7 +534,7 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
             )
             return None
 
-    befundsatz = dienste.pruefen(dokument, roh)
+    befundsatz = dienste.pruefen(dokument, roh, nutzer=request.user)
     if not befundsatz.ok:
         for befund in befundsatz.fehler:
             formular.add_error(None, befund.text)
@@ -575,6 +575,9 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
         )
     except Schreibkonflikt as fehler:
         _schreibkonflikt_anzeigen(request, eintrag, formular, befundsatz, fehler)
+        return None
+    except ValidationError as fehler:
+        formular.add_error(None, " ".join(fehler.messages))
         return None
 
     if gespeichert.verantwortlich_gruppe_id is None and eintrag is None:

@@ -137,3 +137,19 @@ Eine **Beschlussvorlage als PDF** laden Redaktion und Administration über
 **Beschlussvorlage → Einträge auswählen → Auswahl als PDF herunterladen**.
 Sie enthält die ausgewählten abgestimmten Einträge und, soweit vorhanden,
 deren Änderungen gegenüber dem letzten Beschluss.
+
+## Prozesse im Schulhandbuch (AP05)
+
+Der Eintragstyp `prozess` besitzt `anlass`, `zielgruppe`, `schlagwoerter` und den
+strukturierten Wert `daten.ablauf` mit eigener `schema_version: 1`. Unvollständige,
+strukturell sichere Abläufe bleiben als Entwurf importierbar. Doppelte IDs,
+unzulässige Ziele und unbekannte Schema-Versionen verhindern jede Übernahme.
+Zum Abstimmen und Beschließen müssen alle Graphprüfungen erfüllt sein.
+
+Das [Schema und die Grenzen](docs/AP05_PROZESSDATEN.md) sowie ein
+[fiktives Beispiel](docs/beispiele/prozess-ap05.json) beschreiben den Vertrag.
+Vorhandene Schulfunktionen werden über stabile Schlüssel referenziert; sie
+werden beim Dokumentimport nicht automatisch angelegt oder mit Personen besetzt.
+Wissensverweise verwenden Dokument-Schlüssel und Eintragskennung. Anlagen-IDs
+beziehen sich auf den vorhandenen Datenbestand. Ein Dokumentexport überträgt keine
+Nutzerkonten und ist keine automatische Neuinstallation aller externen Ressourcen.

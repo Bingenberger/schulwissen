@@ -1,4 +1,4 @@
-"""Zusätzliche Dokumenttypen: Konzepte und Konferenzprotokolle."""
+"""Zusätzliche Dokumenttypen: Konzepte, Konferenzprotokolle und Schulhandbuch."""
 
 from eintragstypen.registry import Block, Eintragstyp, Feld, Feldtyp, registry
 
@@ -28,8 +28,32 @@ registry.registrieren(
     )
 )
 
+registry.registrieren(
+    Eintragstyp(
+        schluessel="prozess",
+        name="Prozess",
+        name_plural="Prozesse",
+        kennung_muster="PR-{nr:02d}",
+        beschreibung="Allgemeiner schulischer Ablauf mit Entscheidungen und Zuständigkeiten.",
+        felder=(
+            Feld("anlass", "Anlass und Ziel", Feldtyp.LANGTEXT, Block.UEBERBLICK, pflicht=True),
+            Feld("zielgruppe", "Für wen?", block=Block.UEBERBLICK),
+            Feld("schlagwoerter", "Schlagwörter", block=Block.UEBERBLICK),
+            Feld(
+                "ablauf",
+                "Ablauf",
+                Feldtyp.PROZESSGRAPH,
+                Block.UEBERBLICK,
+                pflicht=True,
+                hilfe="Der Ablauf ist hier zur Ansicht dargestellt.",
+            ),
+        ),
+    )
+)
+
 DOKUMENTTYPEN = {
     "arbeitsplan": ("Arbeitsplan", ["grundlagenkapitel", "ritual", "vorhaben"]),
+    "schulhandbuch": ("Schulhandbuch", ["grundlagenkapitel", "prozess"]),
     "konzept": ("Konzept", ["grundlagenkapitel"]),
     "protokoll": ("Konferenzprotokoll", ["protokollkopf", "tagesordnungspunkt"]),
 }

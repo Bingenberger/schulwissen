@@ -30,7 +30,7 @@ class Importbericht:
         return "\n".join(zeilen)
 
 
-def pruefen_json(inhalt, dokument):
+def pruefen_json(inhalt, dokument, nutzer=None):
     bericht = Importbericht()
     if not isinstance(inhalt, dict) or inhalt.get("dokument") != dokument.schluessel:
         bericht.fehler.append("Der Dokument-Schlüssel passt nicht zum Zieldokument.")
@@ -127,7 +127,7 @@ def pruefen_json(inhalt, dokument):
             fassung_stand=stand,
             quelle="JSON-Import",
         )
-        satz = pruefen(dokument, roh, entstehende_kennungen=kennungen)
+        satz = pruefen(dokument, roh, entstehende_kennungen=kennungen, nutzer=nutzer)
         # Ein Import darf die Vollständigkeitsprüfung beim Abstimmen nicht umgehen.
         if (
             roh.status in (Status.ABGESTIMMT, Status.BESCHLOSSEN, Status.ARCHIVIERT)
@@ -176,7 +176,7 @@ def uebernehmen_json(inhalt, dokument, nutzer=None, erwarteter_stand=None):
                 "Das Dokument wurde seit der Vorschau geändert. "
                 "Bitte prüfe die erneuerte Vorschau; es wurde nichts importiert."
             )
-    bericht = pruefen_json(inhalt, dokument)
+    bericht = pruefen_json(inhalt, dokument, nutzer=nutzer)
     if not bericht.ok:
         return bericht
     # Erst alle Kennungen bereitstellen: auch gegenseitige Verweise sind erlaubt.
@@ -193,7 +193,7 @@ def uebernehmen_json(inhalt, dokument, nutzer=None, erwarteter_stand=None):
     zuordnung = {e.kennung: e for e in dokument.eintraege.all()}
     rohzeilen = {z["kennung"]: z for z in inhalt["eintraege"]}
     for satz in bericht.saetze:
-        frisch = pruefen(dokument, satz.roh)
+        frisch = pruefen(dokument, satz.roh, nutzer=nutzer)
         if not frisch.ok:
             raise ValidationError("Der Datensatz ist während des Imports ungültig geworden.")
         eintrag = speichern(dokument, frisch, nutzer=nutzer)

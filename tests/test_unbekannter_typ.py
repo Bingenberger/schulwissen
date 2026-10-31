@@ -63,6 +63,7 @@ def test_das_feld_bietet_eine_auswahl_an():
         "vorhaben",
         "protokollkopf",
         "tagesordnungspunkt",
+        "prozess",
     }
     assert moegliche == {s for s, _ in registry.auswahl()}
 

@@ -109,6 +109,14 @@ Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 - Lesende sehen standardmäßig die zuletzt beschlossene Fassung; Bearbeitende sehen zusätzlich den Entwurf mit Unterschieden (Diff-Ansicht).
 - Seit AP03 prüfen Eingabemaske und Verwaltung einen signierten Ausgangsstand unter derselben Datenbanksperre wie die Speicherung. Konflikte erhalten die eigene Eingabe und erfordern einen Vergleich mit ausdrücklich bestätigter Auflösung. JSON-Vorschau und Übernahme sind an Importinhalt und Dokumentstand gebunden; Details: [AP03_SCHREIBSCHUTZ.md](docs/AP03_SCHREIBSCHUTZ.md).
 
+### Prozesse (AP05)
+
+- Der Dokumenttyp `schulhandbuch` erlaubt `grundlagenkapitel` und `prozess`; bestehende Typen bleiben erhalten.
+- Prozesse speichern Anlass, Zielgruppe, Schlagwörter und einen Graphen mit eigener Schema-Version. Start, Handlung, Entscheidung, Ende und beschriftete Verbindungen einschließlich expliziter Rücksprünge verwenden stabile IDs.
+- Strukturprüfung gilt für Entwürfe; vor Abstimmung und Freigabe gelten zusätzliche Vollständigkeits-, Erreichbarkeits-, Kreis- und Referenzprüfungen. Freigaben werden in den bestehenden Beschluss- und Versionswegen abgesichert.
+- Prozessdaten bleiben Teil von `Eintrag.daten` und `Eintragsversion`, einschließlich bestehendem Schreibschutz, Fassungsvergleich und Suchsichtbarkeit. Funktions-/Bereichs-/Ressourcenbezüge stehen zusätzlich in der gemeinsamen Referenzverwaltung.
+- Ablauftext ist vorerst in der normalen Maske nur lesbar; der Editor folgt AP06, Grafik und geführte Ansicht AP07. Schema und Übergabe: [AP05_PROZESSDATEN.md](docs/AP05_PROZESSDATEN.md).
+
 ### Beschluss
 - `datum`, `gremium` (Lehrerkonferenz, Fachkonferenz Deutsch, Schulkonferenz, Steuergruppe …), `titel`, `text`
 - `protokoll` (Verweis auf ein Protokoll-Dokument oder Anhang, optional)

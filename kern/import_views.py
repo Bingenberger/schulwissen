@@ -67,10 +67,10 @@ def json_import(request, schluessel):
                     inhalt, dokument, nutzer=request.user, erwarteter_stand=stand["stand"]
                 )
             else:
-                bericht = pruefen_json(inhalt, dokument)
+                bericht = pruefen_json(inhalt, dokument, nutzer=request.user)
         except Schreibkonflikt as fehler:
             konflikt = str(fehler)
-            bericht = pruefen_json(inhalt, dokument)
+            bericht = pruefen_json(inhalt, dokument, nutzer=request.user)
         if uebernehmen and bericht.ok and not konflikt:
             messages.success(request, f"{bericht.geschrieben} Einträge importiert.")
             return redirect("kern:dokument", schluessel=schluessel)

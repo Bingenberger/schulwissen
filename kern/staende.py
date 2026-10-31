@@ -93,6 +93,18 @@ def sichtbare_verweise(nutzer, verweise):
             )
         )
     }
+    from kern.models import Anhang
+
+    anhang_ids = [
+        str(v.get("ziel_id"))
+        for v in verweise
+        if v.get("ziel_typ") == Zieltyp.ANHANG and str(v.get("ziel_id")).isdigit()
+    ]
+    anhaenge = (
+        {str(a.pk): a for a in sichtbare_anhaenge(nutzer, Anhang.objects.filter(pk__in=anhang_ids))}
+        if anhang_ids
+        else {}
+    )
     ergebnis = []
     for v in verweise:
         if v.get("ziel_typ") == Zieltyp.EINTRAG:
@@ -100,6 +112,11 @@ def sichtbare_verweise(nutzer, verweise):
             if ziel is None:
                 continue
             v = {**v, "beschriftung": f"{ziel.kennung} {ziel.titel}"}
+        if v.get("ziel_typ") == Zieltyp.ANHANG:
+            ziel = anhaenge.get(str(v.get("ziel_id")))
+            if ziel is None:
+                continue
+            v = {**v, "beschriftung": ziel.dateiname}
         ergebnis.append(v)
     return ergebnis
 

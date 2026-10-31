@@ -39,11 +39,17 @@ def version_indexieren(version) -> None:
         else v
         for v in version.verlinkungen or []
     ]
+    daten = version.daten
+    if version.eintrag.eintragstyp == "prozess":
+        from kern.prozessdaten import als_text
+
+        daten = {**daten, "ablauf": als_text(daten.get("ablauf"))}
+        verweise = []  # Zielkennungen und fremde Metadaten sind kein Suchtext.
     text = " ".join(
         [
             version.eintrag.kennung,
             version.titel,
-            texte(version.daten),
+            texte(daten),
             texte(verweise),
         ]
     )

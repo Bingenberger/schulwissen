@@ -110,7 +110,15 @@ def vergleichen(alt, neu, nutzer=None) -> Fassungsvergleich:
     for feld in typ.datenfelder:
         vorher = _als_text(feld, (alt.daten or {}).get(feld.schluessel))
         nachher = _als_text(feld, (neu.daten or {}).get(feld.schluessel))
-        if vorher == nachher:
+        if (
+            feld.typ == Feldtyp.PROZESSGRAPH
+            and vorher == nachher
+            and (alt.daten or {}).get(feld.schluessel) != (neu.daten or {}).get(feld.schluessel)
+        ):
+            art = GEAENDERT
+            vorher += "\nBisherige Schrittkennungen oder Ressourcenverweise."
+            nachher += "\nSchrittkennungen oder Ressourcenverweise geändert."
+        elif vorher == nachher:
             art = GLEICH
         elif not vorher:
             art = NEU
@@ -139,8 +147,12 @@ def vergleichen(alt, neu, nutzer=None) -> Fassungsvergleich:
 
             verlinkungen = sichtbare_verweise(nutzer, verlinkungen or [])
         return {
-            f"{v.get('art', '')}:{v.get('ziel_id', '')}": v.get("beschriftung") or v.get("ziel_id")
+            f"{v.get('ziel_typ', '')}:{v.get('art', '')}:{v.get('ziel_id', '')}": v.get(
+                "beschriftung"
+            )
+            or v.get("ziel_id")
             for v in (verlinkungen or [])
+            if v.get("feld") != "prozess_ablauf"
         }
 
     vorher_verweise = schluessel(alt.verlinkungen)

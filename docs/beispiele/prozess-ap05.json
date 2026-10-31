@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "dokument": "demo-schulhandbuch",
+  "eintraege": [
+    {
+      "kennung": "PR-01",
+      "eintragstyp": "prozess",
+      "titel": "Demo – fiktiver Testablauf",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Dieses Beispiel erklärt nur das Datenformat und ist keine schulische Regel.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [
+            {
+              "id": "s",
+              "art": "start",
+              "titel": "Demoanlass"
+            },
+            {
+              "id": "q",
+              "art": "entscheidung",
+              "titel": "Demo: Beratung gewünscht?"
+            },
+            {
+              "id": "j",
+              "art": "handlung",
+              "titel": "Demokontakt aufnehmen",
+              "funktion": "demo"
+            },
+            {
+              "id": "n",
+              "art": "handlung",
+              "titel": "Demoanlaufstelle klären",
+              "funktion": "demo"
+            },
+            {
+              "id": "e",
+              "art": "ende",
+              "titel": "Demoziel erreicht"
+            }
+          ],
+          "verbindungen": [
+            {
+              "id": "sq",
+              "von": "s",
+              "nach": "q"
+            },
+            {
+              "id": "qj",
+              "von": "q",
+              "nach": "j",
+              "beschriftung": "Ja"
+            },
+            {
+              "id": "qn",
+              "von": "q",
+              "nach": "n",
+              "beschriftung": "Nein"
+            },
+            {
+              "id": "je",
+              "von": "j",
+              "nach": "e"
+            },
+            {
+              "id": "ne",
+              "von": "n",
+              "nach": "e"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

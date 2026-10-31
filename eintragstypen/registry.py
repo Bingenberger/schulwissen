@@ -25,6 +25,7 @@ from datetime import date
 
 
 class Feldtyp:
+    PROZESSGRAPH = "prozessgraph"
     DATUM = "datum"
     TEXT = "text"
     """Einzeilige Eingabe."""
@@ -141,6 +142,10 @@ class Feld:
         """Wert als Klartext – für Leseansicht, PDF und XLSX-Export."""
         if wert is None or wert == "":
             return ""
+        if self.typ == Feldtyp.PROZESSGRAPH:
+            from kern.prozessdaten import als_text
+
+            return als_text(wert)
         if self.typ == Feldtyp.JANEIN:
             return "ja" if wert else "nein"
         if self.typ == Feldtyp.AUSWAHL:
@@ -311,6 +316,15 @@ class Eintragstyp:
 
 def _wert_pruefen(feld: Feld, wert: object) -> tuple[object, str]:
     """Einen einzelnen Wert in den Typ des Feldes bringen."""
+    if feld.typ == Feldtyp.PROZESSGRAPH:
+        from django.core.exceptions import ValidationError
+
+        from kern.prozessdaten import normalisieren
+
+        try:
+            return normalisieren(wert), ""
+        except ValidationError as fehler:
+            return None, " ".join(fehler.messages)
     if feld.typ == Feldtyp.DATUM:
         try:
             return date.fromisoformat(str(wert)).isoformat(), ""

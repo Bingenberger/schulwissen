@@ -88,7 +88,9 @@ class Befundsatz:
 # --- Prüfen ----------------------------------------------------------------
 
 
-def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = None) -> Befundsatz:
+def pruefen(
+    dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = None, nutzer=None
+) -> Befundsatz:
     """Bewertet einen Datensatz, ohne zu schreiben.
 
     ``entstehende_kennungen`` sind Kennungen, die im selben Importlauf erst noch
@@ -168,6 +170,22 @@ def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = Non
             Befund(FEHLER, f"{feld.label if feld else schluessel}: {meldung}", schluessel)
         )
 
+    if roh.eintragstyp == "prozess" and not feldfehler:
+        from django.core.exceptions import ValidationError
+
+        from kern import prozessdaten
+
+        graph = daten.get("ablauf", {"schema_version": 1, "knoten": [], "verbindungen": []})
+        streng = roh.status in (Status.ABGESTIMMT, Status.BESCHLOSSEN, Status.ARCHIVIERT)
+        ergebnis.befunde.extend(
+            Befund(FEHLER if streng else WARNUNG, text, "ablauf")
+            for text in prozessdaten.freigabehindernisse(graph)
+        )
+        try:
+            prozessdaten.referenzen(graph, nutzer=nutzer, freigabe=streng)
+        except ValidationError as fehler:
+            ergebnis.befunde.extend(Befund(FEHLER, text, "ablauf") for text in fehler.messages)
+
     ergebnis.verweise = _verweise_pruefen(
         dokument, typ, roh, ergebnis, entstehende_kennungen or set()
     )
@@ -188,7 +206,16 @@ def pruefen(dokument, roh: Rohsatz, entstehende_kennungen: set[str] | None = Non
     if ergebnis.fehlende_pflichtfelder:
         namen = ", ".join(f.label for f in ergebnis.fehlende_pflichtfelder)
         # Kein Fehler: als Entwurf speichern muss immer gehen (SPEC.md §7.4).
-        ergebnis.befunde.append(Befund(WARNUNG, f"Noch offene Pflichtfelder: {namen}.", ""))
+        ergebnis.befunde.append(
+            Befund(
+                FEHLER
+                if roh.eintragstyp == "prozess"
+                and roh.status in (Status.ABGESTIMMT, Status.BESCHLOSSEN, Status.ARCHIVIERT)
+                else WARNUNG,
+                f"Noch offene Pflichtfelder: {namen}.",
+                "",
+            )
+        )
 
     return ergebnis
 
@@ -307,6 +334,24 @@ def speichern(
         )
         if not erlaubt:
             raise PermissionDenied("Die Bearbeitungsberechtigung ist nicht mehr vorhanden.")
+    if roh.eintragstyp == "prozess":
+        from django.core.exceptions import PermissionDenied
+
+        from kern import rechte
+
+        if nutzer is not None and not (
+            rechte.darf_bearbeiten(nutzer, eintrag)
+            if eintrag
+            else rechte.darf_anlegen(nutzer, dokument)
+        ):
+            raise PermissionDenied("Die Bearbeitungsberechtigung fehlt.")
+        # Vorschau und Schreiben können auseinanderliegen; unter der Sperre neu prüfen.
+        frisch = pruefen(dokument, roh, nutzer=nutzer)
+        if not frisch.ok:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError([b.text for b in frisch.fehler])
+        befundsatz = frisch
     pruefe_stand(eintrag, erwarteter_stand)
     if eintrag is None:
         eintrag = Eintrag(dokument=dokument, kennung=roh.kennung, erstellt_von=nutzer)
@@ -347,6 +392,14 @@ def speichern(
     eintrag.save()
 
     _verlinkungen_setzen(eintrag, typ, befundsatz.verweise)
+    if roh.eintragstyp == "prozess":
+        from kern.prozessdaten import verlinkungen_setzen
+
+        verlinkungen_setzen(
+            eintrag,
+            eintrag.daten.get("ablauf", {"schema_version": 1, "knoten": [], "verbindungen": []}),
+            nutzer=nutzer,
+        )
     suchtext_aktualisieren(eintrag)
     eintrag.version_anlegen(autor=nutzer)
     return eintrag
@@ -449,7 +502,7 @@ def suchtext_bauen(eintrag: Eintrag) -> str:
             continue
         if feld.typ == Feldtyp.RICHTEXT:
             teile.append(html.als_text(str(wert)))
-        elif feld.typ in (Feldtyp.TEXT, Feldtyp.LANGTEXT, Feldtyp.AUSWAHL):
+        elif feld.typ in (Feldtyp.TEXT, Feldtyp.LANGTEXT, Feldtyp.AUSWAHL, Feldtyp.PROZESSGRAPH):
             teile.append(feld.anzeige(wert))
 
     # Kompetenzkennungen und ihre Klartexte mit aufnehmen: so findet die Suche
