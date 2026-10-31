@@ -19,6 +19,22 @@ def mit_lesefassungen(menge):
     )
 
 
+def sichtbare_beschlussmetadaten(nutzer, version):
+    """Die gültige Fassung bleibt lesbar, geschützte Beschlusstexte bleiben verborgen."""
+    from copy import copy
+
+    from kern import rechte
+
+    if (
+        version
+        and version.beschluss_id
+        and not rechte.sichtbare_beschluesse(nutzer).filter(pk=version.beschluss_id).exists()
+    ):
+        version = copy(version)
+        version.beschluss = None
+    return version
+
+
 def lesestand(nutzer, eintrag):
     """Gemeinsame Fassungswahl; niemals den schreibbaren Eintrag verändern."""
     from kern import rechte
@@ -100,6 +116,11 @@ def sichtbare_anhaenge(nutzer, menge):
 
     if not rechte._angemeldet(nutzer):
         return menge.none()
+    dokumente = rechte.sichtbare_dokumente(nutzer)
+    sichtbar = rechte.sichtbare_eintraege(nutzer, Eintrag.objects.all())
+    menge = menge.filter(Q(dokument__isnull=True) | Q(dokument__in=dokumente)).filter(
+        Q(eintrag__isnull=True) | Q(eintrag__in=sichtbar)
+    )
     if not rechte.ist_nur_lesend(nutzer):
         return menge
     versionen = gueltige_versionen().filter(eintrag_id=OuterRef("eintrag_id"))

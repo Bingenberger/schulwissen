@@ -12,7 +12,7 @@ def oberflaeche(request) -> dict:
     return {
         "oidc_eingerichtet": ist_eingerichtet(),
         "ist_administration": rechte.ist_administration(nutzer),
-        "ist_redaktion": rechte.ist_redaktion(nutzer),
+        "ist_redaktion": rechte.darf_vorlage(nutzer),
         "ist_lehrkraft": rechte.ist_lehrkraft(nutzer),
         "ist_nur_lesend": rechte.ist_nur_lesend(nutzer),
     }

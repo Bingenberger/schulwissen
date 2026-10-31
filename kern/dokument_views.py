@@ -20,6 +20,8 @@ class DokumentFormular(forms.ModelForm):
         model = Dokument
         fields = [
             "titel",
+            "bereich",
+            "kollegiumsweit",
             "schluessel",
             "dokumenttyp",
             "fach",

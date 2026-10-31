@@ -36,7 +36,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from kern import rechte
-from kern.models import Anhang, Beschluss, Eintrag, Eintragsversion, Status
+from kern.models import Anhang, Eintrag, Eintragsversion, Status
 from kern.staende import lesekontext, lesemenge, lesestand, sichtbare_anhaenge
 from kern.suchindex import KONFIGURATION
 
@@ -283,14 +283,16 @@ def _eintraege_suchen(nutzer, menge, begriff: str, wortlaut: bool = False) -> Gr
 def _beschluesse_suchen(nutzer, begriff: str, wortlaut: bool = False) -> Gruppe:
     if wortlaut:
         treffer = (
-            Beschluss.objects.filter(Q(titel__icontains=begriff) | Q(text__icontains=begriff))
+            rechte.sichtbare_beschluesse(nutzer)
+            .filter(Q(titel__icontains=begriff) | Q(text__icontains=begriff))
             .select_related("gremium")
             .order_by("-datum")
         )
     else:
         anfrage = _anfrage(begriff)
         treffer = (
-            Beschluss.objects.filter(suchvektor=anfrage)
+            rechte.sichtbare_beschluesse(nutzer)
+            .filter(suchvektor=anfrage)
             .select_related("gremium")
             .annotate(
                 rang=SearchRank(F("suchvektor"), anfrage),
@@ -513,9 +515,11 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
 
     rest = anzahl - len(gefunden)
     if rest > 0:
-        for beschluss in Beschluss.objects.filter(titel__icontains=begriff).select_related(
-            "gremium"
-        )[:rest]:
+        for beschluss in (
+            rechte.sichtbare_beschluesse(nutzer)
+            .filter(titel__icontains=begriff)
+            .select_related("gremium")[:rest]
+        ):
             gefunden.append(
                 Treffer(
                     titel=beschluss.titel,

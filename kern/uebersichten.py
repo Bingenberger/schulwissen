@@ -7,15 +7,17 @@ from django.db.models import Count, Q
 from django.shortcuts import render
 
 from kern import rechte
-from kern.models import Dokument, Eintrag, Status
+from kern.models import Eintrag, Status
 
 
 @login_required
 def dokumente(request):
     begriff = (request.GET.get("q") or "").strip()
     sichtbar = rechte.sichtbare_eintraege(request.user, Eintrag.objects.all())
-    menge = Dokument.objects.select_related("dokumenttyp").annotate(
-        anzahl=Count("eintraege", filter=Q(eintraege__in=sichtbar))
+    menge = (
+        rechte.sichtbare_dokumente(request.user)
+        .select_related("dokumenttyp")
+        .annotate(anzahl=Count("eintraege", filter=Q(eintraege__in=sichtbar)))
     )
     if begriff:
         menge = menge.filter(Q(titel__icontains=begriff) | Q(beschreibung__icontains=begriff))
@@ -29,7 +31,8 @@ def eigene_entwuerfe(request):
         raise PermissionDenied
     begriff = (request.GET.get("q") or "").strip()
     menge = (
-        Eintrag.objects.filter(status__in=[Status.IDEE, Status.ENTWURF])
+        rechte.sichtbare_eintraege(request.user, Eintrag.objects.all())
+        .filter(status__in=[Status.IDEE, Status.ENTWURF])
         .filter(Q(erstellt_von=request.user) | Q(verantwortlich_person=request.user))
         .select_related("dokument")
     )

@@ -58,6 +58,18 @@ Wenn du einen anderen Stack für klar besser hältst, begründe das im Plan.
 
 Arbeitsgruppen (z. B. „Jahrgang 1“) sind Nutzergruppen, denen Einträge zugeordnet werden können.
 
+Seit Roadmap AP02 gelten zusätzlich ausdrückliche Dokument- und Bereichszugänge:
+Lesen, Bearbeiten und fachliche Freigabe sind getrennte Rechte für Nutzer oder Gruppen.
+Dokumente sind standardmäßig allgemein lesbar; gesperrte Bereiche und zusätzlich
+gesperrte Dokumente benötigen jeweils ihre eigene Leseregel. Arbeitsgruppenmitgliedschaft,
+Urheberschaft und die technische Rolle Redaktion umgehen diese Grenzen nicht.
+Bearbeiten und Freigeben benötigen Kollegiumsrolle und Dokumentzugang. Die
+Administration verwaltet die Regeln; zugewiesene Fachredaktionen können mit passenden
+Django-Rechten ihre fachbezogenen schulischen Festlegungen pflegen. Fachliche Freigaben
+können ausdrücklich delegiert werden; sie vergeben kein allgemeines Bearbeitungsrecht.
+Ein Beschluss über mehrere Dokumente ist nur sichtbar, wenn sein gesamter dauerhafter
+Dokumentrahmen zugänglich ist. Details: [AP02_DOKUMENTZUGAENGE.md](docs/AP02_DOKUMENTZUGAENGE.md).
+
 Anmeldung: lokale Accounts (E-Mail + Passwort, Passwort-Reset per Mail). Architektur so anlegen, dass später OIDC (Nextcloud als Login) ergänzt werden kann.
 
 ## 6. Datenmodell – Kern
@@ -71,6 +83,7 @@ Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 
 ### Dokument
 - `titel`, `dokumenttyp`, `fach` (optional), `beschreibung`, `gueltig_ab_schuljahr`
+- `bereich` (optional), `kollegiumsweit`; Zugangsregeln für Dokument oder Wissensbereich
 - `gliederung`: Reihenfolge der Kapitel (über `Eintrag.eltern` + `Eintrag.position`)
 
 ### Eintrag (generisch)
@@ -91,6 +104,7 @@ Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 - `datum`, `gremium` (Lehrerkonferenz, Fachkonferenz Deutsch, Schulkonferenz, Steuergruppe …), `titel`, `text`
 - `protokoll` (Verweis auf ein Protokoll-Dokument oder Anhang, optional)
 - `beschlossene_versionen`: Liste von Eintragsversionen, die dieser Beschluss freischaltet
+- `dokumente`: dauerhafter Zugangsrahmen, der bei Rücknahme erhalten bleibt
 - Beim Speichern eines Beschlusses werden alle verknüpften Versionen auf `beschlossen` gesetzt, ältere beschlossene Versionen derselben Einträge auf `archiviert`.
 
 ### Verlinkung
@@ -208,7 +222,7 @@ Status, Verantwortlich, Fassung/Version kommen aus dem Kern.
 1. Lehrkraft/Gruppe legt Eintrag an → `idee` oder `entwurf`.
 2. Gruppe stimmt ab → `abgestimmt` (nur bei vollständigen Pflichtfeldern).
 3. Redaktion stellt eine **Beschlussvorlage** zusammen: Auswahl abgestimmter Einträge, als PDF exportierbar für die Konferenz.
-4. Admin trägt den **Beschluss** ein (Datum, Gremium, Text) und verknüpft die Versionen → `beschlossen`; Vorgängerfassungen → `archiviert`.
+4. Administration oder ausdrücklich zugewiesene Freigabeperson trägt den **Beschluss** ein (Datum, Gremium, Text) und verknüpft die Versionen → `beschlossen`; Vorgängerfassungen → `archiviert`.
 5. Jeder beschlossene Eintrag zeigt oben sichtbar: „Gilt seit Beschluss der [Gremium] vom [Datum]“ mit Link.
 6. Ansicht **„Änderungen seit letztem Beschluss“** je Dokument.
 

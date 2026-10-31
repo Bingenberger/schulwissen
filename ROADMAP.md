@@ -2,7 +2,7 @@
 
 Stand: 31.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Den tatsächlichen Umsetzungsstand zeigen die Paketstatus und das Übergabeprotokoll.
 
-**Nächstes Arbeitspaket: AP02.**
+**Nächstes Arbeitspaket: AP03.**
 
 Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
 
@@ -75,7 +75,7 @@ flowchart LR
 
 ### AP02 — Dokumentzugänge und redaktionelle Bereiche
 
-**Status:** geplant. **Abhängigkeiten:** AP01.
+**Status:** fertig (31.10.2026). **Abhängigkeiten:** AP01.
 
 - Lesen, Bearbeiten und fachlich Freigeben getrennt modellieren; Zugänge für Dokumente/Bereiche und redaktionelle Zuständigkeiten ergänzen.
 - Bestehende kollegiumsweite Inhalte in der Migration weiterhin für das Kollegium verfügbar halten. Gruppenmitgliedschaft und Zuständigkeit nicht ungeprüft als Leseberechtigung interpretieren.
@@ -83,6 +83,8 @@ flowchart LR
 - Oberfläche und APIs einschließlich Suche, Download und Django-Verwaltung auf dieselben Entscheidungen stützen.
 
 **Abnahme:** Eine für Deutsch zuständige Redaktion erhält dadurch keine fremden redaktionellen Bereiche. OGS/Lesend sehen ausschließlich erlaubte Inhalte. Anonyme und unberechtigte Zugriffe, direkte URLs, Vorschläge und Dateien werden getestet. Vorhandene Arbeitspläne bleiben erreichbar.
+
+**Ergebnis:** Wissensbereiche und getrennte Lese-/Bearbeitungs-/Freigaberegeln für Nutzer oder Gruppen; zentrale Prüfung für Zugriffe und Verwaltungswege; dauerhafte Beschlussrahmen und Bestandsmigration. Einrichtung und Abnahme: [AP02_DOKUMENTZUGAENGE.md](docs/AP02_DOKUMENTZUGAENGE.md).
 
 ### AP03 — Gemeinsames Schreiben ohne stilles Überschreiben
 
@@ -262,11 +264,12 @@ flowchart LR
 
 ## 6. Übergabeprotokoll für die nächste Sitzung
 
-Umsetzungsstand: **AP01 ist fertig**, alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP02**, anschließend die Abhängigkeiten beachten.
+Umsetzungsstand: **AP01 und AP02 sind fertig**, alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP03**, anschließend die Abhängigkeiten beachten.
 
 Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 
 | Datum / Paket | Ergebnis und Commit | Tatsächliche Prüfungen | Offen / nächster konkreter Schritt |
 | --- | --- | --- | --- |
 | 30.10.2026 / Planung | Roadmap und Prozessspezifikation erstellt | Abgleich mit Produktanalyse und vorhandenem Rollen-/Nutzermodell; keine App-Funktionen geändert | AP01: konsistente Lesefassungen und Suchsichtbarkeit |
-| 31.10.2026 / AP01 | Einheitliche Lesefassungen, getrennte Indizes, geschützte Verweise und Medienzugriffe; Umsetzung in diesem Commit | Gesamtsuite 374 bestanden, abschließend 21 AP01-Regressionstests bestanden; 142 betroffene Tests zusätzlich unter Standard-Passwortkonfiguration; Browser in vier Breiten, Hell/Dunkel, Tastatur, Druck und axe; lokale Migration und Bestandsprüfung | AP02: Dokumentzugänge und redaktionelle Bereiche. Auf bestehenden nginx-Servern öffentlichen Medien-Alias gemäß Betriebsanleitung entfernen; externe Dateiversionsbindung bleibt AP09. |
+| 31.10.2026 / AP01 | Einheitliche Lesefassungen, getrennte Indizes, geschützte Verweise und Medienzugriffe; Commit `c5da881` | Gesamtsuite 374 bestanden, abschließend 21 AP01-Regressionstests bestanden; 142 betroffene Tests zusätzlich unter Standard-Passwortkonfiguration; Browser in vier Breiten, Hell/Dunkel, Tastatur, Druck und axe; lokale Migration und Bestandsprüfung | AP02: Dokumentzugänge und redaktionelle Bereiche. Auf bestehenden nginx-Servern öffentlichen Medien-Alias gemäß Betriebsanleitung entfernen; externe Dateiversionsbindung bleibt AP09. |
+| 31.10.2026 / AP02 | Dokument-/Bereichsregeln, getrennte Redaktion und Freigabe, geschützte Beschlussrahmen, Verwaltungsoberfläche und Migration; Umsetzung in diesem Commit | 420 Tests im Gesamtlauf erfolgreich; ein ungültiger Test-Stufenwert korrigiert, danach alle 46 AP02-Tests erfolgreich (überlappend). Ruff, Django und Migrationscheck grün. Fünf Browseransichten in vier Breiten, Frontend-axe und Tastatur; Migration 0009 lokal angewandt und Bestand geprüft. | AP03: Gemeinsames Schreiben ohne stilles Überschreiben. Bestehende persönliche Redaktionszuordnungen bei gewünschter Begrenzung im Backend nachpflegen. |

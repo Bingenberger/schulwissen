@@ -38,8 +38,9 @@ Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPO
 Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
-Coding-Sitzungen. AP01 (einheitliche Lesefassungen und Suchsichtbarkeit) ist
-umgesetzt; nächster Einstieg ist **AP02**. Den ersten großen Ausbau bildet
+Coding-Sitzungen. AP01 (einheitliche Lesefassungen) und AP02
+(Dokumentzugänge und redaktionelle Bereiche) sind umgesetzt;
+nächster Einstieg ist **AP03**. Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
 Personen aus dem vorhandenen Nutzerstamm besetzen. Diese Erweiterungen sind
@@ -125,13 +126,19 @@ Datensatz darf nicht das ganze Dokument unlesbar machen.
 | Rolle | Darf |
 | --- | --- |
 | Administration | alles: Nutzer, Stammdaten, Beschlüsse, Import und Export |
-| Redaktion | Einträge bearbeiten, Status bis „abgestimmt in Gruppe“ setzen, schulische Festlegungen pflegen |
-| Lehrkraft | alles lesen; Entwürfe anlegen und die eigenen und die der Arbeitsgruppe bearbeiten; kommentieren |
-| Lesend | nur beschlossene Inhalte lesen (OGS, Vertretungskräfte) |
+| Redaktion | zugewiesene Dokumente/Bereiche bearbeiten, Status bis „abgestimmt in Gruppe“ setzen, fachbezogene schulische Festlegungen pflegen |
+| Lehrkraft | zugängliche Dokumente lesen; Entwürfe anlegen und die eigenen und die der Arbeitsgruppe bearbeiten; kommentieren |
+| Lesend | nur zugängliche beschlossene Inhalte lesen (OGS, Vertretungskräfte) |
 
 Rollen und Arbeitsgruppen sind beides Django-Gruppen; ein `Gruppenprofil`
 unterscheidet sie. Alle Zugriffsentscheidungen stehen an einer Stelle:
 `kern/rechte.py`.
+
+Lesen, Bearbeiten und fachliches Freigeben werden über ausdrückliche Regeln
+für Dokumente oder Wissensbereiche vergeben. Die Administration öffnet dafür
+auf der Dokumentseite **Zugänge verwalten**. Eine Gruppenmitgliedschaft allein
+öffnet kein gesperrtes Dokument. Einrichtung und Bestandsmigration stehen in
+[AP02_DOKUMENTZUGAENGE.md](docs/AP02_DOKUMENTZUGAENGE.md).
 
 **Wer darf einen importierten Eintrag bearbeiten?** Beim Import übernimmt die
 Arbeitsgruppe „Jahrgang N“ die Verantwortung für ein Vorhaben dieses Jahrgangs,
@@ -177,7 +184,8 @@ Darum gelten in `fachdaten/suche.py` zwei Schwellen: **0,6 auf dem Volltext**
 1. Die Gruppe stimmt einen Eintrag ab → Status „abgestimmt in Gruppe“.
 2. Die Redaktion stellt unter *Beschlussvorlage* zusammen, was in die Konferenz
    soll (zum Ausdrucken genügt die Drucktaste des Browsers).
-3. Die Administration trägt den Beschluss ein und schaltet die Fassungen frei.
+3. Die Administration oder eine ausdrücklich zuständige Freigabeperson trägt
+   den Beschluss ein und schaltet die Fassungen frei.
 
 Dabei gilt: die beschlossene Fassung ist **unveränderlich**. Wer an einem
 beschlossenen Eintrag weiterarbeitet, erzeugt einen neuen Entwurf – die

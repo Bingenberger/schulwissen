@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 
 from kern.models import Beschluss, Eintrag, Eintragsversion, Status
@@ -48,6 +49,28 @@ def vorlage_kandidaten(dokument=None):
 @transaction.atomic
 def beschluss_fassen(beschluss: Beschluss, eintraege, nutzer=None) -> Beschlussbericht:
     """Macht die aktuellen Fassungen der Einträge durch diesen Beschluss gültig."""
+    from kern import rechte
+
+    eintraege = list(eintraege)
+    if nutzer is not None and any(
+        not rechte.darf_beschliessen(nutzer, e.dokument) for e in eintraege
+    ):
+        raise PermissionDenied("Für mindestens ein Dokument fehlt die Freigabeberechtigung.")
+    # Der Rahmen bleibt auch erhalten, wenn später eine Freigabe zurückgenommen wird.
+    dokument_ids = {e.dokument_id for e in eintraege}
+    if beschluss.protokoll_eintrag_id:
+        dokument_ids.add(beschluss.protokoll_eintrag.dokument_id)
+    if beschluss.protokoll_anhang_id:
+        anhang = beschluss.protokoll_anhang
+        if anhang.dokument_id:
+            dokument_ids.add(anhang.dokument_id)
+        if anhang.eintrag_id:
+            dokument_ids.add(anhang.eintrag.dokument_id)
+    if nutzer is not None and rechte.sichtbare_dokumente(nutzer).filter(
+        pk__in=dokument_ids
+    ).count() != len(dokument_ids):
+        raise PermissionDenied("Der Protokollnachweis ist nicht zugänglich.")
+    beschluss.dokumente.add(*dokument_ids)
     bericht = Beschlussbericht()
 
     for eintrag in eintraege:
@@ -86,13 +109,17 @@ def beschluss_fassen(beschluss: Beschluss, eintraege, nutzer=None) -> Beschlussb
 
 
 @transaction.atomic
-def beschluss_zuruecknehmen(beschluss: Beschluss) -> int:
+def beschluss_zuruecknehmen(beschluss: Beschluss, nutzer=None) -> int:
     """Hebt einen irrtümlich eingetragenen Beschluss auf.
 
     Die Fassungen werden wieder „abgestimmt in Gruppe“; die zuvor gültige
     Fassung wird reaktiviert. Gedacht für Tippfehler beim Eintragen, nicht für
     eine inhaltliche Rücknahme – die ist ein neuer Beschluss.
     """
+    from kern import rechte
+
+    if nutzer is not None and not rechte.darf_beschluss_zuruecknehmen(nutzer, beschluss):
+        raise PermissionDenied("Für diesen Beschluss fehlt die Freigabeberechtigung.")
     anzahl = 0
     for version in list(beschluss.beschlossene_versionen.all()):
         eintrag = version.eintrag

@@ -6,7 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from fachdaten.models import Fach
-from kern.models import Dokument, Status
+from kern import rechte
+from kern.models import Status
 from suche import dienste
 
 
@@ -31,7 +32,7 @@ def suchen(request):
             "begriff": begriff,
             "ergebnis": ergebnis,
             "zu_kurz": 0 < len(begriff) < dienste.MINDESTLAENGE,
-            "dokumente": Dokument.objects.order_by("titel"),
+            "dokumente": rechte.sichtbare_dokumente(request.user).order_by("titel"),
             "statuswerte": Status.choices,
             "faecher": Fach.objects.all(),
             "filter": filter_werte,

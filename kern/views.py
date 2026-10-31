@@ -19,7 +19,6 @@ from fachdaten.models import Stufe
 from kern import rechte
 from kern.models import (
     Anhang,
-    Dokument,
     Eintrag,
     Kommentar,
     Status,
@@ -32,6 +31,7 @@ from kern.staende import (
     lesestand,
     mit_lesefassungen,
     sichtbare_anhaenge,
+    sichtbare_beschlussmetadaten,
     sichtbare_verweise,
 )
 
@@ -65,7 +65,7 @@ def startseite(request):
         .order_by("-geaendert_am")[:5]
     )
     eigene_entwuerfe = (
-        Eintrag.objects.filter(
+        sichtbar.filter(
             status__in=(Status.IDEE, Status.ENTWURF),
         )
         .filter(Q(erstellt_von=request.user) | Q(verantwortlich_person=request.user))
@@ -79,10 +79,11 @@ def startseite(request):
         request,
         "kern/startseite.html",
         {
-            "dokumente": Dokument.objects.select_related("dokumenttyp")
+            "dokumente": rechte.sichtbare_dokumente(request.user)
+            .select_related("dokumenttyp")
             .annotate(anzahl=Count("eintraege", filter=Q(eintraege__in=sichtbar)))
             .order_by("titel", "pk")[:6],
-            "dokumente_gesamt": Dokument.objects.count(),
+            "dokumente_gesamt": rechte.sichtbare_dokumente(request.user).count(),
             "eigene_entwuerfe_gesamt": eigene_entwuerfe.count(),
             "zuletzt_beschlossen": [lesestand(request.user, e) for e in zuletzt_beschlossen],
             "eigene_entwuerfe": eigene_entwuerfe[:5],
@@ -142,7 +143,8 @@ def _gliederungsbaum(dokument, nutzer):
 @login_required
 def dokument_ansehen(request, schluessel: str):
     dokument = get_object_or_404(
-        Dokument.objects.select_related("dokumenttyp"), schluessel=schluessel
+        rechte.sichtbare_dokumente(request.user).select_related("dokumenttyp"),
+        schluessel=schluessel,
     )
     baum = _gliederungsbaum(dokument, request.user)
     karten = {}
@@ -166,6 +168,7 @@ def dokument_ansehen(request, schluessel: str):
         "kern/dokument.html",
         {
             "dokument": dokument,
+            "darf_protokoll_beschliessen": rechte.darf_beschliessen(request.user, dokument),
             "baum": baum,
             "protokoll_hat_entwuerfe": dokument.eintraege.exclude(status=Status.ARCHIVIERT)
             .exclude(status=Status.BESCHLOSSEN)
@@ -369,7 +372,9 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "entwurf_weicht_ab": entwurf_weicht_ab,
             "baum": _gliederungsbaum(eintrag.dokument, request.user),
             "beschlossene_version": beschlossen,
-            "beschluss": beschlossen.beschluss if beschlossen else None,
+            "beschluss": sichtbare_beschlussmetadaten(request.user, beschlossen).beschluss
+            if beschlossen
+            else None,
             "rueckverweise": _ruckverweise(request.user, eintrag),
             "kommentare": eintrag.kommentare.select_related("autor") if zeigt_entwurf else [],
             "kommentar_formular": KommentarFormular(),
@@ -428,7 +433,8 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
 def eintrag_neu(request, schluessel: str, eintragstyp: str):
     """Neuen Eintrag anlegen. Die Kennung vergibt die App."""
     dokument = get_object_or_404(
-        Dokument.objects.select_related("dokumenttyp"), schluessel=schluessel
+        rechte.sichtbare_dokumente(request.user).select_related("dokumenttyp"),
+        schluessel=schluessel,
     )
     if not rechte.darf_anlegen(request.user, dokument):
         raise PermissionDenied("Zum Anlegen von Einträgen fehlt die Rolle „Lehrkraft“.")
@@ -482,7 +488,8 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
     roh = formular.als_rohsatz(kennung)
 
     if roh.status != (eintrag.status if eintrag is not None else Status.ENTWURF):
-        if not rechte.darf_status_setzen(request.user, eintrag, roh.status):
+        pruefeintrag = eintrag or Eintrag(dokument=dokument, erstellt_von=request.user)
+        if not rechte.darf_status_setzen(request.user, pruefeintrag, roh.status):
             formular.add_error(
                 "status",
                 "Diesen Status darf nur die Redaktion oder die Administration setzen.",
@@ -625,9 +632,12 @@ def fassungen(request, schluessel: str, kennung: str):
             "dokument": eintrag.dokument,
             "eintrag": eintrag,
             "typ": eintrag.typ,
-            "versionen": rechte.sichtbare_versionen(
-                request.user, eintrag.versionen.select_related("autor", "beschluss")
-            ),
+            "versionen": [
+                sichtbare_beschlussmetadaten(request.user, v)
+                for v in rechte.sichtbare_versionen(
+                    request.user, eintrag.versionen.select_related("autor", "beschluss")
+                )
+            ],
             "angezeigter_titel": (
                 eintrag.titel
                 if rechte.zeigt_entwurf(request.user)

@@ -15,7 +15,6 @@ from eintragstypen import dienste
 from kern import beschluesse, rechte
 from kern.beschluss_views import BeschlussFormular
 from kern.models import (
-    Dokument,
     Eintrag,
     Eintragsversion,
     Gremium,
@@ -67,7 +66,10 @@ def loeschhindernisse(eintrag):
 @require_http_methods(["GET", "POST"])
 @transaction.atomic
 def eintrag_loeschen(request, schluessel, kennung):
-    dokument = get_object_or_404(Dokument.objects.select_for_update(), schluessel=schluessel)
+    dokument = get_object_or_404(
+        rechte.sichtbare_dokumente(request.user).select_for_update(of=("self",)),
+        schluessel=schluessel,
+    )
     eintrag = get_object_or_404(
         Eintrag.objects.select_for_update(), dokument=dokument, kennung=kennung
     )
@@ -120,10 +122,12 @@ def protokoll_beschliessen(request, schluessel):
             "Protokolle genehmigt die Administration nach dem Konferenzbeschluss."
         )
     dokument = get_object_or_404(
-        Dokument.objects.select_for_update(),
+        rechte.sichtbare_dokumente(request.user).select_for_update(of=("self",)),
         schluessel=schluessel,
         dokumenttyp__schluessel="protokoll",
     )
+    if not rechte.darf_beschliessen(request.user, dokument):
+        raise PermissionDenied("Für dieses Protokoll fehlt die Freigabeberechtigung.")
     eintraege = list(
         dokument.eintraege.select_for_update()
         .exclude(status=Status.ARCHIVIERT)

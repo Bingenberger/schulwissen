@@ -35,9 +35,11 @@ def export(request, schluessel, format):
 
 @login_required
 def vorlage_pdf(request):
-    if not rechte.ist_redaktion(request.user):
+    if not rechte.darf_vorlage(request.user):
         raise PermissionDenied("Beschlussvorlagen stellt die Redaktion zusammen.")
-    kandidaten = beschluesse.vorlage_kandidaten()
+    kandidaten = beschluesse.vorlage_kandidaten().filter(
+        dokument__in=rechte.vorlagen_dokumente(request.user)
+    )
     auswahl = (request.POST if request.method == "POST" else request.GET).getlist("eintrag")
     if not auswahl or any(not wert.isdigit() for wert in auswahl):
         return HttpResponse("Bitte mindestens einen abgestimmten Eintrag auswählen.", status=400)

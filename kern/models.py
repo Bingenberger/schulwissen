@@ -202,7 +202,35 @@ class Dokumenttyp(Zeitstempel):
         return self.name
 
 
+class Wissensbereich(models.Model):
+    name = models.CharField("Name", max_length=150)
+    schluessel = models.SlugField("Schlüssel", unique=True, max_length=80)
+    kollegiumsweit = models.BooleanField(
+        "Für alle angemeldeten Konten lesbar",
+        default=True,
+        help_text="Ohne Häkchen brauchen Lesende eine ausdrückliche Leseregel für diesen Bereich.",
+    )
+
+    class Meta:
+        verbose_name = "Wissensbereich"
+        verbose_name_plural = "Wissensbereiche"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Dokument(Zeitstempel):
+    bereich = models.ForeignKey(
+        Wissensbereich, null=True, blank=True, on_delete=models.PROTECT, related_name="dokumente"
+    )
+    kollegiumsweit = models.BooleanField(
+        "Für alle angemeldeten Konten lesbar",
+        default=True,
+        help_text="Ohne Häkchen ist zusätzlich eine Leseregel für dieses Dokument nötig. "
+        "Eine Beschränkung des Bereichs gilt unabhängig davon. "
+        "Lesend sieht weiterhin nur Freigaben.",
+    )
     schluessel = models.SlugField(
         "Schlüssel",
         max_length=80,
@@ -259,6 +287,68 @@ class Dokument(Zeitstempel):
             if rest.isdigit():
                 nummern.append(int(rest))
         return muster.format(nr=max(nummern, default=0) + 1, **teile)
+
+
+class Zugangsregel(models.Model):
+    dokument = models.ForeignKey(
+        Dokument, null=True, blank=True, on_delete=models.CASCADE, related_name="zugangsregeln"
+    )
+    bereich = models.ForeignKey(
+        Wissensbereich,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="zugangsregeln",
+    )
+    nutzer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="zugangsregeln",
+    )
+    gruppe = models.ForeignKey(
+        Group, null=True, blank=True, on_delete=models.CASCADE, related_name="zugangsregeln"
+    )
+    lesen = models.BooleanField(default=False)
+    bearbeiten = models.BooleanField(default=False)
+    freigeben = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Zugangsregel"
+        verbose_name_plural = "Zugangsregeln"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(dokument__isnull=False, bereich__isnull=True)
+                    | models.Q(dokument__isnull=True, bereich__isnull=False)
+                ),
+                name="zugang_genau_ein_ziel",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(nutzer__isnull=False, gruppe__isnull=True)
+                    | models.Q(nutzer__isnull=True, gruppe__isnull=False)
+                ),
+                name="zugang_genau_ein_empfaenger",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(lesen=True)
+                | models.Q(bearbeiten=True)
+                | models.Q(freigeben=True),
+                name="zugang_mindestens_ein_recht",
+            ),
+            *[
+                models.UniqueConstraint(
+                    fields=[ziel, empfaenger], name=f"zugang_{ziel}_{empfaenger}"
+                )
+                for ziel in ("dokument", "bereich")
+                for empfaenger in ("nutzer", "gruppe")
+            ],
+        ]
+
+    def __str__(self):
+        return f"{self.dokument or self.bereich}: {self.nutzer or self.gruppe}"
 
 
 class ReservierteKennung(models.Model):
@@ -616,6 +706,13 @@ class Gremium(Zeitstempel):
 
 class Beschluss(Zeitstempel):
     """Macht ausgewählte Fassungen gültig (SPEC.md §8)."""
+
+    dokumente = models.ManyToManyField(
+        Dokument,
+        blank=True,
+        related_name="beschluesse",
+        help_text="Dauerhafter Zugangsrahmen, bleibt bei Rücknahme erhalten.",
+    )
 
     datum = models.DateField("Datum")
     gremium = models.ForeignKey(

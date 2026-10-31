@@ -76,11 +76,13 @@ def planung(request):
     heute = timezone.localdate()
     jahr = heute.year if heute.month >= 8 else heute.year - 1
     vorgaben = {"schuljahr": f"{jahr}/{(jahr + 1) % 100:02d}"}
-    erstes = Planwahl.base_fields["dokument"].queryset.first()
+    dokumente = rechte.sichtbare_dokumente(request.user, Planwahl.base_fields["dokument"].queryset)
+    erstes = dokumente.first()
     if erstes:
         vorgaben["dokument"] = erstes.schluessel
     quelle = request.POST if request.method == "POST" else request.GET
     auswahl = Planwahl(quelle if quelle else None, initial=vorgaben)
+    auswahl.fields["dokument"].queryset = dokumente
     gruppen = []
     if auswahl.is_bound and auswahl.is_valid():
         daten = auswahl.cleaned_data

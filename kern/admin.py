@@ -13,6 +13,7 @@ from django.utils.html import format_html
 from eintragstypen import dienste
 from kern import rechte
 from kern.admin_formulare import EintragAdminFormular
+from kern.admin_zugang import AdministrationsMixin
 from kern.models import (
     Anhang,
     Beschluss,
@@ -26,6 +27,8 @@ from kern.models import (
     Nutzer,
     OIDCIdentitaet,
     Verlinkung,
+    Wissensbereich,
+    Zugangsregel,
 )
 
 admin.site.site_header = "Schulwissen – Verwaltung"
@@ -34,7 +37,7 @@ admin.site.index_title = "Verwaltung"
 
 
 @admin.register(Nutzer)
-class NutzerAdmin(UserAdmin):
+class NutzerAdmin(AdministrationsMixin, UserAdmin):
     add_form = UserCreationForm
     form = UserChangeForm
     change_password_form = AdminPasswordChangeForm
@@ -84,7 +87,7 @@ admin.site.unregister(Group)
 
 
 @admin.register(Group)
-class GruppenAdmin(DjangoGroupAdmin):
+class GruppenAdmin(AdministrationsMixin, DjangoGroupAdmin):
     """Rollen und Arbeitsgruppen – unterscheidbar durch das Profil."""
 
     inlines = [GruppenprofilInline]
@@ -101,7 +104,7 @@ class GruppenAdmin(DjangoGroupAdmin):
 
 
 @admin.register(Dokumenttyp)
-class DokumenttypAdmin(admin.ModelAdmin):
+class DokumenttypAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["name", "schluessel", "eintragstypen"]
     readonly_fields = ["eintragstypen"]
     search_fields = ["name", "schluessel"]
@@ -111,19 +114,47 @@ class DokumenttypAdmin(admin.ModelAdmin):
         return False
 
 
+class ZugangsregelInline(admin.StackedInline):
+    model = Zugangsregel
+    extra = 0
+    fields = ["nutzer", "gruppe", "lesen", "bearbeiten", "freigeben"]
+    autocomplete_fields = ["nutzer", "gruppe"]
+
+
+@admin.register(Wissensbereich)
+class WissensbereichAdmin(AdministrationsMixin, admin.ModelAdmin):
+    list_display = ["name", "schluessel", "kollegiumsweit"]
+    search_fields = ["name", "schluessel"]
+    inlines = [ZugangsregelInline]
+
+
+@admin.register(Zugangsregel)
+class ZugangsregelAdmin(AdministrationsMixin, admin.ModelAdmin):
+    list_display = ["dokument", "bereich", "nutzer", "gruppe", "lesen", "bearbeiten", "freigeben"]
+    list_filter = ["lesen", "bearbeiten", "freigeben", "bereich", "dokument"]
+    autocomplete_fields = ["dokument", "bereich", "nutzer", "gruppe"]
+    search_fields = ["dokument__titel", "bereich__name", "nutzer__anzeigename", "gruppe__name"]
+
+
 @admin.register(Dokument)
-class DokumentAdmin(admin.ModelAdmin):
+class DokumentAdmin(AdministrationsMixin, admin.ModelAdmin):
+    inlines = [ZugangsregelInline]
+    autocomplete_fields = ["bereich"]
     list_display = ["titel", "schluessel", "dokumenttyp", "fach", "gueltig_ab_schuljahr", "anzahl"]
-    list_filter = ["dokumenttyp", "fach"]
+    list_filter = ["dokumenttyp", "fach", "bereich", "kollegiumsweit"]
     search_fields = ["titel", "schluessel"]
     prepopulated_fields = {"schluessel": ("titel",)}
+
+    def has_delete_permission(self, request, obj=None):
+        # Historie und dauerhafte Beschlusszugänge dürfen nicht durch Kaskaden verschwinden.
+        return False
 
     @admin.display(description="Einträge")
     def anzahl(self, dokument: Dokument) -> int:
         return dokument.eintraege.count()
 
 
-class InterneInhalteAdmin(admin.ModelAdmin):
+class InterneInhalteAdmin(AdministrationsMixin, admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         return rechte.darf_arbeitsstand_lesen(request.user) and super().has_view_permission(
             request, obj
@@ -264,7 +295,7 @@ class EintragsversionAdmin(InterneInhalteAdmin):
 
 
 @admin.register(Gremium)
-class GremiumAdmin(admin.ModelAdmin):
+class GremiumAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["name", "reihenfolge"]
     ordering = ["reihenfolge", "name"]
 
@@ -297,7 +328,7 @@ class BeschlussAdmin(InterneInhalteAdmin):
 
 
 @admin.register(Anhang)
-class AnhangAdmin(admin.ModelAdmin):
+class AnhangAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["dateiname", "eintrag", "mimetype", "groesse", "index_stand"]
     list_filter = ["mimetype"]
     search_fields = ["dateiname", "beschreibung", "extrahierter_text"]
@@ -305,7 +336,7 @@ class AnhangAdmin(admin.ModelAdmin):
 
 
 @admin.register(Kommentar)
-class KommentarAdmin(admin.ModelAdmin):
+class KommentarAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["eintrag", "autor", "erledigt", "erstellt_am"]
     list_filter = ["erledigt"]
     search_fields = ["text"]
@@ -331,7 +362,7 @@ class VerlinkungAdmin(InterneInhalteAdmin):
 
 
 @admin.register(OIDCIdentitaet)
-class OIDCIdentitaetAdmin(admin.ModelAdmin):
+class OIDCIdentitaetAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["nutzer", "issuer", "subject"]
     search_fields = ["nutzer__email", "subject"]
     autocomplete_fields = ["nutzer"]

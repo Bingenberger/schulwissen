@@ -8,13 +8,12 @@ from django.shortcuts import get_object_or_404, render
 from deutsch import auswertungen
 from deutsch.auswertungen import abdeckungsmatrix, pruefliste
 from kern import rechte
-from kern.models import Dokument
 
 
 @login_required
 def abdeckung(request, schluessel: str):
     """Auswertung 7.5.1: Abdeckungsmatrix."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     nur_beschlossene = (
         rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
     )
@@ -36,7 +35,7 @@ def abdeckung(request, schluessel: str):
 @login_required
 def pruefen(request, schluessel: str):
     """Auswertung 7.5.7: Prüfliste."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     listen = pruefliste(fach=dokument.fach or "deutsch")
 
     return render(
@@ -53,7 +52,7 @@ def pruefen(request, schluessel: str):
 @login_required
 def fahrplan(request, schluessel: str, jahrgang: int):
     """Auswertung 7.5.2: Fahrplan je Jahrgang."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     nur_beschlossene = (
         rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
     )
@@ -73,7 +72,7 @@ def fahrplan(request, schluessel: str, jahrgang: int):
 @login_required
 def ritualprogression(request, schluessel: str):
     """Auswertung 7.5.3: ein Ritual mit Jahrgang 1 bis 4 nebeneinander."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     nur_beschlossene = (
         rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
     )
@@ -92,7 +91,7 @@ def ritualprogression(request, schluessel: str):
 @login_required
 def zeitbudget(request, schluessel: str):
     """Auswertung 7.5.4: Zeitbudget der Rituale."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     nur_beschlossene = (
         rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
     )
@@ -112,7 +111,7 @@ def zeitbudget(request, schluessel: str):
 @login_required
 def leistungsuebersicht(request, schluessel: str):
     """Auswertung 7.5.5: die Sicht „Leistungskonzept“."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     nur_beschlossene = (
         rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
     )
@@ -131,7 +130,7 @@ def leistungsuebersicht(request, schluessel: str):
 @login_required
 def progressionspaare(request, schluessel: str):
     """Auswertung 7.5.6: S- und K-Erwartung nebeneinander."""
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     nur_beschlossene = (
         rechte.ist_nur_lesend(request.user) or request.GET.get("stand") == "beschlossen"
     )

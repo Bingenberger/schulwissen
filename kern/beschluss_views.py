@@ -11,8 +11,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from kern import beschluesse, rechte, vergleich, views
-from kern.models import Anhang, Beschluss, Dokument, Eintrag, Eintragsversion, Gremium
-from kern.staende import sichtbare_anhaenge
+from kern.models import Anhang, Beschluss, Eintrag, Eintragsversion, Gremium
+from kern.staende import sichtbare_anhaenge, sichtbare_beschlussmetadaten
 
 
 class BeschlussFormular(forms.ModelForm):
@@ -29,13 +29,14 @@ class BeschlussFormular(forms.ModelForm):
             "text": "Der Wortlaut aus dem Protokoll.",
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, nutzer=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["gremium"].queryset = Gremium.objects.all()
-        self.fields["protokoll_eintrag"].queryset = Eintrag.objects.filter(
-            dokument__dokumenttyp__schluessel="protokoll"
-        )
+        self.fields["protokoll_eintrag"].queryset = rechte.sichtbare_eintraege(
+            nutzer, Eintrag.objects.all()
+        ).filter(dokument__dokumenttyp__schluessel="protokoll")
         self.fields["protokoll_anhang"].required = False
+        self.fields["protokoll_anhang"].queryset = sichtbare_anhaenge(nutzer, Anhang.objects.all())
 
 
 @login_required
@@ -44,7 +45,9 @@ def beschluesse_liste(request):
         request,
         "kern/beschluesse.html",
         {
-            "beschluesse": Beschluss.objects.select_related("gremium").annotate(
+            "beschluesse": rechte.sichtbare_beschluesse(request.user)
+            .select_related("gremium")
+            .annotate(
                 anzahl=Count(
                     "beschlossene_versionen",
                     filter=Q(
@@ -61,7 +64,9 @@ def beschluesse_liste(request):
 
 @login_required
 def beschluss_ansehen(request, beschluss_id: int):
-    beschluss = get_object_or_404(Beschluss.objects.select_related("gremium"), pk=beschluss_id)
+    beschluss = get_object_or_404(
+        rechte.sichtbare_beschluesse(request.user).select_related("gremium"), pk=beschluss_id
+    )
     versionen = (
         rechte.sichtbare_versionen(request.user, beschluss.beschlossene_versionen.all())
         .select_related("eintrag", "eintrag__dokument")
@@ -79,7 +84,7 @@ def beschluss_ansehen(request, beschluss_id: int):
             ).first()
             if beschluss.protokoll_anhang_id
             else None,
-            "darf_beschliessen": rechte.darf_beschliessen(request.user),
+            "darf_beschliessen": rechte.darf_beschluss_zuruecknehmen(request.user, beschluss),
         },
     )
 
@@ -87,12 +92,20 @@ def beschluss_ansehen(request, beschluss_id: int):
 @login_required
 def beschlussvorlage(request, schluessel: str = ""):
     """Was könnte in die nächste Konferenz? (SPEC.md §8.3)"""
-    if not rechte.ist_redaktion(request.user):
+    if not rechte.darf_vorlage(request.user):
         raise PermissionDenied(
             "Beschlussvorlagen stellt die Redaktion oder die Administration zusammen."
         )
-    dokument = get_object_or_404(Dokument, schluessel=schluessel) if schluessel else None
-    kandidaten = beschluesse.vorlage_kandidaten(dokument)
+    dokument = (
+        get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
+        if schluessel
+        else None
+    )
+    if dokument and not rechte.darf_vorlage(request.user, dokument):
+        raise PermissionDenied("Für dieses Dokument fehlt die redaktionelle Berechtigung.")
+    kandidaten = beschluesse.vorlage_kandidaten(dokument).filter(
+        dokument__in=rechte.vorlagen_dokumente(request.user)
+    )
 
     return render(
         request,
@@ -100,7 +113,7 @@ def beschlussvorlage(request, schluessel: str = ""):
         {
             "dokument": dokument,
             "kandidaten": kandidaten,
-            "dokumente": Dokument.objects.order_by("titel"),
+            "dokumente": rechte.vorlagen_dokumente(request.user).order_by("titel"),
             "darf_beschliessen": rechte.darf_beschliessen(request.user),
         },
     )
@@ -113,12 +126,21 @@ def beschluss_anlegen(request):
         raise PermissionDenied("Beschlüsse trägt die Administration ein.")
 
     ausgewaehlt = request.POST.getlist("eintrag") or request.GET.getlist("eintrag")
+    if any(not wert.isdecimal() for wert in ausgewaehlt):
+        raise PermissionDenied("Ungültige Auswahl.")
     eintraege = list(
-        Eintrag.objects.filter(pk__in=ausgewaehlt).select_related("dokument").order_by("kennung")
+        Eintrag.objects.filter(
+            pk__in=ausgewaehlt, dokument__in=rechte.berechtigte_dokumente(request.user, "freigeben")
+        )
+        .select_related("dokument")
+        .order_by("kennung")
     )
 
+    if {str(e.pk) for e in eintraege} != set(ausgewaehlt):
+        raise PermissionDenied("Für die Auswahl fehlt die Freigabeberechtigung.")
+
     if request.method == "POST" and request.POST.get("speichern"):
-        formular = BeschlussFormular(request.POST)
+        formular = BeschlussFormular(request.POST, nutzer=request.user)
         if not eintraege:
             formular.add_error(None, "Bitte mindestens einen Eintrag auswählen.")
         if formular.is_valid():
@@ -135,7 +157,7 @@ def beschluss_anlegen(request):
                 messages.warning(request, hinweis)
             return redirect("kern:beschluss", beschluss_id=beschluss.pk)
     else:
-        formular = BeschlussFormular()
+        formular = BeschlussFormular(nutzer=request.user)
 
     return render(
         request,
@@ -149,9 +171,11 @@ def beschluss_anlegen(request):
 def beschluss_zuruecknehmen(request, beschluss_id: int):
     if not rechte.darf_beschliessen(request.user):
         raise PermissionDenied("Beschlüsse nimmt nur die Administration zurück.")
-    beschluss = get_object_or_404(Beschluss, pk=beschluss_id)
+    beschluss = get_object_or_404(rechte.sichtbare_beschluesse(request.user), pk=beschluss_id)
 
-    anzahl = beschluesse.beschluss_zuruecknehmen(beschluss)
+    if not rechte.darf_beschluss_zuruecknehmen(request.user, beschluss):
+        raise PermissionDenied("Für diesen Beschluss fehlt die Freigabeberechtigung.")
+    anzahl = beschluesse.beschluss_zuruecknehmen(beschluss, nutzer=request.user)
     messages.success(
         request,
         f"Der Beschluss wurde zurückgenommen, {anzahl} Fassungen sind wieder "
@@ -218,7 +242,7 @@ def aenderungen(request, schluessel: str):
     """Was hat sich seit dem letzten Beschluss getan? (SPEC.md §8.6)"""
     if not rechte.darf_arbeitsstand_lesen(request.user):
         raise PermissionDenied("Änderungen am Arbeitsstand sind dem Kollegium vorbehalten.")
-    dokument = get_object_or_404(Dokument, schluessel=schluessel)
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     uebersicht = beschluesse.aenderungen_seit_beschluss(dokument)
 
     return render(
@@ -248,6 +272,7 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
         rechte.sichtbare_versionen(request.user, eintrag.versionen.all()), versionsnummer=nummer
     )
 
+    version = sichtbare_beschlussmetadaten(request.user, version)
     verweise = views.verweise_aus_schnappschuss(version, request.user)
 
     return render(

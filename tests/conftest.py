@@ -100,6 +100,11 @@ def lesend_nutzer(rollen) -> Nutzer:
 def dokument(db):
     """Arbeitsplan Deutsch mit vollständiger Gliederung."""
     dok, _, _ = gliederung.dokument_anlegen()
+    # Bildet einen bestehenden Arbeitsplan mit explizit zugewiesener Redaktion ab.
+    from kern.models import Zugangsregel
+
+    gruppe, _ = Group.objects.get_or_create(name=ROLLE_REDAKTION)
+    Zugangsregel.objects.get_or_create(dokument=dok, gruppe=gruppe, defaults={"bearbeiten": True})
     return dok
 
 

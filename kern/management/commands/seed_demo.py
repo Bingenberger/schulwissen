@@ -99,7 +99,8 @@ class Command(BaseCommand):
                 nutzer.is_superuser = True
                 nutzer.save(update_fields=["is_staff", "is_superuser"])
             elif rolle == ROLLE_REDAKTION:
-                # Die Redaktion pflegt die schulischen Festlegungen in der Verwaltung.
+                # Stammdatenpflege benötigt zusätzlich Django-Rechte
+                # und einen zugewiesenen Fachbereich.
                 nutzer.is_staff = True
                 nutzer.save(update_fields=["is_staff"])
             nutzer.groups.add(Group.objects.get(name=rolle))
@@ -112,6 +113,15 @@ class Command(BaseCommand):
             f"{angelegt} Kapitel ergänzt."
         )
 
+        from kern.models import Zugangsregel
+
+        for email, _, _, rolle, _ in KONTEN:
+            if rolle == ROLLE_REDAKTION:
+                Zugangsregel.objects.get_or_create(
+                    dokument=dokument,
+                    nutzer=Nutzer.objects.get(email=email),
+                    defaults={"bearbeiten": True},
+                )
         self._stammdaten(dokument)
 
         self.stdout.write(self.style.SUCCESS("\nBeispieldaten sind angelegt."))

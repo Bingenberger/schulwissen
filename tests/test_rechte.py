@@ -128,7 +128,7 @@ def test_import_und_beschluss_sind_der_administration_vorbehalten(
 
 
 def test_schulische_festlegung_nur_redaktion_und_administration(
-    redaktion_nutzer, lehrkraft, admin_nutzer
+    redaktion_nutzer, lehrkraft, admin_nutzer, dokument
 ):
     """Kompetenzen sind sonst nur auswählbar (SPEC.md §7.3)."""
     assert rechte.darf_schulische_festlegung_bearbeiten(admin_nutzer) is True

@@ -60,7 +60,7 @@ class EintragAdminFormular(forms.ModelForm):
             )
             return daten
         if status != vorher_status and not rechte.darf_status_setzen(
-            self.nutzer, self.vorher, status
+            self.nutzer, self.vorher or Eintrag(dokument=dokument, erstellt_von=self.nutzer), status
         ):
             self.add_error("status", "Für diesen Status fehlt die Berechtigung.")
             return daten

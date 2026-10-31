@@ -11,6 +11,7 @@ from django.contrib import admin
 
 from fachdaten.models import Fach, Kompetenzerwartung
 from kern import rechte
+from kern.admin_zugang import AdministrationsMixin
 
 
 @admin.register(Kompetenzerwartung)
@@ -82,9 +83,25 @@ class KompetenzerwartungAdmin(admin.ModelAdmin):
         return erwartung.text if len(erwartung.text) <= 90 else erwartung.text[:88] + " …"
 
     def get_readonly_fields(self, request, obj=None):
-        if rechte.darf_schulische_festlegung_bearbeiten(request.user):
+        if rechte.darf_schulische_festlegung_bearbeiten(request.user, obj.fach if obj else None):
             return self.NUR_LESEN
         return (*self.NUR_LESEN, "schulische_festlegung")
+
+    def get_queryset(self, request):
+        menge = super().get_queryset(request)
+        if rechte.ist_administration(request.user):
+            return menge
+        faecher = rechte.berechtigte_dokumente(request.user, "bearbeiten").values("fach")
+        return menge.filter(fach__in=faecher)
+
+    def has_change_permission(self, request, obj=None):
+        return rechte.darf_schulische_festlegung_bearbeiten(
+            request.user, obj.fach if obj else None
+        ) and super().has_change_permission(request, obj)
+
+    def get_list_filter(self, request):
+        # Die Fachauswahl darf keine fremden redaktionellen Bereiche anbieten.
+        return self.list_filter if rechte.ist_administration(request.user) else []
 
     def has_add_permission(self, request) -> bool:
         # Nur über „manage.py kompetenzen_importieren“ (SPEC.md §11).
@@ -95,7 +112,7 @@ class KompetenzerwartungAdmin(admin.ModelAdmin):
 
 
 @admin.register(Fach)
-class FachAdmin(admin.ModelAdmin):
+class FachAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["name", "schluessel", "quelle"]
     prepopulated_fields = {"schluessel": ("name",)}
     search_fields = ["name"]
