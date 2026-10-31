@@ -1,0 +1,8 @@
+.funktionskarten { display:grid; gap:var(--abstand-5); }
+.funktionskarte { min-width:0; overflow-wrap:anywhere; }
+.funktionskarte h2 a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); }
+.funktionsbereich,.funktionskontakt { border-top:1px solid var(--linie); padding-top:var(--abstand-4); margin-top:var(--abstand-4); }
+.funktionspersonen li { margin:var(--abstand-2) 0; }
+#funktionssuche { align-items:flex-end; }
+#funktionssuche .feld { flex:1; min-width:min(100%,260px); margin:0; }
+#funktionssuche input { width:100%; }

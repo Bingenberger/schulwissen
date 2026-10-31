@@ -2,7 +2,7 @@
 
 Stand: 31.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Den tatsächlichen Umsetzungsstand zeigen die Paketstatus und das Übergabeprotokoll.
 
-**Nächstes Arbeitspaket: AP04.**
+**Nächstes Arbeitspaket: AP05.**
 
 Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
 
@@ -100,7 +100,7 @@ flowchart LR
 
 ### AP04 — Schulfunktionsrollen und Besetzung aus dem Nutzerstamm
 
-**Status:** geplant. **Abhängigkeiten:** AP02.
+**Status:** fertig (31.10.2026). **Abhängigkeiten:** AP02.
 
 - Schulfunktionsrollen unabhängig von Berechtigungsrollen und Arbeitsgruppen anlegen, etwa Sonderpädagogin, Schulleitung, IT-Ansprechperson oder Ganztagskoordination.
 - Besetzungen mit Verweis auf das bestehende `Nutzer`-Modell im Backend verwalten: Aufgabe, Person, Hauptzuständigkeit/Vertretung, zeitliche Gültigkeit und gegebenenfalls Geltungsbereich.
@@ -109,6 +109,8 @@ flowchart LR
 - Kleines lesbares Funktionsverzeichnis und zentralen Resolver für spätere Prozessschritte bereitstellen.
 
 **Abnahme:** Eine Funktion wird mit einer vorhandenen Lehrkraft besetzt. Ein Personalwechsel aktualisiert die aktuelle Kontaktanzeige aller verknüpften Abläufe, ohne deren Text zu bearbeiten. Vertretung und Vakanz sind sichtbar; Zuordnung verändert keine Zugriffsrechte. Historische Besetzungen werden nicht überschrieben.
+
+**Ergebnis:** Eigenständige Schulfunktionen, benannte Zuständigkeitsbereiche, Besetzungen mit aktiver Nutzersuche, Vertretung, Team, Personalwechsel und unveränderlicher Historie; lesbares Verzeichnis und zentraler Resolver. Einrichtung und Auflösung: [AP04_SCHULFUNKTIONEN.md](docs/AP04_SCHULFUNKTIONEN.md).
 
 **Details:** [PROZESSWERKZEUG.md, Funktionsmodell](docs/PROZESSWERKZEUG.md).
 
@@ -252,8 +254,8 @@ flowchart LR
 
 ## 5. Übergreifende Abnahme des Prozesswerkzeugs
 
-- [ ] Eine Schulfunktionsrolle ist im Backend mit einem aktiven vorhandenen Nutzer besetzbar.
-- [ ] Hauptzuständigkeit, Vertretung, Team/Geltungsbereich und unbesetzte Funktionen werden eindeutig angezeigt.
+- [x] Eine Schulfunktionsrolle ist im Backend mit einem aktiven vorhandenen Nutzer besetzbar.
+- [x] Hauptzuständigkeit, Vertretung, Team/Geltungsbereich und unbesetzte Funktionen werden eindeutig angezeigt.
 - [ ] Eine Personenumbesetzung aktualisiert aktuelle Kontakte in allen betreffenden Abläufen.
 - [ ] Dadurch entstehen keine neuen technischen Berechtigungen und keine veränderten Prozessfassungen.
 - [ ] Berechtigte Autoren können ohne Diagrammcode einen Ablauf mit mindestens einer Verzweigung erstellen.
@@ -266,7 +268,7 @@ flowchart LR
 
 ## 6. Übergabeprotokoll für die nächste Sitzung
 
-Umsetzungsstand: **AP01–AP03 sind fertig (M1)**, alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP04**, anschließend die Abhängigkeiten beachten.
+Umsetzungsstand: **AP01–AP04 sind fertig**, M1 ist abgeschlossen und das Funktionsmodell von M2 ist vorhanden. Alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP05**, anschließend die Abhängigkeiten beachten.
 
 Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 
@@ -275,4 +277,5 @@ Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 | 30.10.2026 / Planung | Roadmap und Prozessspezifikation erstellt | Abgleich mit Produktanalyse und vorhandenem Rollen-/Nutzermodell; keine App-Funktionen geändert | AP01: konsistente Lesefassungen und Suchsichtbarkeit |
 | 31.10.2026 / AP01 | Einheitliche Lesefassungen, getrennte Indizes, geschützte Verweise und Medienzugriffe; Commit `c5da881` | Gesamtsuite 374 bestanden, abschließend 21 AP01-Regressionstests bestanden; 142 betroffene Tests zusätzlich unter Standard-Passwortkonfiguration; Browser in vier Breiten, Hell/Dunkel, Tastatur, Druck und axe; lokale Migration und Bestandsprüfung | AP02: Dokumentzugänge und redaktionelle Bereiche. Auf bestehenden nginx-Servern öffentlichen Medien-Alias gemäß Betriebsanleitung entfernen; externe Dateiversionsbindung bleibt AP09. |
 | 31.10.2026 / AP02 | Dokument-/Bereichsregeln, getrennte Redaktion und Freigabe, geschützte Beschlussrahmen, Verwaltungsoberfläche und Migration; Commit `a6a3afa` | 420 Tests im Gesamtlauf erfolgreich; ein ungültiger Test-Stufenwert korrigiert, danach alle 46 AP02-Tests erfolgreich (überlappend). Ruff, Django und Migrationscheck grün. Fünf Browseransichten in vier Breiten, Frontend-axe und Tastatur; Migration 0009 lokal angewandt und Bestand geprüft. | AP03: Gemeinsames Schreiben ohne stilles Überschreiben. Bestehende persönliche Redaktionszuordnungen bei gewünschter Begrenzung im Backend nachpflegen. |
-| 31.10.2026 / AP03 | Gemeinsame atomare Standprüfung, signierte Formulare, Vergleich und explizite Auflösung; Verwaltung, Importvorschau und parallele Neuanlage geschützt; Umsetzung in diesem Commit | Gesamtlauf 441 bestanden; nach zwei ergänzten Löschfällen 59 betroffene Tests bestanden, davon 22 Schreibschutztests mit zwei echten Paralleltests (überlappend). Ruff, Django und Migrationsabgleich grün; Browser in vier Breiten, Tastatur und axe Hell/Dunkel; Bestandsfingerabdrücke unverändert. Keine Migration nötig. | AP04: Schulfunktionsrollen und Besetzung aus dem bestehenden Nutzerstamm. M1 ist abgeschlossen. |
+| 31.10.2026 / AP03 | Gemeinsame atomare Standprüfung, signierte Formulare, Vergleich und explizite Auflösung; Verwaltung, Importvorschau und parallele Neuanlage geschützt; Commit `58bbe7d` | Gesamtlauf 441 bestanden; nach zwei ergänzten Löschfällen 59 betroffene Tests bestanden, davon 22 Schreibschutztests mit zwei echten Paralleltests (überlappend). Ruff, Django und Migrationsabgleich grün; Browser in vier Breiten, Tastatur und axe Hell/Dunkel; Bestandsfingerabdrücke unverändert. Keine Migration nötig. | AP04: Schulfunktionsrollen und Besetzung aus dem bestehenden Nutzerstamm. M1 ist abgeschlossen. |
+| 31.10.2026 / AP04 | Schulfunktionen und getrennte Funktionsbereiche, Besetzung aus dem Nutzerstamm, bewusste Vertretung/Team, atomarer Personalwechsel mit Revisionsschutz und Historie; aktuelles Verzeichnis mit zwölf Funktionen je Seite und Resolver; Umsetzung in diesem Commit | Gesamtlauf 486 bestanden, darin 43 AP04-Fälle einschließlich echtem Paralleltest; isolierte Testdatenbank und schneller Passwort-Hasher ausschließlich zur Testlaufzeit. Ruff, Django und Migrationsabgleich grün. Browser bei 390/768/1024/1440, Verzeichnis und Demo mit axe Hell/Dunkel, Tastatur, aktive Nutzersuche und Personalwechsel-Dialog; Lehrkraft-/OGS-Einstieg und anonyme Sperre geprüft. Migration 0010 lokal angewandt, keine produktiven Funktionen/Besetzungen angelegt. | AP05: Eintragstyp Prozess, versionierbares Graphschema, stabile Funktions-/Bereichsreferenzen und sichere Graphprüfung. Dynamische Kontaktauflösung vorhanden; Integration in tatsächliche Abläufe folgt AP05–AP08. |

@@ -76,6 +76,14 @@ Anmeldung: lokale Accounts (E-Mail + Passwort, Passwort-Reset per Mail). Archite
 
 Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 
+### Schulfunktionen (AP04)
+- `Schulfunktion`: stabile Kennung, Name, Aufgabe, Einzel-/Teammodus, Archivstatus und optionaler dienstlicher Funktionskontakt; unabhängig von Zugriffsrollen und Arbeitsgruppen.
+- `Funktionsbesetzung`: vorhandenes Nutzerkonto, Funktion, optionaler `Funktionsbereich`, Hauptzuständigkeit/Vertretung, einschließlich gültiger Zeitraum, bewusst aktivierte Vertretung und Stornierung.
+- `Funktionsstand`: unveränderliche Revisionshistorie von Funktion und Besetzung. Besetzungen werden beendet oder storniert, nicht gelöscht oder mit einer anderen Person überschrieben.
+- Benannte Funktionsbereiche besitzen stabile Namen und Kennungen; sie vergeben keine Zugriffsrechte. Funktionsbereich und Historie weichen bei Metadaten vom allgemeinen Zeitstempelschema ab.
+- Aktuelle Zuständigkeiten im lesbaren Verzeichnis, höchstens zwölf Funktionen je Seite; Pflege mit aktiver Nutzersuche ausschließlich in der Administration. Zentraler Resolver für spätere Prozessschritte; keine zufällige Auswahl bei Teams, keine automatische Vertretungsübernahme.
+- Einrichtung, Datumsgrenzen, Historie und Schnittstelle: [AP04_SCHULFUNKTIONEN.md](docs/AP04_SCHULFUNKTIONEN.md).
+
 ### Dokumenttyp
 - `schluessel` (z. B. `arbeitsplan_deutsch`, `konzept`, `protokoll`), `name`, `beschreibung`
 - `eintragstypen`: welche Eintragstypen in diesem Dokumenttyp erlaubt sind

@@ -37,6 +37,7 @@
         <p class="benutzermenue-person"><strong>{{ user.anzeigename }}</strong><span>Dein Schulwissen-Konto</span></p>
         <nav aria-label="Dein Konto">
           <a href="{% url 'kern:dokumente' %}">{% include "kern/_symbol.html" with name="buch" %}Dokumente</a>
+          <a href="{% url 'kern:funktionen' %}">{% include "kern/_symbol.html" with name="gruppe" %}Zuständigkeiten</a>
           {% if ist_lehrkraft %}<a href="{% url 'kern:planung' %}">{% include "kern/_symbol.html" with name="kalender" %}Meine Planung</a>{% endif %}
           <a href="{% url 'fachdaten:uebersicht' %}">{% include "kern/_symbol.html" with name="raster" %}Kompetenzen</a>
           <a href="{% url 'kern:beschluesse' %}">{% include "kern/_symbol.html" with name="kreis-haken" %}Konferenzbeschlüsse</a>

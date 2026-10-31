@@ -55,3 +55,11 @@ html { font-size:var(--grundgroesse); }
 #header { flex-shrink:0; }
 .schreibkonflikt-json { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; }
 .errorlist details summary { min-height:var(--klickflaeche); cursor:pointer; }
+
+/* Personenauswahl und Aktionen im Wechsel-Dialog bleiben gut antippbar. */
+.funktionswechsel .select2-container .select2-selection--single {
+  min-height:var(--klickflaeche); display:flex; align-items:center;
+}
+.funktionswechsel .select2-selection__arrow { min-height:var(--klickflaeche); }
+.funktionswechsel .submit-row { display:flex; flex-wrap:wrap; align-items:center; gap:var(--abstand-3); }
+.funktionswechsel .submit-row a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); }

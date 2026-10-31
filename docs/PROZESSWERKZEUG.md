@@ -1,6 +1,6 @@
 # Prozesswerkzeug: Abläufe erklären und Zuständigkeiten auflösen
 
-Planungsstand: 30.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch; sie beschreibt geplante Funktionen.
+Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Das Funktionsmodell aus AP04 ist umgesetzt; Prozessdaten, Editor, Grafik und Veröffentlichung aus AP05–AP08 sind weiterhin geplant.
 
 ## 1. Nutzerziel
 
@@ -29,7 +29,9 @@ Ein lesbarer linearer Text und eine Druckfassung gehören zum ersten vollständi
 
 Eine Schulfunktionsrolle wird als eigener fachlicher Datensatz geführt. Sie wird nicht als weitere technische Django-Gruppe mit stillschweigenden Sonderrechten eingeführt.
 
-### Geplantes Modell
+### Umgesetztes Funktionsmodell (AP04)
+
+Einrichtung, genaue Auflösungsregeln und Schnittstelle: [AP04_SCHULFUNKTIONEN.md](AP04_SCHULFUNKTIONEN.md).
 
 **Schulfunktion**
 
@@ -79,7 +81,7 @@ Die Graphstruktur muss mit der bestehenden Formular-, Import- und Darstellungsva
 
 Die freigegebene Prozessfassung fixiert Schritte, Fragen, Verbindungen und referenzierte Funktionen. **Personennamen werden nicht in jeden Knoten hineinkopiert.** Die Kontaktanzeige löst die Besetzung dynamisch auf und ist ausdrücklich als aktuelle Zuständigkeit erkennbar.
 
-So bleibt der Prozess unverändert, wenn eine neue Kollegin die Funktion übernimmt. Im historischen Kontext müssen „damals freigegebener Ablauf“ und „heute ansprechbare Person“ unterscheidbar sein. Falls die damalige Besetzung angezeigt wird, wird sie aus der zeitlichen Besetzungshistorie zum angegebenen Stichtag ermittelt und als historisch gekennzeichnet.
+So bleibt der Prozess unverändert, wenn eine neue Kollegin die Funktion übernimmt. Im historischen Kontext müssen „damals freigegebener Ablauf“ und „heute ansprechbare Person“ unterscheidbar sein. Eine spätere historische Kontaktansicht muss ausdrücklich als historisch gekennzeichnet sein und Korrekturstände sowie damalige Kontoaktivität berücksichtigen. AP04 bietet dafür gespeicherte Verwaltungsstände; sein aktueller Resolver rekonstruiert keine vergangenen Kontoaktivitäten.
 
 Eine Änderung der Funktion selbst darf ihre Bedeutung nicht unbemerkt ersetzen. Referenzen und gegebenenfalls die damalige Funktionsbezeichnung müssen nachvollziehbar bleiben. Änderungen der Prozesslogik erzeugen wie bisher einen neuen Arbeitsstand.
 

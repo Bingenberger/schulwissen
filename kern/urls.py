@@ -8,6 +8,7 @@ from kern import (
     beschluss_views,
     dokument_views,
     export_views,
+    funktionen,
     gestaltung,
     import_views,
     oidc,
@@ -19,6 +20,8 @@ from kern import (
 app_name = "kern"
 
 urlpatterns = [
+    path("funktionen", funktionen.verzeichnis, name="funktionen"),
+    path("funktionen/<slug:schluessel>", funktionen.detail, name="funktion"),
     path("medien/<path:pfad>", views.anhang_datei, name="anhang_datei"),
     path("", views.startseite, name="startseite"),
     path("dokumente", uebersichten.dokumente, name="dokumente"),

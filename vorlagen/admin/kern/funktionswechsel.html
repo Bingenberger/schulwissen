@@ -1,0 +1,8 @@
+{% extends "admin/base_site.html" %}
+{% block extrahead %}{{ block.super }}{{ media }}{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Verwaltung</a> › <a href="{% url 'admin:kern_funktionsbesetzung_changelist' %}">Funktionsbesetzungen</a> › Besetzung wechseln</div>{% endblock %}
+{% block content %}
+<p><strong>{{ original.funktion }}</strong>{% if original.bereich %} · {{ original.bereich }}{% endif %} · {{ original.get_art_display }}</p>
+<p>Bisher: <strong>{{ original.person.anzeigename|default:original.person.kuerzel }}</strong>. Der bisherige Zeitraum wird beendet und die neue Besetzung angelegt. Bei einem Wechsel am ersten Tag wird der bisherige Datensatz als Korrektur storniert. Die gespeicherten Stände bleiben erhalten.</p>
+<form method="post" class="funktionswechsel">{% csrf_token %}{{ formular.as_p }}<div class="submit-row"><input type="submit" value="Besetzung wechseln" class="default"><a href="{% url 'admin:kern_funktionsbesetzung_change' original.pk %}">Abbrechen</a></div></form>
+{% endblock %}

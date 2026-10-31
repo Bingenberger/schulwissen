@@ -1,0 +1,47 @@
+{% extends "grundlage.html" %}
+{% load static %}
+{% block titel %}{% if funktion %}{{ funktion.name }}{% else %}Zuständigkeiten{% endif %}{% endblock %}
+{% block kopf_zusatz %}<link rel="stylesheet" href="{% static 'funktionen.css' %}">{% endblock %}
+{% block inhalt %}
+<div class="start funktionsverzeichnis">
+  <p class="brotkrumen"><a href="{% url 'kern:startseite' %}">Start</a>{% if funktion %} › <a href="{% url 'kern:funktionen' %}">Zuständigkeiten</a>{% endif %}</p>
+  <h1>{% if funktion %}{{ funktion.name }}{% else %}Wer ist zuständig?{% endif %}</h1>
+  <p class="leise">Aktuelle schulische Funktionen und ihre Besetzung · Stand {{ stichtag|date:"d.m.Y" }}.</p>
+  {% if not funktion %}
+    <form method="get" id="funktionssuche" class="karte knopf-reihe">
+      <div class="feld"><label for="funktionsbegriff">Funktion oder aktuelle Ansprechperson suchen</label><input id="funktionsbegriff" type="search" name="q" value="{{ begriff }}" maxlength="200"></div>
+      <button class="knopf" type="submit">Suchen</button>{% if begriff %}<a class="knopf knopf-leise" href="{% url 'kern:funktionen' %}">Suche zurücksetzen</a>{% endif %}
+    </form>
+  {% endif %}
+  {% if ist_administration %}<p class="knopf-reihe"><a class="knopf" href="{% url 'admin:kern_schulfunktion_add' %}">Schulfunktion anlegen</a><a class="knopf knopf-leise" href="{% url 'admin:kern_funktionsbesetzung_changelist' %}">Besetzungen verwalten</a></p>{% endif %}
+  <div class="funktionskarten">
+  {% for karte in karten %}
+    <article class="karte funktionskarte">
+      <h2><a href="{% url 'kern:funktion' karte.funktion.schluessel %}">{{ karte.funktion.name }}</a></h2>
+      {% if karte.funktion.aufgabe %}<div>{{ karte.funktion.aufgabe|linebreaks }}</div>{% endif %}
+      {% for auskunft in karte.auskuenfte %}
+        <section class="funktionsbereich" aria-label="{{ auskunft.bereich.name|default:'Allgemeine Zuständigkeit' }}">
+          <h3>{{ auskunft.bereich.name|default:"Allgemein" }}</h3>
+          <p><span class="schild {% if auskunft.status == 'besetzt' %}schild-beschlossen{% elif auskunft.status == 'vertretung' %}schild-abgestimmt{% else %}schild-idee{% endif %}">{{ auskunft.status_text }}</span></p>
+          {% if auskunft.zustaendige %}<ul class="liste-schlicht funktionspersonen">{% for besetzung in auskunft.zustaendige %}<li><strong>{{ besetzung.person.anzeigename|default:besetzung.person.kuerzel|default:"Kontoname ergänzen" }}</strong>{% if besetzung.person.kuerzel %} <span class="leise">({{ besetzung.person.kuerzel }})</span>{% endif %}{% if besetzung.vertretung_aktiv %} · aktive Vertretung{% endif %}</li>{% endfor %}</ul>{% endif %}
+          {% if auskunft.status == 'vertretung' and karte.funktion.besetzungsmodus == 'einzel' and auskunft.hauptbesetzungen %}<p class="klein leise">Reguläre Besetzung: {% for b in auskunft.hauptbesetzungen %}{{ b.person.anzeigename|default:b.person.kuerzel }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>{% endif %}
+          {% if auskunft.vertretungen %}<ul class="liste-schlicht klein">{% for b in auskunft.vertretungen %}{% if not b.vertretung_aktiv %}<li>Hinterlegte Vertretung: {{ b.person.anzeigename|default:b.person.kuerzel }} · übernimmt derzeit nicht</li>{% endif %}{% endfor %}</ul>{% endif %}
+          {% if auskunft.hinweis %}<p class="meldung meldung-warning">{{ auskunft.hinweis }}</p>{% endif %}
+        </section>
+      {% endfor %}
+      {% if not karte.funktion.archiviert %}
+        {% if karte.funktion.dienst_email or karte.funktion.dienst_telefon or karte.funktion.kontakt_hinweis %}<div class="funktionskontakt"><h3>Funktionskontakt</h3>
+          {% if karte.funktion.dienst_email %}<p><a href="mailto:{{ karte.funktion.dienst_email }}">{{ karte.funktion.dienst_email }}</a></p>{% endif %}
+          {% if karte.funktion.dienst_telefon %}<p>{{ karte.funktion.dienst_telefon }}</p>{% endif %}
+          {% if karte.funktion.kontakt_hinweis %}<p>{{ karte.funktion.kontakt_hinweis }}</p>{% endif %}
+        </div>{% endif %}
+      {% endif %}
+      {% if ist_administration %}<p><a class="knopf knopf-leise" href="{% url 'admin:kern_schulfunktion_change' karte.funktion.pk %}">Funktion verwalten</a></p>{% endif %}
+    </article>
+  {% empty %}
+    <div class="karte"><h2>{% if begriff %}Keine passende Zuständigkeit gefunden{% else %}Noch keine Schulfunktionen eingetragen{% endif %}</h2><p>{% if ist_administration %}Lege eine Schulfunktion an und besetze sie mit vorhandenen Nutzerkonten. Funktionen ohne Besetzung werden ausdrücklich als unbesetzt angezeigt.{% else %}Bitte frag die Administration nach der passenden Zuständigkeit.{% endif %}</p></div>
+  {% endfor %}
+  </div>
+  {% if seite %}{% include "kern/_seitennavigation.html" %}{% endif %}
+</div>
+{% endblock %}

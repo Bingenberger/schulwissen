@@ -12,7 +12,10 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from eintragstypen import dienste
-from kern import rechte
+from kern import (
+    funktionsverwaltung,  # noqa: F401 – registriert die Funktionsverwaltung
+    rechte,
+)
 from kern.admin_formulare import EintragAdminFormular
 from kern.admin_zugang import AdministrationsMixin
 from kern.models import (
@@ -70,6 +73,16 @@ class NutzerAdmin(AdministrationsMixin, UserAdmin):
             },
         ),
     )
+
+    def get_search_results(self, request, queryset, search_term):
+        menge, duplikate = super().get_search_results(request, queryset, search_term)
+        if (
+            request.GET.get("app_label") == "kern"
+            and request.GET.get("model_name") == "funktionsbesetzung"
+            and request.GET.get("field_name") == "person"
+        ):
+            menge = menge.filter(is_active=True)
+        return menge, duplikate
 
     @admin.display(description="Rollen")
     def rollenliste(self, nutzer: Nutzer) -> str:

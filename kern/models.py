@@ -1008,3 +1008,360 @@ class OIDCIdentitaet(Zeitstempel):
 
     def __str__(self):
         return f"{self.nutzer} · {self.issuer}"
+
+
+# --- Schulfunktionsrollen (keine Berechtigungsrollen) -----------------------
+
+
+class Besetzungsmodus(models.TextChoices):
+    EINZEL = "einzel", "Einzelzuständigkeit"
+    TEAM = "team", "Team"
+
+
+class Besetzungsart(models.TextChoices):
+    HAUPT = "haupt", "Hauptzuständigkeit"
+    VERTRETUNG = "vertretung", "Vertretung"
+
+
+def _funktionsautor_pruefen(autor):
+    if autor is not None:
+        from django.core.exceptions import PermissionDenied
+
+        from kern import rechte
+
+        if not rechte.ist_administration(autor):
+            raise PermissionDenied("Schulfunktionen verwaltet die Administration.")
+
+
+def _revision_pruefen(objekt, vorher):
+    if vorher is not None and objekt.revision != vorher.revision:
+        raise ValidationError(
+            "Dieser Stand wurde inzwischen geändert. Bitte öffne den aktuellen Stand "
+            "zum Vergleichen; deine Eingabe bleibt im Formular."
+        )
+
+
+class Funktionsbereich(models.Model):
+    """Geltungsbereich einer Zuständigkeit; unabhängig von Wissensbereich/Rechten."""
+
+    name = models.CharField("Name", max_length=150, unique=True)
+    schluessel = models.SlugField("Stabile Kennung", max_length=80, unique=True)
+
+    class Meta:
+        verbose_name = "Funktionsbereich"
+        verbose_name_plural = "Funktionsbereiche"
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return self.name
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        if self.pk:
+            type(self).objects.select_for_update(of=("self",)).filter(pk=self.pk).first()
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def clean(self):
+        self.name = " ".join(self.name.split())
+        self.schluessel = self.schluessel.strip().lower()
+        vorher = type(self).objects.filter(pk=self.pk).first()
+        if vorher and (
+            vorher.schluessel != self.schluessel
+            or (vorher.name != self.name and self.besetzungen.exists())
+        ):
+            raise ValidationError(
+                "Verwendete Bereiche behalten ihre Bedeutung. Bitte lege für eine neue "
+                "Zuständigkeit einen neuen Bereich an."
+            )
+
+
+class Schulfunktion(Zeitstempel):
+    name = models.CharField("Funktion", max_length=150)
+    schluessel = models.SlugField("Stabile Kennung", max_length=80, unique=True)
+    aufgabe = models.TextField("Aufgabe", blank=True, max_length=4000)
+    besetzungsmodus = models.CharField(
+        "Besetzung", max_length=10, choices=Besetzungsmodus, default=Besetzungsmodus.EINZEL
+    )
+    archiviert = models.BooleanField(default=False)
+    dienst_email = models.EmailField(
+        "Dienstliche Funktions-E-Mail",
+        blank=True,
+        help_text=(
+            "Optionaler öffentlicher Funktionskontakt. Konto-E-Mails werden nicht "
+            "automatisch im Verzeichnis gezeigt."
+        ),
+    )
+    dienst_telefon = models.CharField("Dienstlicher Telefonkontakt", max_length=80, blank=True)
+    kontakt_hinweis = models.CharField(
+        "Anlaufstelle bei Rückfragen oder Vakanz", max_length=300, blank=True
+    )
+    revision = models.PositiveIntegerField(default=1, editable=False)
+
+    class Meta:
+        verbose_name = "Schulfunktion"
+        verbose_name_plural = "Schulfunktionen"
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return self.name
+
+    @transaction.atomic
+    def save(self, *args, autor=None, **kwargs):
+        _funktionsautor_pruefen(autor)
+        if kwargs.get("update_fields") is not None and not kwargs["update_fields"]:
+            return None
+        vorher = type(self).objects.select_for_update(of=("self",)).filter(pk=self.pk).first()
+        _revision_pruefen(self, vorher)
+        self.full_clean()
+        self.revision = vorher.revision + 1 if vorher else 1
+        if vorher is None and autor is not None:
+            self.erstellt_von = autor
+        if kwargs.get("update_fields") is not None:
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | {"revision", "geaendert_am"}
+        ergebnis = super().save(*args, **kwargs)
+        self.refresh_from_db()
+        Funktionsstand.objects.create(
+            funktion=self,
+            revision=self.revision,
+            autor=autor,
+            daten={
+                "schema_version": 1,
+                **{
+                    f: getattr(self, f)
+                    for f in (
+                        "name",
+                        "schluessel",
+                        "aufgabe",
+                        "besetzungsmodus",
+                        "archiviert",
+                        "dienst_email",
+                        "dienst_telefon",
+                        "kontakt_hinweis",
+                    )
+                },
+            },
+        )
+        return ergebnis
+
+    def clean(self):
+        self.name = self.name.strip()
+        self.schluessel = self.schluessel.strip().lower()
+        vorher = type(self).objects.filter(pk=self.pk).first()
+        if vorher:
+            if vorher.schluessel != self.schluessel:
+                raise ValidationError({"schluessel": "Die Kennung bleibt dauerhaft bestehen."})
+            if vorher.besetzungsmodus != self.besetzungsmodus and self.besetzungen.exists():
+                raise ValidationError(
+                    {
+                        "besetzungsmodus": (
+                            "Bei vorhandenen Besetzungen bleibt der Modus erhalten. "
+                            "Lege bei geänderter Bedeutung eine neue Funktion an."
+                        )
+                    }
+                )
+
+
+class Funktionsbesetzung(Zeitstempel):
+    funktion = models.ForeignKey(
+        Schulfunktion, on_delete=models.PROTECT, related_name="besetzungen"
+    )
+    person = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="Person aus dem Nutzerstamm",
+        on_delete=models.PROTECT,
+        related_name="funktionsbesetzungen",
+    )
+    bereich = models.ForeignKey(
+        Funktionsbereich,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="besetzungen",
+        help_text=(
+            "Leer bedeutet allgemeine Zuständigkeit. Dieser Bereich vergibt keine Zugriffsrechte."
+        ),
+    )
+    art = models.CharField(
+        "Besetzungsart", max_length=12, choices=Besetzungsart, default=Besetzungsart.HAUPT
+    )
+    gueltig_ab = models.DateField("Gültig ab (einschließlich)", default=timezone.localdate)
+    gueltig_bis = models.DateField("Gültig bis (einschließlich)", null=True, blank=True)
+    vertretung_aktiv = models.BooleanField(
+        "Vertretung übernimmt in diesem Zeitraum",
+        default=False,
+        help_text=(
+            "Nur für Vertretungen. Bewusst setzen; eine hinterlegte Vertretung "
+            "übernimmt nicht automatisch."
+        ),
+    )
+    storniert = models.BooleanField(
+        "Besetzung storniert",
+        default=False,
+        help_text="Für Korrekturen; der ursprüngliche Stand bleibt in der Historie erhalten.",
+    )
+    revision = models.PositiveIntegerField(default=1, editable=False)
+
+    class Meta:
+        verbose_name = "Funktionsbesetzung"
+        verbose_name_plural = "Funktionsbesetzungen"
+        ordering = ["funktion", "bereich", "art", "gueltig_ab", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(gueltig_bis__isnull=True)
+                | models.Q(gueltig_bis__gte=models.F("gueltig_ab")),
+                name="besetzung_gueltige_daten",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(vertretung_aktiv=False) | models.Q(art=Besetzungsart.VERTRETUNG),
+                name="besetzung_aktive_vertretung",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.funktion} · {self.person} · {self.gueltig_ab}"
+
+    @transaction.atomic
+    def save(self, *args, autor=None, **kwargs):
+        _funktionsautor_pruefen(autor)
+        if kwargs.get("update_fields") is not None and not kwargs["update_fields"]:
+            return None
+        funktion = (
+            Schulfunktion.objects.select_for_update(of=("self",))
+            .filter(pk=self.funktion_id)
+            .first()
+        )
+        if funktion is None:
+            raise ValidationError({"funktion": "Bitte eine vorhandene Schulfunktion auswählen."})
+        if self.bereich_id:
+            Funktionsbereich.objects.select_for_update(of=("self",)).filter(
+                pk=self.bereich_id
+            ).first()
+        vorher = type(self).objects.select_for_update(of=("self",)).filter(pk=self.pk).first()
+        _revision_pruefen(self, vorher)
+        self.full_clean()
+        self.revision = vorher.revision + 1 if vorher else 1
+        if vorher is None and autor is not None:
+            self.erstellt_von = autor
+        if kwargs.get("update_fields") is not None:
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | {"revision", "geaendert_am"}
+        ergebnis = super().save(*args, **kwargs)
+        self.refresh_from_db()
+        Funktionsstand.objects.create(
+            funktion=self.funktion,
+            besetzung=self,
+            revision=self.revision,
+            autor=autor,
+            daten={
+                "schema_version": 1,
+                "funktion_id": self.funktion_id,
+                "person_id": self.person_id,
+                "person_anzeige": self.person.anzeigename,
+                "bereich_id": self.bereich_id,
+                "bereich_name": self.bereich.name if self.bereich_id else "Allgemein",
+                "art": self.art,
+                "gueltig_ab": self.gueltig_ab.isoformat(),
+                "gueltig_bis": self.gueltig_bis.isoformat() if self.gueltig_bis else None,
+                "vertretung_aktiv": self.vertretung_aktiv,
+                "storniert": self.storniert,
+            },
+        )
+        return ergebnis
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError(
+            "Besetzungen werden beendet oder storniert; die Historie bleibt erhalten."
+        )
+
+    def clean(self):
+        vorher = type(self).objects.filter(pk=self.pk).first()
+        unveraenderlich = ("funktion_id", "person_id", "bereich_id", "art", "vertretung_aktiv")
+        if vorher and any(getattr(vorher, f) != getattr(self, f) for f in unveraenderlich):
+            raise ValidationError(
+                "Funktion, Person, Bereich und Besetzungsart bleiben nachvollziehbar. "
+                "Beende den bisherigen Zeitraum und lege eine neue Besetzung an; für "
+                "Personalwechsel gibt es den Wechsel-Dialog."
+            )
+        funktion = Schulfunktion.objects.filter(pk=self.funktion_id).first()
+        if not funktion:
+            return
+        if vorher is None:
+            if funktion.archiviert:
+                raise ValidationError(
+                    {"funktion": "Archivierte Funktionen werden nicht neu besetzt."}
+                )
+            if not Nutzer.objects.filter(pk=self.person_id, is_active=True).exists():
+                raise ValidationError(
+                    {"person": "Bitte ein aktives vorhandenes Nutzerkonto wählen."}
+                )
+        if not self.gueltig_ab or self.storniert:
+            return
+        menge = (
+            type(self)
+            .objects.filter(
+                funktion_id=self.funktion_id,
+                bereich_id=self.bereich_id,
+                art=self.art,
+                storniert=False,
+            )
+            .exclude(pk=self.pk)
+        )
+        if self.gueltig_bis:
+            menge = menge.filter(gueltig_ab__lte=self.gueltig_bis)
+        menge = menge.filter(
+            models.Q(gueltig_bis__isnull=True) | models.Q(gueltig_bis__gte=self.gueltig_ab)
+        )
+        if funktion.besetzungsmodus == Besetzungsmodus.TEAM:
+            menge = menge.filter(person_id=self.person_id)
+        if menge.exists():
+            raise ValidationError(
+                "In diesem Zeitraum gibt es bereits eine überlappende Besetzung derselben "
+                "Art und Zuständigkeit. Beende zuerst den bisherigen Zeitraum oder "
+                "verwende bewusst eine Teamfunktion."
+            )
+
+
+class Funktionsstand(models.Model):
+    funktion = models.ForeignKey(Schulfunktion, on_delete=models.PROTECT, related_name="staende")
+    besetzung = models.ForeignKey(
+        Funktionsbesetzung, null=True, blank=True, on_delete=models.PROTECT, related_name="staende"
+    )
+    revision = models.PositiveIntegerField()
+    zeitpunkt = models.DateTimeField(auto_now_add=True)
+    autor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="funktionsaenderungen",
+    )
+    daten = models.JSONField(default=dict)
+
+    class Meta:
+        verbose_name = "Funktionshistorie"
+        verbose_name_plural = "Funktionshistorie"
+        ordering = ["-zeitpunkt", "-pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["funktion", "revision"],
+                condition=models.Q(besetzung__isnull=True),
+                name="funktionsstand_revision",
+            ),
+            models.UniqueConstraint(
+                fields=["besetzung", "revision"],
+                condition=models.Q(besetzung__isnull=False),
+                name="besetzungsstand_revision",
+            ),
+        ]
+
+    def __str__(self):
+        art = "Besetzung" if self.besetzung_id else "Funktion"
+        return f"{self.funktion} · {art} · Stand {self.revision}"
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValidationError("Die Funktionshistorie bleibt unverändert.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Die Funktionshistorie bleibt erhalten.")
