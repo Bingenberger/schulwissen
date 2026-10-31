@@ -1,6 +1,6 @@
 # AP07: Prozesse grafisch und geführt nachlesen
 
-Stand: 31.10.2026. AP07 ergänzt die Leseansichten zum [Prozesseditor](AP06_PROZESSEDITOR.md). Es ist keine Migration nötig. Veröffentlichung und fachlicher Pilot folgen in AP08.
+Stand: 31.10.2026. AP07 ergänzt die Leseansichten zum [Prozesseditor](AP06_PROZESSEDITOR.md). Es ist keine Migration nötig. Veröffentlichung und Suche sind seit [AP08](AP08_PROZESSVEROEFFENTLICHUNG.md) ergänzt; der echte fachliche Pilot bleibt offen.
 
 ## Bedienung
 

@@ -4,6 +4,7 @@
 {% block kopf_zusatz %}<link rel="stylesheet" href="{% static 'startseite.css' %}">{% endblock %}
 {% block kopfsuche %}
 <nav class="kopf-einstiege" aria-label="Schnelleinstieg">
+  <a href="{% url 'kern:prozesse' %}">{% include "kern/_symbol.html" with name="pfeil" %}Abläufe</a>
   {% if ist_lehrkraft %}<a href="{% url 'kern:planung' %}">{% include "kern/_symbol.html" with name="kalender" %}Meine Planung</a>{% endif %}
   <a href="{% url 'kern:beschluesse' %}">{% include "kern/_symbol.html" with name="kreis-haken" %}Beschlüsse</a>
 </nav>
@@ -14,10 +15,11 @@
   <section class="start-hero" aria-labelledby="start-titel">
     <p class="start-augenbraue">Wissen für unseren Schulalltag</p>
     <h1 id="start-titel">Was suchst du?</h1>
-    <p class="start-einleitung">Finde Arbeitspläne, Konzepte und die Absprachen aus unseren Konferenzen.</p>
+    <p class="start-einleitung">Finde Arbeitspläne, Abläufe, Konzepte und die Absprachen aus unseren Konferenzen.</p>
     {% include "kern/_suchfeld.html" with kennung="start-suchfeld" gross=True %}
     <div class="start-beispiele" aria-label="Beispielsuchen">
       <span>Zum Beispiel</span>
+      <a href="{% url 'kern:prozesse' %}">Was passiert, wenn …?</a>
       <a href="{% url 'suche:suchen' %}?q=Lesezeit">Lesezeit</a>
       <a href="{% url 'suche:suchen' %}?q=Leistungsbewertung">Leistungsbewertung</a>
       <a href="{% url 'suche:suchen' %}?q=M%C3%A4rchen">Märchen</a>

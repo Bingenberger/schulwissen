@@ -1,0 +1,25 @@
+{% extends "grundlage.html" %}
+{% load static %}
+{% block kopf_zusatz %}<link rel="stylesheet" href="{% static 'startseite.css' %}">{% endblock %}
+{% block titel %}Abläufe{% endblock %}
+{% block inhalt %}
+<div class="start">
+  <p class="brotkrumen"><a href="{% url 'kern:startseite' %}">Start</a> › Abläufe</p>
+  <h1>Was passiert, wenn …?</h1>
+  <p>Finde den passenden Ablauf und die aktuell zuständigen Ansprechpersonen.</p>
+  <nav class="knopf-reihe" aria-label="Prozessstand auswählen"><a class="knopf" href="{% url 'kern:prozesse' %}" {% if not arbeit %}aria-current="page"{% endif %}>Veröffentlichte Abläufe</a>{% if not ist_nur_lesend %}<a class="knopf" href="?stand=arbeit" {% if arbeit %}aria-current="page"{% endif %}>Arbeitsstände</a>{% endif %}</nav>
+  <p class="meldung meldung-info">{% if arbeit %}Hier stehen die Arbeitsstände. Neue Änderungen gelten erst nach fachlicher Freigabe. Auch andere Lehrkräfte mit Dokumentzugang können Entwürfe lesen; die Bearbeitung bleibt berechtigungsgesteuert.{% else %}Hier öffnest du die gültige freigegebene Fassung. Neuere Entwürfe verändern sie erst nach erneuter Freigabe.{% endif %}</p>
+  <form method="get" class="karte knopf-reihe" role="search" aria-label="Abläufe suchen">
+    {% if arbeit %}<input type="hidden" name="stand" value="arbeit">{% endif %}
+    <div class="feld"><label for="ablaufbegriff">Prozess, Anlass oder Schulfunktion suchen</label><input id="ablaufbegriff" type="search" name="q" value="{{ begriff }}" maxlength="200"></div><button class="knopf knopf-wichtig" type="submit">Abläufe suchen</button>
+    {% if begriff %}<a class="knopf" href="{% url 'kern:prozesse' %}{% if arbeit %}?stand=arbeit{% endif %}">Suche zurücksetzen</a>{% endif %}
+  </form>
+  {% if prozess_dokumente %}<details class="accordion"><summary>Neuen Prozess anlegen</summary><div><p>Wähle das Dokument, in dem der Ablauf gepflegt werden soll.</p><ul>{% for d in prozess_dokumente %}<li><a href="{% url 'kern:eintrag_neu' d.schluessel 'prozess' %}">Prozess in „{{ d.titel }}“ anlegen</a></li>{% endfor %}</ul></div></details>{% elif ist_administration %}<p><a class="knopf" href="{% url 'kern:dokument_neu' %}">Schulhandbuch als Dokument anlegen</a></p>{% endif %}
+  <p class="klein leise">{{ seite.paginator.count }} Ablauf{{ seite.paginator.count|pluralize:",e" }} · höchstens zwölf je Seite.</p>
+  <div class="dokument-kacheln">
+    {% for karte in karten %}<article class="karte"><p class="klein leise">{{ karte.dokument }} · {{ karte.kennung }}</p><h2><a href="{{ karte.url }}">{{ karte.titel }}</a></h2><p>{{ karte.anlass|truncatechars:260 }}</p><span class="schild schild-{{ karte.status }}">{% if arbeit %}{{ karte.status_text }} · Arbeitsstand{% else %}Veröffentlicht{% endif %}</span></article>
+    {% empty %}<div class="leerer-zustand"><h2>{% if begriff %}Kein passender Ablauf gefunden{% elif arbeit %}Noch keine Arbeitsstände vorhanden{% else %}Noch keine Abläufe veröffentlicht{% endif %}</h2><p>{% if arbeit %}Lege einen Prozess in einem zugänglichen Schulhandbuch an.{% else %}Sobald ein Ablauf fachlich freigegeben ist und du Zugang zu seinem Dokument hast, findest du ihn hier.{% endif %}</p></div>{% endfor %}
+  </div>
+  {% include "kern/_seitennavigation.html" %}
+</div>
+{% endblock %}

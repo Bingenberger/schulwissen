@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "dokument": "demo-prozesswerkzeug",
+  "eintraege": [
+    {
+      "kennung": "DEMO-INFO",
+      "eintragstyp": "grundlagenkapitel",
+      "titel": "Fiktives Demomaterial – keine schulische Regel",
+      "status": "entwurf",
+      "daten": {
+        "text": "<p>Dieses Material dient ausschließlich zur Bedienprüfung. Es enthält keine echte Verfahrensanweisung und keine personenbezogenen Fälle.</p>"
+      }
+    }
+  ]
+}

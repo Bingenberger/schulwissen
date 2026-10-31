@@ -413,15 +413,23 @@ def test_suche_und_lesestand_zeigen_nur_erlaubte_fassung(
     beschluesse.beschluss_fassen(beschluss(), [e])
     graph["knoten"][2]["titel"] = "Xylophongeheimnis"
     e = schreiben(handbuch, graph)
-    assert suche.suchen(lesend_nutzer, "Silbenbogenfreigabe", gruppe="eintraege").gesamt == 1
-    assert suche.suchen(lesend_nutzer, "Xylophongeheimnis", gruppe="eintraege").gesamt == 0
+    assert suche.suchen(lesend_nutzer, "Silbenbogenfreigabe", gruppe="prozesse").gesamt == 1
+    assert suche.suchen(lesend_nutzer, "Xylophongeheimnis", gruppe="prozesse").gesamt == 0
     client.force_login(lesend_nutzer)
     antwort = client.get(reverse("kern:eintrag", args=[handbuch.schluessel, e.kennung]))
     assert "Silbenbogenfreigabe" in antwort.content.decode()
     assert "Xylophongeheimnis" not in antwort.content.decode()
     assert 'id="prozess-lesedaten"' in antwort.content.decode()
     assert "data-prozess-leser" in antwort.content.decode()
-    assert suche.suchen(admin_nutzer, "Xylophongeheimnis", gruppe="eintraege").gesamt == 1
+    from kern import prozesse
+
+    assert suche.suchen(admin_nutzer, "Xylophongeheimnis", gruppe="prozesse").gesamt == 0
+    assert (
+        prozesse.suchen(
+            prozesse.menge(admin_nutzer, arbeitsstand=True), "Xylophongeheimnis"
+        ).count()
+        == 1
+    )
 
 
 def test_frontend_bearbeitung_bewahrt_graph_ohne_jsonpflicht(handbuch, funktion):

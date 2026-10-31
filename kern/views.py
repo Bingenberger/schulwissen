@@ -376,6 +376,8 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "typ": eintrag.typ,
             "bloecke": bloecke,
             "prozess": prozess,
+            "darf_prozess_freigeben": eintrag.eintragstyp == "prozess"
+            and rechte.darf_beschliessen(request.user, eintrag.dokument),
             "angezeigter_titel": stand.titel,
             "angezeigter_status": stand.status,
             "angezeigter_status_text": stand.get_status_display(),

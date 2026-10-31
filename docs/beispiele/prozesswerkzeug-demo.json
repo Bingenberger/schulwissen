@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "dokument": "demo-prozesswerkzeug",
+  "eintraege": [
+    {
+      "kennung": "PR-DEMO-01",
+      "eintragstyp": "prozess",
+      "titel": "Demo: Ein fiktives Material ausprobieren",
+      "status": "entwurf",
+      "daten": {
+        "anlass": "Ausdrücklich fiktiver Testablauf: Eine Lehrkraft möchte ein Demomaterial ausprobieren. Keine schulische Regel.",
+        "ablauf": {
+          "schema_version": 1,
+          "knoten": [
+            {
+              "id": "start",
+              "art": "start",
+              "titel": "Demomaterial ausprobieren"
+            },
+            {
+              "id": "frage",
+              "art": "entscheidung",
+              "titel": "Ist das Demomaterial bereits vorhanden?"
+            },
+            {
+              "id": "vorhanden",
+              "art": "handlung",
+              "titel": "Demomaterial ansehen",
+              "text": "Nur zur Bedienprüfung: Öffne den Wissensverweis und lies das fiktive Material.",
+              "funktion": "demo-materialdienst",
+              "verweise": [
+                {
+                  "typ": "eintrag",
+                  "dokument": "demo-prozesswerkzeug",
+                  "kennung": "DEMO-INFO"
+                }
+              ]
+            },
+            {
+              "id": "anfragen",
+              "art": "handlung",
+              "titel": "Demo-Materialdienst ansprechen",
+              "text": "Nur zur Bedienprüfung: Lies die aktuelle Besetzung. Danach kannst du die Frage erneut beantworten.",
+              "funktion": "demo-materialdienst"
+            },
+            {
+              "id": "ende",
+              "art": "ende",
+              "titel": "Bedienprüfung beendet"
+            }
+          ],
+          "verbindungen": [
+            {
+              "id": "start-frage",
+              "von": "start",
+              "nach": "frage"
+            },
+            {
+              "id": "ja",
+              "von": "frage",
+              "nach": "vorhanden",
+              "beschriftung": "Ja"
+            },
+            {
+              "id": "nein",
+              "von": "frage",
+              "nach": "anfragen",
+              "beschriftung": "Nein"
+            },
+            {
+              "id": "fertig",
+              "von": "vorhanden",
+              "nach": "ende"
+            },
+            {
+              "id": "erneut",
+              "von": "anfragen",
+              "nach": "frage",
+              "beschriftung": "Erneut prüfen",
+              "ruecksprung": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

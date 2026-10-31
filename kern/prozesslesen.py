@@ -228,6 +228,14 @@ def aufbereiten(eintrag, daten, nutzer, version=None):
                             "label": a.dateiname or "Datei",
                             "url": url,
                             "art": "Verknüpfte Datei",
+                            "pruefhinweis": (
+                                "Veränderlicher Materiallink – die externe Dateifassung ist "
+                                "nicht an diese Prozessfreigabe gebunden."
+                                if not a.datei
+                                else "Registrierte Änderungen seit Freigabe werden zurückgehalten."
+                                if gueltig
+                                else "Arbeitsstand: Materialfassung vor Freigabe prüfen."
+                            ),
                         }
                 elif a and not unveraendert:
                     material["label"] = (

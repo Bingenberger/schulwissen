@@ -103,6 +103,8 @@ einen neuen Entwurf und lassen die gültige Fassung bestehen.
 | `protokoll` | `tagesordnungspunkt`: `text`, `beschluesse` (beides Rich Text) |
 | `arbeitsplan_deutsch` | `grundlagenkapitel`, `ritual`, `vorhaben`; Felder gemäß SPEC.md §7.4 und `deutsch/eintragstypen.py` |
 
+Für das Prozesswerkzeug gibt es eine [fiktive Demo mit zwei Importdateien](docs/AP08_PROZESSVEROEFFENTLICHUNG.md#fiktive-demo-vorbereiten). Zuerst Material importieren und freigeben, danach den darauf verweisenden Prozess. Die Schulfunktion muss bereits vorhanden sein; eine Veröffentlichung erfolgt anschließend ausdrücklich über die Freigabemaske.
+
 Beim Anlegen eines Konferenzprotokolls entsteht ein leerer Protokollkopf.
 Tagesordnungspunkte können über die App oder per Import ergänzt werden.
 Beim Eintragen eines tatsächlichen Beschlusses kann ein Protokolleintrag

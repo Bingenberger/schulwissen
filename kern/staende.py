@@ -45,13 +45,17 @@ def lesestand(nutzer, eintrag):
     return Eintragsstand(eintrag, version)
 
 
-def lesemenge(nutzer, menge):
+def lesemenge(nutzer, menge, *, nur_beschlossene=False):
     """SQL-Projektion derselben Lesefassung, vor Suche, Filterung und Zählung."""
     from kern import rechte
 
     menge = rechte.sichtbare_eintraege(nutzer, menge)
     versionen = gueltige_versionen().filter(eintrag_id=OuterRef("pk"))
     felder = ("titel", "daten", "status", "suchtext", "suchvektor")
+    if nur_beschlossene:
+        menge = menge.exclude(status=Status.ARCHIVIERT).filter(
+            pk__in=gueltige_versionen().values("eintrag_id")
+        )
     return (
         mit_lesefassungen(menge)
         .annotate(_leseversion=Subquery(versionen.values("pk")[:1]))
@@ -62,7 +66,7 @@ def lesemenge(nutzer, menge):
                         When(_leseversion__isnull=False, then=Subquery(versionen.values(feld)[:1])),
                         default=F(feld),
                     )
-                    if rechte.ist_nur_lesend(nutzer)
+                    if nur_beschlossene or rechte.ist_nur_lesend(nutzer)
                     else F(feld)
                 )
                 for feld in felder

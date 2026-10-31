@@ -39,7 +39,7 @@ Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
 Coding-Sitzungen. AP01–AP07 (Lesefassungen, Dokumentzugänge, Schreibschutz,
-Schulfunktionen, Prozessdaten, Autoreneditor und Leseansichten) sind umgesetzt; nächster Einstieg ist **AP08**.
+Schulfunktionen, Prozessdaten, Autoreneditor und Leseansichten) sind umgesetzt; AP08 ergänzt Veröffentlichung und Prozesssuche. Nächstes Coding-Paket ist **AP09**; die echte fachliche Pilotabnahme bleibt offen.
 Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
@@ -50,7 +50,7 @@ der Verwaltung. Einrichtung, Vertretung und Personalwechsel:
 [Prozessdatenbasis](docs/AP05_PROZESSDATEN.md) unterstützt bereits Entwürfe,
 Prüfung und Fassungen. Der [Prozesseditor](docs/AP06_PROZESSEDITOR.md) bietet
 Schritte, Verzweigungen, Zuständigkeiten, Materialien und eine automatische
-Vorschau ohne Diagrammcode. Die [Leseansicht](docs/AP07_PROZESSLESEN.md) bietet Grafik, geführte Auswahl, aktuelle Kontakte sowie Text und PDF. Veröffentlichung und fachlicher Pilot folgen in AP08. Die Abnahme von AP01 steht in
+Vorschau ohne Diagrammcode. Die [Leseansicht](docs/AP07_PROZESSLESEN.md) bietet Grafik, geführte Auswahl, aktuelle Kontakte sowie Text und PDF. [Veröffentlichung und Prozesssuche](docs/AP08_PROZESSVEROEFFENTLICHUNG.md) sind seit AP08 verfügbar: Über **Abläufe** öffnet das Kollegium gültige Fassungen; Arbeitsstände bleiben ausdrücklich auswählbar. Der echte schulische Pilot und die Betriebsabnahme bleiben offen. Die Abnahme von AP01 steht in
 [AP01_LESEFASSUNGEN.md](docs/AP01_LESEFASSUNGEN.md).
 
 ## Schnellstart

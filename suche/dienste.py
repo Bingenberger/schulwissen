@@ -1,7 +1,7 @@
 """Die Suche – das Herzstück der App (SPEC.md §9).
 
-Gesucht wird in vier Gruppen: Arbeitspläne und Konzepte, Konferenzbeschlüsse,
-Kompetenzerwartungen und Dateien. Je Treffer gibt es Titel, Kontext
+Gesucht wird in fünf Gruppen: veröffentlichte Abläufe, Arbeitspläne und Konzepte,
+Konferenzbeschlüsse, Kompetenzerwartungen und Dateien. Je Treffer gibt es Titel, Kontext
 („Arbeitsplan Deutsch › 2.1 › V-3-01“), einen Trefferausschnitt mit
 Hervorhebung und ein Status-Schild.
 
@@ -185,8 +185,10 @@ def suchen(
     # Eine Datei, die an einem Vorhaben aus Jahrgang 3 hängt, darf beim Filter
     # „Jahrgang 1" nicht auftauchen – sonst widersprächen sich die Gruppen.
     grundmenge = _gefiltert(nutzer, dokument, status, jahrgang, fach)
+    prozessmenge = _gefiltert(nutzer, dokument, status, jahrgang, fach, prozesse=True)
 
     bauer = {
+        "prozesse": lambda: _prozesse_suchen(nutzer, prozessmenge, begriff),
         "eintraege": lambda: _eintraege_suchen(nutzer, grundmenge, begriff, wortlaut),
         "beschluesse": lambda: _beschluesse_suchen(nutzer, begriff, wortlaut),
         "kompetenzen": lambda: _kompetenzen_suchen(begriff, fach),
@@ -220,9 +222,11 @@ def suchen(
 # --- Einträge --------------------------------------------------------------
 
 
-def _gefiltert(nutzer, dokument: str, status: str, jahrgang: str, fach: str):
+def _gefiltert(nutzer, dokument: str, status: str, jahrgang: str, fach: str, *, prozesse=False):
     """Alle Einträge, die dieser Nutzer sehen darf, nach den Filtern beschnitten."""
-    menge = lesemenge(nutzer, Eintrag.objects.all())
+    from kern import prozesse as prozessdienst
+
+    menge = prozessdienst.menge(nutzer) if prozesse else lesemenge(nutzer, Eintrag.objects.all())
     menge = menge.select_related("dokument", "eltern", "eltern__eltern")
 
     if dokument:
@@ -238,6 +242,7 @@ def _gefiltert(nutzer, dokument: str, status: str, jahrgang: str, fach: str):
 
 
 def _eintraege_suchen(nutzer, menge, begriff: str, wortlaut: bool = False) -> Gruppe:
+    menge = menge.exclude(eintragstyp="prozess")
     if wortlaut:
         treffer = (
             menge.filter(Q(lese_titel__icontains=begriff) | Q(lese_suchtext__icontains=begriff))
@@ -272,6 +277,27 @@ def _eintraege_suchen(nutzer, menge, begriff: str, wortlaut: bool = False) -> Gr
                 status=eintrag.lese_status,
                 status_text=Status(eintrag.lese_status).label,
                 zusatz=eintrag.typ.name if eintrag.typ else "",
+            )
+        )
+    return gruppe
+
+
+def _prozesse_suchen(nutzer, menge, begriff: str) -> Gruppe:
+    from kern import prozesse
+
+    treffer = prozesse.suchen(menge, begriff).order_by("lese_titel", "pk")
+    gruppe = Gruppe("prozesse", "Veröffentlichte Abläufe", gesamt=treffer.count())
+    for e in treffer[:TREFFER_JE_GRUPPE]:
+        gruppe.treffer.append(
+            Treffer(
+                titel=e.lese_titel,
+                url=prozesse.leselink(e),
+                kontext=e.dokument.titel,
+                ausschnitt=escape(e.lese_daten.get("anlass", "")[:360]),
+                kennung=e.kennung,
+                status=Status.BESCHLOSSEN,
+                status_text="Veröffentlicht",
+                zusatz="Prozess",
             )
         )
     return gruppe
@@ -424,7 +450,8 @@ def _dateien_suchen(
 def _aehnlich_suchen(nutzer, menge, begriff: str) -> Gruppe:
     """Letzter Versuch: ähnlich geschriebene Titel und Kennungen."""
     treffer = (
-        menge.annotate(
+        menge.exclude(eintragstyp="prozess")
+        .annotate(
             naehe=Greatest(
                 TrigramWordSimilarity(begriff, "lese_titel"),
                 TrigramWordSimilarity(begriff, "kennung"),
@@ -467,10 +494,12 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
     if len(begriff) < MINDESTLAENGE:
         return []
 
-    gefunden: list[Treffer] = []
+    from kern import prozesse
+
+    gefunden = _prozesse_suchen(nutzer, prozesse.menge(nutzer), begriff).treffer[:anzahl]
 
     eintraege = (
-        lesemenge(nutzer, Eintrag.objects.all())
+        lesemenge(nutzer, Eintrag.objects.exclude(eintragstyp="prozess"))
         .select_related("dokument", "eltern")
         .annotate(
             naehe=Greatest(
@@ -484,7 +513,7 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
             | Q(kennung__istartswith=begriff)
             | Q(naehe__gte=AEHNLICHKEIT)
         )
-        .order_by("reihenfolge", "-naehe")[:anzahl]
+        .order_by("reihenfolge", "-naehe")[: anzahl - len(gefunden)]
     )
     for eintrag in eintraege:
         gefunden.append(
