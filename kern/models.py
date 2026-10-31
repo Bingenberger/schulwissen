@@ -499,6 +499,8 @@ class Eintrag(Zeitstempel):
 
     def beschlossene_version(self):
         """Letzte durch einen Beschluss freigegebene Fassung – oder ``None``."""
+        if hasattr(self, "_gueltige_fassungen"):
+            return next(iter(self._gueltige_fassungen), None)
         return (
             self.versionen.filter(status=Status.BESCHLOSSEN, beschluss__isnull=False)
             .order_by("-versionsnummer")
@@ -533,6 +535,9 @@ class Eintragsversion(models.Model):
     status = models.CharField("Status", max_length=20, choices=Status)
     daten = models.JSONField("Daten", default=dict, blank=True)
     verlinkungen = models.JSONField("Verlinkungen", default=list, blank=True)
+    suchtext = models.TextField("Suchtext", blank=True, editable=False)
+    suchvektor = SearchVectorField(null=True, editable=False)
+    freigegeben_am = models.DateTimeField("Freigegeben am", null=True, editable=False)
     autor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="Autor",
@@ -560,6 +565,7 @@ class Eintragsversion(models.Model):
                 fields=["eintrag", "versionsnummer"], name="version_nummer_je_eintrag"
             )
         ]
+        indexes = [GinIndex(fields=["suchvektor"], name="version_suchvektor")]
 
     def __str__(self) -> str:
         return f"{self.eintrag.kennung} – Fassung {self.versionsnummer}"
@@ -575,7 +581,13 @@ class Eintragsversion(models.Model):
                     f"Fassung {self.versionsnummer} von {self.eintrag.kennung} ist beschlossen "
                     "und kann nicht geändert werden. Bearbeiten erzeugt eine neue Fassung."
                 )
-        return super().save(*args, **kwargs)
+        if self.status == Status.BESCHLOSSEN and self.beschluss_id:
+            self.freigegeben_am = timezone.now()
+        ergebnis = super().save(*args, **kwargs)
+        from kern.suchindex import version_indexieren
+
+        version_indexieren(self)
+        return ergebnis
 
     def delete(self, *args, **kwargs):
         if self.status == Status.BESCHLOSSEN:
@@ -772,6 +784,26 @@ class Anhang(Zeitstempel):
         return self.dateiname
 
     def save(self, *args, **kwargs):
+        # Indexierungsprüfungen ohne Inhaltsänderung sind keine neue Dateifassung.
+        # Inhalts-/Metadatenänderungen dagegen gehören bis zur Freigabe zum Entwurf.
+        inhaltsfelder = (
+            "datei",
+            "dateiname",
+            "beschreibung",
+            "extrahierter_text",
+            "nextcloud_link",
+            "nextcloud_pfad",
+            "nextcloud_etag",
+            "eintrag_id",
+            "dokument_id",
+        )
+        vorher = type(self).objects.filter(pk=self.pk).values(*inhaltsfelder).first()
+        if vorher and any(
+            str(vorher[f] or "") != str(getattr(self, f) or "") for f in inhaltsfelder
+        ):
+            self.geaendert_am = timezone.now()
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"geaendert_am"}
         ergebnis = super().save(*args, **kwargs)
         from kern.suchindex import anhang_indexieren
 

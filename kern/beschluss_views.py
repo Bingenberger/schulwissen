@@ -6,12 +6,13 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from kern import beschluesse, rechte, vergleich, views
-from kern.models import Beschluss, Dokument, Eintrag, Gremium
+from kern.models import Anhang, Beschluss, Dokument, Eintrag, Eintragsversion, Gremium
+from kern.staende import sichtbare_anhaenge
 
 
 class BeschlussFormular(forms.ModelForm):
@@ -44,7 +45,14 @@ def beschluesse_liste(request):
         "kern/beschluesse.html",
         {
             "beschluesse": Beschluss.objects.select_related("gremium").annotate(
-                anzahl=Count("beschlossene_versionen")
+                anzahl=Count(
+                    "beschlossene_versionen",
+                    filter=Q(
+                        beschlossene_versionen__in=rechte.sichtbare_versionen(
+                            request.user, Eintragsversion.objects.all()
+                        )
+                    ),
+                )
             ),
             "darf_beschliessen": rechte.darf_beschliessen(request.user),
         },
@@ -66,6 +74,11 @@ def beschluss_ansehen(request, beschluss_id: int):
         {
             "beschluss": beschluss,
             "versionen": versionen,
+            "protokoll_anhang": sichtbare_anhaenge(
+                request.user, Anhang.objects.filter(pk=beschluss.protokoll_anhang_id)
+            ).first()
+            if beschluss.protokoll_anhang_id
+            else None,
             "darf_beschliessen": rechte.darf_beschliessen(request.user),
         },
     )
@@ -195,7 +208,7 @@ def fassungen_vergleichen(request, schluessel: str, kennung: str):
             "versionen": list(reversed(alle)),
             "alt": alt,
             "neu": neu,
-            "vergleich": vergleich.vergleichen(alt, neu),
+            "vergleich": vergleich.vergleichen(alt, neu, request.user),
         },
     )
 
@@ -235,7 +248,7 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
         rechte.sichtbare_versionen(request.user, eintrag.versionen.all()), versionsnummer=nummer
     )
 
-    verweise = views.verweise_aus_schnappschuss(version)
+    verweise = views.verweise_aus_schnappschuss(version, request.user)
 
     return render(
         request,

@@ -2,15 +2,121 @@
 
 from dataclasses import dataclass
 
-from django.db.models import Prefetch
+from django.db.models import Case, F, OuterRef, Prefetch, Subquery, When
 
-from kern.models import Eintrag, Eintragsversion, Status
+from kern.models import Eintrag, Eintragsversion, Status, Zieltyp
+
+
+def gueltige_versionen():
+    return Eintragsversion.objects.filter(
+        status=Status.BESCHLOSSEN, beschluss__isnull=False
+    ).order_by("-versionsnummer")
+
+
+def mit_lesefassungen(menge):
+    return menge.prefetch_related(
+        Prefetch("versionen", queryset=gueltige_versionen(), to_attr="_gueltige_fassungen")
+    )
+
+
+def lesestand(nutzer, eintrag):
+    """Gemeinsame Fassungswahl; niemals den schreibbaren Eintrag verändern."""
+    from kern import rechte
+
+    if not rechte.darf_lesen(nutzer, eintrag):
+        return None
+    version = eintrag.beschlossene_version() if rechte.ist_nur_lesend(nutzer) else None
+    return Eintragsstand(eintrag, version)
+
+
+def lesemenge(nutzer, menge):
+    """SQL-Projektion derselben Lesefassung, vor Suche, Filterung und Zählung."""
+    from kern import rechte
+
+    menge = rechte.sichtbare_eintraege(nutzer, menge)
+    versionen = gueltige_versionen().filter(eintrag_id=OuterRef("pk"))
+    felder = ("titel", "daten", "status", "suchtext", "suchvektor")
+    return (
+        mit_lesefassungen(menge)
+        .annotate(_leseversion=Subquery(versionen.values("pk")[:1]))
+        .annotate(
+            **{
+                f"lese_{feld}": (
+                    Case(
+                        When(_leseversion__isnull=False, then=Subquery(versionen.values(feld)[:1])),
+                        default=F(feld),
+                    )
+                    if rechte.ist_nur_lesend(nutzer)
+                    else F(feld)
+                )
+                for feld in felder
+            }
+        )
+    )
+
+
+def lesekontext(nutzer, eintrag):
+    teile = [eintrag.dokument.titel]
+    for eltern in eintrag.pfad:
+        stand = lesestand(nutzer, eltern)
+        titel = stand.titel if stand else "Noch nicht freigegeben"
+        teile.append(f"{eltern.anzeige_nummer} {titel}")
+    return " › ".join(teile)
+
+
+def sichtbare_verweise(nutzer, verweise):
+    """Automatische Zielbeschriftungen dürfen keine fremden Entwürfe verraten."""
+    from kern import rechte
+
+    ziel_ids = {str(v.get("ziel_id")) for v in verweise if v.get("ziel_typ") == Zieltyp.EINTRAG}
+    ziele = {
+        str(e.pk): lesestand(nutzer, e)
+        for e in mit_lesefassungen(
+            rechte.sichtbare_eintraege(
+                nutzer, Eintrag.objects.filter(pk__in=[z for z in ziel_ids if z.isdigit()])
+            )
+        )
+    }
+    ergebnis = []
+    for v in verweise:
+        if v.get("ziel_typ") == Zieltyp.EINTRAG:
+            ziel = ziele.get(str(v.get("ziel_id")))
+            if ziel is None:
+                continue
+            v = {**v, "beschriftung": f"{ziel.kennung} {ziel.titel}"}
+        ergebnis.append(v)
+    return ergebnis
+
+
+def sichtbare_anhaenge(nutzer, menge):
+    """Neue oder seit der Freigabe geänderte Anlagen gehören zum Arbeitsstand.
+
+    Das ist ein Zugriffsfilter, keine Fixierung externer Dateiversionen (AP09).
+    Unveränderte Anlagen bleiben auch neben einem neuen Textentwurf erreichbar.
+    """
+    from django.db.models import Q
+
+    from kern import rechte
+
+    if not rechte._angemeldet(nutzer):
+        return menge.none()
+    if not rechte.ist_nur_lesend(nutzer):
+        return menge
+    versionen = gueltige_versionen().filter(eintrag_id=OuterRef("eintrag_id"))
+    sichtbar = rechte.sichtbare_eintraege(nutzer, Eintrag.objects.all())
+    return menge.annotate(_freigabe=Subquery(versionen.values("freigegeben_am")[:1])).filter(
+        Q(eintrag__isnull=True) | (Q(eintrag__in=sichtbar) & Q(geaendert_am__lte=F("_freigabe")))
+    )
 
 
 @dataclass(frozen=True)
 class Eintragsstand:
     eintrag: Eintrag
     version: Eintragsversion | None = None
+
+    def __getattr__(self, name):
+        # Unversionierte Strukturangaben (Kennung, Dokument, Nummer) weiterreichen.
+        return getattr(self.eintrag, name)
 
     @property
     def pk(self):
@@ -42,6 +148,12 @@ class Eintragsstand:
 
     def get_status_display(self):
         return Status(self.status).label
+
+    @property
+    def geaendert_am(self):
+        if self.version:
+            return self.version.freigegeben_am or self.version.zeitpunkt
+        return self.eintrag.geaendert_am
 
     @property
     def verweise(self):

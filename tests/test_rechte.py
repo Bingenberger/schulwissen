@@ -345,8 +345,9 @@ def test_gliederung_bleibt_fuer_lesende_nutzbar(
     inhalt = _fliesstext(client.get(reverse("kern:eintrag", args=[dokument.schluessel, "V-3-09"])))
 
     # Das Gerüst ist da …
-    assert "Unterrichtsvorhaben" in inhalt
-    assert "Leistungsbewertung und Leistungsrückmeldung" in inhalt
+    # Struktur bleibt sichtbar; ungeprüfte Titel sind selbst Arbeitsinhalt.
+    assert "Noch nicht freigegeben" in inhalt
+    assert "Leistungsbewertung und Leistungsrückmeldung" not in inhalt
     assert "ist-gesperrt" in inhalt
     # … und der eigene, freigegebene Eintrag auch.
     assert "V-3-09" in inhalt

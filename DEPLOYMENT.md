@@ -120,6 +120,21 @@ docker compose exec app python manage.py arbeitsplan_importieren /tmp/mappe.xlsx
 
 ## 5. Anhänge durchsuchbar machen
 
+Dateiabrufe unter `/medien/` laufen durch Django und dieselbe Rechteprüfung wie
+die Leseansicht. nginx darf diesen Pfad nicht direkt aus dem Medienvolume
+ausliefern. Bei bestehenden Installationen den alten `location /medien/`-Block
+mit `alias` entfernen, die Konfiguration prüfen und nginx neu laden; die Vorlage
+in `deploy/nginx-schulwissen.conf` reicht alle Abrufe an die App weiter.
+
+Seit AP01 ergänzt Migration `kern.0008` getrennte Suchindizes für gespeicherte
+Fassungen und baut die vorhandenen Indizes ohne vermischte Entwurfstexte neu auf.
+Für alte Freigaben fehlt der genaue Freigabezeitpunkt; hier gilt konservativ der
+Zeitpunkt der gespeicherten Fassung. Später hinzugefügte oder geänderte Anlagen
+bleiben für Lesende verborgen, bis sie erneut mit einem Stand freigegeben werden.
+Änderungen an Dateiinhalten oder Suchtext machen eine Anlage ebenfalls zum
+Arbeitsstand; eine reine unveränderte Nextcloud-Prüfung dagegen nicht.
+Das fixiert noch keine externen Nextcloud-Dateiversionen (Roadmap AP09).
+
 Der Text hochgeladener PDF-, Word-, ODT- und Textdateien wird **nicht** beim
 Hochladen gelesen – ein 200-seitiges PDF soll das Kollegium nicht warten
 lassen. Das erledigt ein Lauf im Hintergrund:
@@ -342,8 +357,8 @@ sudo systemctl enable --now schulwissen
 sudo systemctl status schulwissen
 ```
 
-Die nginx-Konfiguration ist dieselbe; nur der Pfad für `/medien/` ändert sich
-auf das Verzeichnis aus `SW_MEDIEN_VERZEICHNIS`.
+Die nginx-Konfiguration ist dieselbe. Das Medienverzeichnis aus
+`SW_MEDIEN_VERZEICHNIS` liest Django; `/medien/` erhält keinen direkten nginx-Alias.
 
 
 ## 12. Aktualisierung auf Phase 3

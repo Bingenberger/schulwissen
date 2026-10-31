@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -26,6 +26,28 @@ from kern.models import (
     Verlinkung,
     Zieltyp,
 )
+from kern.staende import (
+    lesekontext,
+    lesemenge,
+    lesestand,
+    mit_lesefassungen,
+    sichtbare_anhaenge,
+    sichtbare_verweise,
+)
+
+
+@login_required
+def anhang_datei(request, pfad):
+    """Auch bekannte Medien-URLs durch dieselben Leserechte schützen."""
+    anhang = get_object_or_404(sichtbare_anhaenge(request.user, Anhang.objects.all()), datei=pfad)
+    try:
+        antwort = FileResponse(
+            anhang.datei.open("rb"), as_attachment=True, filename=anhang.dateiname
+        )
+    except FileNotFoundError as fehler:
+        raise Http404("Die Datei ist nicht verfügbar.") from fehler
+    antwort["Cache-Control"] = "private, no-store"
+    return antwort
 
 
 @login_required
@@ -35,10 +57,10 @@ def startseite(request):
     Die Suche selbst kommt in Phase 2; das Feld steht schon hier, damit das
     Kollegium von Anfang an denselben Einstieg sieht.
     """
-    sichtbar = rechte.sichtbare_eintraege(request.user, Eintrag.objects.all())
+    sichtbar = lesemenge(request.user, Eintrag.objects.all())
 
     zuletzt_beschlossen = (
-        sichtbar.filter(status=Status.BESCHLOSSEN)
+        sichtbar.filter(lese_status=Status.BESCHLOSSEN)
         .select_related("dokument")
         .order_by("-geaendert_am")[:5]
     )
@@ -58,11 +80,11 @@ def startseite(request):
         "kern/startseite.html",
         {
             "dokumente": Dokument.objects.select_related("dokumenttyp")
-            .annotate(anzahl=Count("eintraege"))
+            .annotate(anzahl=Count("eintraege", filter=Q(eintraege__in=sichtbar)))
             .order_by("titel", "pk")[:6],
             "dokumente_gesamt": Dokument.objects.count(),
             "eigene_entwuerfe_gesamt": eigene_entwuerfe.count(),
-            "zuletzt_beschlossen": zuletzt_beschlossen,
+            "zuletzt_beschlossen": [lesestand(request.user, e) for e in zuletzt_beschlossen],
             "eigene_entwuerfe": eigene_entwuerfe[:5],
         },
     )
@@ -81,21 +103,12 @@ def _gliederungsbaum(dokument, nutzer):
     * Gezeigt wird der Titel der **beschlossenen** Fassung, nicht der des
       Arbeitsstandes.
     """
-    from kern.models import Eintragsversion
-
-    alle_eintraege = list(dokument.eintraege.order_by("position", "kennung"))
+    alle_eintraege = list(mit_lesefassungen(dokument.eintraege.order_by("position", "kennung")))
     sichtbare = set(
         rechte.sichtbare_eintraege(nutzer, dokument.eintraege.all()).values_list("pk", flat=True)
     )
 
-    beschlossene_titel: dict[int, str] = {}
-    beschlossene_daten: dict[int, dict] = {}
-    if not rechte.zeigt_entwurf(nutzer):
-        for version in Eintragsversion.objects.filter(
-            eintrag__in=alle_eintraege, status=Status.BESCHLOSSEN
-        ).order_by("eintrag_id", "versionsnummer"):
-            beschlossene_titel[version.eintrag_id] = version.titel
-            beschlossene_daten[version.eintrag_id] = version.daten
+    staende = {e.pk: lesestand(nutzer, e) for e in alle_eintraege}
 
     def gehoert_in_den_baum(eintrag) -> bool:
         return eintrag.pk in sichtbare or eintrag.eintragstyp == "grundlagenkapitel"
@@ -110,16 +123,14 @@ def _gliederungsbaum(dokument, nutzer):
         for eintrag in kinder.get(eltern_id, []):
             zeilen.append(
                 {
-                    "eintrag": eintrag,
+                    "eintrag": staende[eintrag.pk] or eintrag,
                     "tiefe": tiefe,
-                    "titel": beschlossene_titel.get(eintrag.pk, eintrag.titel),
+                    "titel": staende[eintrag.pk].titel
+                    if staende[eintrag.pk]
+                    else "Noch nicht freigegeben",
                     "lesbar": eintrag.pk in sichtbare,
-                    "daten": beschlossene_daten.get(eintrag.pk, eintrag.daten),
-                    # Wer die beschlossene Fassung sieht, soll auch deren
-                    # Status sehen – nicht den des Arbeitsstandes.
-                    "status": (
-                        Status.BESCHLOSSEN if eintrag.pk in beschlossene_titel else eintrag.status
-                    ),
+                    "daten": staende[eintrag.pk].daten if staende[eintrag.pk] else {},
+                    "status": staende[eintrag.pk].status if staende[eintrag.pk] else Status.ENTWURF,
                 }
             )
             zeilen.extend(bauen(eintrag.pk, tiefe + 1))
@@ -182,13 +193,37 @@ def _eintrag_holen(request, schluessel: str, kennung: str) -> Eintrag:
     return eintrag
 
 
-def _ruckverweise(eintrag: Eintrag):
-    """„Wird verwendet in …“ – wer zeigt auf diesen Eintrag?"""
-    return (
-        Verlinkung.objects.filter(ziel_typ=Zieltyp.EINTRAG, ziel_id=str(eintrag.pk))
-        .select_related("von_eintrag", "von_eintrag__dokument")
-        .order_by("von_eintrag__kennung")
+def _ruckverweise(nutzer, eintrag: Eintrag):
+    """Rückverweise aus der sichtbaren Fassung, einschließlich entfernter Altverweise."""
+    from types import SimpleNamespace
+
+    ziel = {"ziel_typ": Zieltyp.EINTRAG, "ziel_id": str(eintrag.pk)}
+    kandidaten = (
+        Eintrag.objects.filter(
+            Q(verlinkungen__ziel_typ=Zieltyp.EINTRAG, verlinkungen__ziel_id=str(eintrag.pk))
+            | Q(versionen__verlinkungen__contains=[ziel])
+        )
+        .distinct()
+        .select_related("dokument")
+        .order_by("kennung")
     )
+    ergebnis = []
+    for quelle in rechte.sichtbare_eintraege(nutzer, kandidaten):
+        stand = lesestand(nutzer, quelle)
+        for verweis in stand.verweise:
+            if verweis.get("ziel_typ") == Zieltyp.EINTRAG and verweis.get("ziel_id") == str(
+                eintrag.pk
+            ):
+                art = verweis.get("art", "")
+                ergebnis.append(
+                    SimpleNamespace(
+                        von_eintrag=stand,
+                        get_art_display=dict(Verlinkung._meta.get_field("art").choices).get(
+                            art, art
+                        ),
+                    )
+                )
+    return ergebnis
 
 
 def bloecke_zum_lesen(typ, daten: dict, verweise_je_feld: dict | None = None):
@@ -238,15 +273,19 @@ def bloecke_zum_lesen(typ, daten: dict, verweise_je_feld: dict | None = None):
             yield {"name": block, "felder": zeilen}
 
 
-def _felder_zum_lesen(eintrag: Eintrag):
+def _felder_zum_lesen(eintrag: Eintrag, nutzer):
     """Blöcke des aktuellen Standes eines Eintrags."""
     verweise: dict[str, list] = {}
-    for verlinkung in eintrag.verlinkungen.order_by("ziel_id"):
-        verweise.setdefault(verlinkung.feld, []).append(verlinkung)
+    from types import SimpleNamespace
+
+    for verlinkung in sichtbare_verweise(
+        nutzer, [v.als_schnappschuss() for v in eintrag.verlinkungen.order_by("ziel_id")]
+    ):
+        verweise.setdefault(verlinkung.get("feld", ""), []).append(SimpleNamespace(**verlinkung))
     return bloecke_zum_lesen(eintrag.typ, eintrag.daten, verweise)
 
 
-def verweise_aus_schnappschuss(version) -> dict[str, list]:
+def verweise_aus_schnappschuss(version, nutzer=None) -> dict[str, list]:
     """Die Verweise einer gespeicherten Fassung, nach Feld geordnet.
 
     Sie kommen aus dem Schnappschuss, nicht aus der Datenbank – sonst zeigte
@@ -255,7 +294,8 @@ def verweise_aus_schnappschuss(version) -> dict[str, list]:
     from types import SimpleNamespace
 
     verweise: dict[str, list] = {}
-    for verweis in version.verlinkungen or []:
+    gespeichert = version.verlinkungen or []
+    for verweis in sichtbare_verweise(nutzer, gespeichert) if nutzer is not None else gespeichert:
         verweise.setdefault(verweis.get("feld", ""), []).append(
             SimpleNamespace(
                 ziel_id=verweis.get("ziel_id", ""),
@@ -270,6 +310,7 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
     """Leseansicht zuerst – „Bearbeiten“ ist ein deutlicher Knopf (SPEC.md §12)."""
     eintrag = _eintrag_holen(request, schluessel, kennung)
     beschlossen = eintrag.beschlossene_version()
+    stand = lesestand(request.user, eintrag)
 
     offene_pflichtfelder = eintrag.typ.fehlende_pflichtfelder(
         eintrag.daten,
@@ -285,22 +326,20 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "kern/eintrag_unbekannt.html",
             {
                 "dokument": eintrag.dokument,
-                "eintrag": eintrag,
+                "eintrag": stand,
                 "baum": _gliederungsbaum(eintrag.dokument, request.user),
                 "ist_administration": rechte.ist_administration(request.user),
             },
         )
 
-    if zeigt_entwurf or beschlossen is None:
-        bloecke = list(_felder_zum_lesen(eintrag))
-        angezeigter_titel = eintrag.titel
+    if stand.version is None:
+        bloecke = list(_felder_zum_lesen(eintrag, request.user))
     else:
         bloecke = list(
             bloecke_zum_lesen(
-                eintrag.typ, beschlossen.daten, verweise_aus_schnappschuss(beschlossen)
+                eintrag.typ, stand.daten, verweise_aus_schnappschuss(stand.version, request.user)
             )
         )
-        angezeigter_titel = beschlossen.titel
 
     # Steht der Arbeitsstand neben einer beschlossenen Fassung, soll das
     # sichtbar sein – sonst hält man den Entwurf für geltendes Recht.
@@ -310,28 +349,29 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
         and (eintrag.titel != beschlossen.titel or eintrag.daten != beschlossen.daten)
     )
 
-    angezeigter_status = (
-        eintrag.status if zeigt_entwurf or beschlossen is None else beschlossen.status
-    )
-
     return render(
         request,
         "kern/eintrag.html",
         {
             "dokument": eintrag.dokument,
-            "eintrag": eintrag,
+            "eintrag": stand,
+            "lesekontext": lesekontext(request.user, eintrag),
+            "anzahl_fassungen": rechte.sichtbare_versionen(
+                request.user, eintrag.versionen.all()
+            ).count(),
+            "anhaenge": sichtbare_anhaenge(request.user, eintrag.anhaenge.all()),
             "typ": eintrag.typ,
             "bloecke": bloecke,
-            "angezeigter_titel": angezeigter_titel,
-            "angezeigter_status": angezeigter_status,
-            "angezeigter_status_text": Status(angezeigter_status).label,
+            "angezeigter_titel": stand.titel,
+            "angezeigter_status": stand.status,
+            "angezeigter_status_text": stand.get_status_display(),
             "zeigt_entwurf": zeigt_entwurf,
             "entwurf_weicht_ab": entwurf_weicht_ab,
             "baum": _gliederungsbaum(eintrag.dokument, request.user),
             "beschlossene_version": beschlossen,
             "beschluss": beschlossen.beschluss if beschlossen else None,
-            "rueckverweise": _ruckverweise(eintrag),
-            "kommentare": eintrag.kommentare.select_related("autor"),
+            "rueckverweise": _ruckverweise(request.user, eintrag),
+            "kommentare": eintrag.kommentare.select_related("autor") if zeigt_entwurf else [],
             "kommentar_formular": KommentarFormular(),
             "anhang_formular": AnhangFormular(),
             "offene_pflichtfelder": offene_pflichtfelder,

@@ -28,7 +28,9 @@ def test_andere_rollen_sehen_keinen_styleguide(client, request, konto):
 def test_dokumentkarten_zeigen_lesenden_beschlossene_metadaten(
     client, lesend_nutzer, importierter_arbeitsplan
 ):
-    from kern.models import Status
+    from datetime import date
+
+    from kern.models import Beschluss, Gremium, Status
 
     eintrag = importierter_arbeitsplan.eintraege.get(kennung="V-3-01")
     eintrag.versionen.create(
@@ -36,6 +38,11 @@ def test_dokumentkarten_zeigen_lesenden_beschlossene_metadaten(
         titel="Gültiges Vorhaben",
         status=Status.BESCHLOSSEN,
         daten={"jahrgang": 2, "quartal": "Q1", "zeitumfang_std": 12},
+        beschluss=Beschluss.objects.create(
+            datum=date(2026, 10, 31),
+            gremium=Gremium.objects.create(name="Testkonferenz"),
+            titel="Freigabe des Vorhabens",
+        ),
     )
     eintrag.titel = "Vertraulicher neuer Titel"
     eintrag.daten = {"jahrgang": 4, "quartal": "Q4", "zeitumfang_std": 999}

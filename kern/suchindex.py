@@ -18,6 +18,43 @@ from django.contrib.postgres.search import SearchVector
 KONFIGURATION = "german"
 
 
+def version_indexieren(version) -> None:
+    """Nur den gespeicherten Schnappschuss indexieren, nie aktuelle Verweise."""
+    from django.utils.html import strip_tags
+
+    from kern.models import Eintragsversion, Zieltyp
+
+    def texte(wert):
+        if isinstance(wert, dict):
+            return " ".join(texte(v) for v in wert.values())
+        if isinstance(wert, list):
+            return " ".join(texte(v) for v in wert)
+        return strip_tags(str(wert)) if wert is not None else ""
+
+    # Eintragsbeschriftungen sind dynamische Metadaten des Ziels. Sie könnten
+    # beim Freigeben der Quelle noch einen fremden Zielentwurf benannt haben.
+    verweise = [
+        {k: w for k, w in v.items() if k != "beschriftung"}
+        if v.get("ziel_typ") == Zieltyp.EINTRAG
+        else v
+        for v in version.verlinkungen or []
+    ]
+    text = " ".join(
+        [
+            version.eintrag.kennung,
+            version.titel,
+            texte(version.daten),
+            texte(verweise),
+        ]
+    )
+    Eintragsversion.objects.filter(pk=version.pk).update(suchtext=text)
+    Eintragsversion.objects.filter(pk=version.pk).update(
+        suchvektor=SearchVector("titel", weight="A", config=KONFIGURATION)
+        + SearchVector("suchtext", weight="B", config=KONFIGURATION)
+    )
+    version.suchtext = text
+
+
 def beschluss_indexieren(beschluss) -> None:
     from kern.models import Beschluss
 
@@ -44,9 +81,9 @@ def anhang_indexieren(anhang) -> None:
 def alles_neu_aufbauen() -> dict[str, int]:
     """Baut den gesamten Index neu. Für Umzüge und nach Änderungen am Schema."""
     from eintragstypen.dienste import suchtext_aktualisieren
-    from kern.models import Anhang, Beschluss, Eintrag
+    from kern.models import Anhang, Beschluss, Eintrag, Eintragsversion
 
-    zahlen = {"eintraege": 0, "beschluesse": 0, "anhaenge": 0}
+    zahlen = {"eintraege": 0, "beschluesse": 0, "anhaenge": 0, "versionen": 0}
 
     for eintrag in Eintrag.objects.all().iterator():
         suchtext_aktualisieren(eintrag)
@@ -57,5 +94,8 @@ def alles_neu_aufbauen() -> dict[str, int]:
     for anhang in Anhang.objects.all().iterator():
         anhang_indexieren(anhang)
         zahlen["anhaenge"] += 1
+    for version in Eintragsversion.objects.select_related("eintrag").iterator():
+        version_indexieren(version)
+        zahlen["versionen"] += 1
 
     return zahlen

@@ -443,21 +443,6 @@ def suchtext_bauen(eintrag: Eintrag) -> str:
         teile.append(anhang.beschreibung)
         teile.append(anhang.extrahierter_text)
 
-    # Wird an einem beschlossenen Eintrag weitergearbeitet, zeigt die App
-    # Lesenden weiter die beschlossene Fassung. Dann muss diese auch auffindbar
-    # sein – sonst findet man nicht, was man sieht.
-    beschlossen = eintrag.beschlossene_version()
-    if beschlossen is not None and beschlossen.daten != eintrag.daten:
-        teile.append(beschlossen.titel)
-        for feld in typ.datenfelder:
-            wert = (beschlossen.daten or {}).get(feld.schluessel)
-            if wert in (None, "", []):
-                continue
-            if feld.typ == Feldtyp.RICHTEXT:
-                teile.append(html.als_text(str(wert)))
-            elif feld.typ in (Feldtyp.TEXT, Feldtyp.LANGTEXT, Feldtyp.AUSWAHL):
-                teile.append(feld.anzeige(wert))
-
     return " ".join(t for t in teile if t).strip()
 
 

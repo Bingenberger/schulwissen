@@ -29,14 +29,15 @@ from django.contrib.postgres.search import (
     TrigramWordSimilarity,
 )
 from django.db import connection
-from django.db.models import Case, F, FloatField, Q, Value, When
+from django.db.models import Case, Count, F, FloatField, Q, Value, When
 from django.db.models.functions import Greatest
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from kern import rechte
-from kern.models import Anhang, Beschluss, Eintrag, Status
+from kern.models import Anhang, Beschluss, Eintrag, Eintragsversion, Status
+from kern.staende import lesekontext, lesemenge, lesestand, sichtbare_anhaenge
 from kern.suchindex import KONFIGURATION
 
 #: Ab so vielen Zeichen wird gesucht (SPEC.md §9).
@@ -154,9 +155,9 @@ def _ausschnitt(feld: str, begriff: str) -> SearchHeadline:
 
 #: Beschlossenes zuerst, dann abgestimmt, dann der Rest (SPEC.md §9).
 _STATUS_REIHENFOLGE = Case(
-    When(status=Status.BESCHLOSSEN, then=Value(0)),
-    When(status=Status.ABGESTIMMT, then=Value(1)),
-    When(status=Status.ARCHIVIERT, then=Value(3)),
+    When(lese_status=Status.BESCHLOSSEN, then=Value(0)),
+    When(lese_status=Status.ABGESTIMMT, then=Value(1)),
+    When(lese_status=Status.ARCHIVIERT, then=Value(3)),
     default=Value(2),
     output_field=FloatField(),
 )
@@ -186,11 +187,11 @@ def suchen(
     grundmenge = _gefiltert(nutzer, dokument, status, jahrgang, fach)
 
     bauer = {
-        "eintraege": lambda: _eintraege_suchen(grundmenge, begriff, wortlaut),
-        "beschluesse": lambda: _beschluesse_suchen(begriff, wortlaut),
+        "eintraege": lambda: _eintraege_suchen(nutzer, grundmenge, begriff, wortlaut),
+        "beschluesse": lambda: _beschluesse_suchen(nutzer, begriff, wortlaut),
         "kompetenzen": lambda: _kompetenzen_suchen(begriff, fach),
         "dateien": lambda: _dateien_suchen(
-            grundmenge, begriff, wortlaut, bool(jahrgang or dokument)
+            nutzer, grundmenge, begriff, wortlaut, bool(jahrgang or dokument or fach or status)
         ),
     }
     if gruppe in bauer:
@@ -206,7 +207,7 @@ def suchen(
     # Unterscheidung nie erfahren, dass es das Vorhaben gibt.
     eintragsgruppe = next((g for g in ergebnis.gruppen if g.schluessel == "eintraege"), None)
     if eintragsgruppe is not None and not eintragsgruppe.treffer:
-        aehnlich = _aehnlich_suchen(grundmenge, begriff)
+        aehnlich = _aehnlich_suchen(nutzer, grundmenge, begriff)
         if aehnlich.treffer:
             ergebnis.gruppen = [
                 aehnlich if g.schluessel == "eintraege" else g for g in ergebnis.gruppen
@@ -221,36 +222,36 @@ def suchen(
 
 def _gefiltert(nutzer, dokument: str, status: str, jahrgang: str, fach: str):
     """Alle Einträge, die dieser Nutzer sehen darf, nach den Filtern beschnitten."""
-    menge = rechte.sichtbare_eintraege(nutzer, Eintrag.objects.all())
+    menge = lesemenge(nutzer, Eintrag.objects.all())
     menge = menge.select_related("dokument", "eltern", "eltern__eltern")
 
     if dokument:
         menge = menge.filter(dokument__schluessel=dokument)
     if status:
-        menge = menge.filter(status=status)
+        menge = menge.filter(lese_status=status)
     if fach:
         menge = menge.filter(dokument__fach=fach)
     if jahrgang.isdigit():
         # „jahrgang" steht im JSON-Feld „daten" der Vorhaben.
-        menge = menge.filter(daten__jahrgang=int(jahrgang))
+        menge = menge.filter(lese_daten__jahrgang=int(jahrgang))
     return menge
 
 
-def _eintraege_suchen(menge, begriff: str, wortlaut: bool = False) -> Gruppe:
+def _eintraege_suchen(nutzer, menge, begriff: str, wortlaut: bool = False) -> Gruppe:
     if wortlaut:
         treffer = (
-            menge.filter(Q(titel__icontains=begriff) | Q(suchtext__icontains=begriff))
+            menge.filter(Q(lese_titel__icontains=begriff) | Q(lese_suchtext__icontains=begriff))
             .annotate(reihenfolge=_STATUS_REIHENFOLGE)
             .order_by("reihenfolge", "kennung")
         )
     else:
         anfrage = _anfrage(begriff)
         treffer = (
-            menge.filter(suchvektor=anfrage)
+            menge.filter(lese_suchvektor=anfrage)
             .annotate(
-                rang=SearchRank(F("suchvektor"), anfrage),
+                rang=SearchRank(F("lese_suchvektor"), anfrage),
                 reihenfolge=_STATUS_REIHENFOLGE,
-                ausschnitt=_ausschnitt("suchtext", begriff),
+                ausschnitt=_ausschnitt("lese_suchtext", begriff),
             )
             .order_by("reihenfolge", "-rang", "kennung")
         )
@@ -259,17 +260,17 @@ def _eintraege_suchen(menge, begriff: str, wortlaut: bool = False) -> Gruppe:
     for eintrag in treffer[:TREFFER_JE_GRUPPE]:
         gruppe.treffer.append(
             Treffer(
-                titel=eintrag.titel,
+                titel=eintrag.lese_titel,
                 url=reverse("kern:eintrag", args=[eintrag.dokument.schluessel, eintrag.kennung]),
-                kontext=eintrag.kontext,
+                kontext=lesekontext(nutzer, eintrag),
                 ausschnitt=(
-                    wortlaut_ausschnitt(eintrag.suchtext, begriff)
+                    wortlaut_ausschnitt(eintrag.lese_suchtext, begriff)
                     if wortlaut
                     else eintrag.ausschnitt
                 ),
                 kennung=eintrag.kennung,
-                status=eintrag.status,
-                status_text=eintrag.get_status_display(),
+                status=eintrag.lese_status,
+                status_text=Status(eintrag.lese_status).label,
                 zusatz=eintrag.typ.name if eintrag.typ else "",
             )
         )
@@ -279,7 +280,7 @@ def _eintraege_suchen(menge, begriff: str, wortlaut: bool = False) -> Gruppe:
 # --- Beschlüsse ------------------------------------------------------------
 
 
-def _beschluesse_suchen(begriff: str, wortlaut: bool = False) -> Gruppe:
+def _beschluesse_suchen(nutzer, begriff: str, wortlaut: bool = False) -> Gruppe:
     if wortlaut:
         treffer = (
             Beschluss.objects.filter(Q(titel__icontains=begriff) | Q(text__icontains=begriff))
@@ -298,6 +299,16 @@ def _beschluesse_suchen(begriff: str, wortlaut: bool = False) -> Gruppe:
             .order_by("-rang", "-datum")
         )
 
+    treffer = treffer.annotate(
+        anzahl_fassungen=Count(
+            "beschlossene_versionen",
+            filter=Q(
+                beschlossene_versionen__in=rechte.sichtbare_versionen(
+                    nutzer, Eintragsversion.objects.all()
+                )
+            ),
+        )
+    )
     gruppe = Gruppe("beschluesse", "Konferenzbeschlüsse", gesamt=treffer.count())
     for beschluss in treffer[:TREFFER_JE_GRUPPE]:
         gruppe.treffer.append(
@@ -310,7 +321,7 @@ def _beschluesse_suchen(begriff: str, wortlaut: bool = False) -> Gruppe:
                     if wortlaut
                     else beschluss.ausschnitt
                 ),
-                zusatz=f"{beschluss.beschlossene_versionen.count()} Fassungen",
+                zusatz=f"{beschluss.anzahl_fassungen} Fassungen",
             )
         )
     return gruppe
@@ -343,13 +354,14 @@ def _kompetenzen_suchen(begriff: str, fach: str = "") -> Gruppe:
 
 
 def _dateien_suchen(
-    menge, begriff: str, wortlaut: bool = False, nur_an_eintraegen: bool = False
+    nutzer, menge, begriff: str, wortlaut: bool = False, nur_an_eintraegen: bool = False
 ) -> Gruppe:
     erlaubt = Anhang.objects.filter(eintrag__in=menge)
     if not nur_an_eintraegen:
         # Ohne Filter dürfen auch Anhänge ohne Eintrag erscheinen.
         erlaubt = Anhang.objects.filter(Q(eintrag__isnull=True) | Q(eintrag__in=menge))
 
+    erlaubt = sichtbare_anhaenge(nutzer, erlaubt)
     if wortlaut:
         treffer = (
             erlaubt.filter(
@@ -378,7 +390,8 @@ def _dateien_suchen(
             url = reverse(
                 "kern:eintrag", args=[anhang.eintrag.dokument.schluessel, anhang.eintrag.kennung]
             )
-            kontext = f"Anhang zu {anhang.eintrag.kennung} {anhang.eintrag.titel}"
+            stand = lesestand(nutzer, anhang.eintrag)
+            kontext = f"Anhang zu {stand.kennung} {stand.titel}"
         else:
             url = anhang.datei.url if anhang.datei else anhang.nextcloud_link
             kontext = anhang.dokument.titel if anhang.dokument else "Freier Anhang"
@@ -406,14 +419,14 @@ def _dateien_suchen(
 # --- Tippfehlersuche -------------------------------------------------------
 
 
-def _aehnlich_suchen(menge, begriff: str) -> Gruppe:
+def _aehnlich_suchen(nutzer, menge, begriff: str) -> Gruppe:
     """Letzter Versuch: ähnlich geschriebene Titel und Kennungen."""
     treffer = (
         menge.annotate(
             naehe=Greatest(
-                TrigramWordSimilarity(begriff, "titel"),
+                TrigramWordSimilarity(begriff, "lese_titel"),
                 TrigramWordSimilarity(begriff, "kennung"),
-                TrigramWordSimilarity(begriff, "suchtext"),
+                TrigramWordSimilarity(begriff, "lese_suchtext"),
             )
         )
         .filter(naehe__gte=AEHNLICHKEIT)
@@ -426,12 +439,12 @@ def _aehnlich_suchen(menge, begriff: str) -> Gruppe:
     for eintrag in treffer[:TREFFER_JE_GRUPPE]:
         gruppe.treffer.append(
             Treffer(
-                titel=eintrag.titel,
+                titel=eintrag.lese_titel,
                 url=reverse("kern:eintrag", args=[eintrag.dokument.schluessel, eintrag.kennung]),
-                kontext=eintrag.kontext,
+                kontext=lesekontext(nutzer, eintrag),
                 kennung=eintrag.kennung,
-                status=eintrag.status,
-                status_text=eintrag.get_status_display(),
+                status=eintrag.lese_status,
+                status_text=Status(eintrag.lese_status).label,
             )
         )
     return gruppe
@@ -455,17 +468,17 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
     gefunden: list[Treffer] = []
 
     eintraege = (
-        rechte.sichtbare_eintraege(nutzer, Eintrag.objects.all())
+        lesemenge(nutzer, Eintrag.objects.all())
         .select_related("dokument", "eltern")
         .annotate(
             naehe=Greatest(
-                TrigramWordSimilarity(begriff, "titel"),
+                TrigramWordSimilarity(begriff, "lese_titel"),
                 TrigramWordSimilarity(begriff, "kennung"),
             ),
             reihenfolge=_STATUS_REIHENFOLGE,
         )
         .filter(
-            Q(titel__icontains=begriff)
+            Q(lese_titel__icontains=begriff)
             | Q(kennung__istartswith=begriff)
             | Q(naehe__gte=AEHNLICHKEIT)
         )
@@ -474,12 +487,12 @@ def vorschlaege(nutzer, begriff: str, anzahl: int = 8) -> list[Treffer]:
     for eintrag in eintraege:
         gefunden.append(
             Treffer(
-                titel=eintrag.titel,
+                titel=eintrag.lese_titel,
                 url=reverse("kern:eintrag", args=[eintrag.dokument.schluessel, eintrag.kennung]),
-                kontext=eintrag.kontext,
+                kontext=lesekontext(nutzer, eintrag),
                 kennung=eintrag.kennung,
-                status=eintrag.status,
-                status_text=eintrag.get_status_display(),
+                status=eintrag.lese_status,
+                status_text=Status(eintrag.lese_status).label,
             )
         )
 

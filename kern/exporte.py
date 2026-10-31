@@ -170,6 +170,8 @@ def dokument_xlsx(dokument):
 
 
 def pdf_zeile(eintrag, version=None):
+    from kern.staende import Eintragsstand
+
     daten = version.daten if version else eintrag.daten
     if version:
         verweise = verweise_aus_schnappschuss(version)
@@ -186,7 +188,7 @@ def pdf_zeile(eintrag, version=None):
             if feld.get("html"):
                 feld["html"] = html.saeubern(str(feld["html"]))
     return {
-        "eintrag": eintrag,
+        "eintrag": Eintragsstand(eintrag, version),
         "titel": titel,
         "bloecke": bloecke,
         "beschluss": version.beschluss if version else None,

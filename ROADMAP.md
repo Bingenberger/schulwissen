@@ -1,8 +1,8 @@
 # Roadmap: Schulwissen als Wissensbasis und Prozesswerkzeug
 
-Stand: 30.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Diese Datei plant kommende Implementierungssitzungen; sie erklärt keine der neuen Funktionen als bereits umgesetzt.
+Stand: 31.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Den tatsächlichen Umsetzungsstand zeigen die Paketstatus und das Übergabeprotokoll.
 
-**Nächstes Arbeitspaket: AP01.**
+**Nächstes Arbeitspaket: AP02.**
 
 Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
 
@@ -60,7 +60,7 @@ flowchart LR
 
 ### AP01 — Lesefassungen und Suchsichtbarkeit vereinheitlichen
 
-**Status:** geplant. **Abhängigkeiten:** keine.
+**Status:** fertig (31.10.2026). **Abhängigkeiten:** keine.
 
 - Den bestätigten Befund beheben: Treffer dürfen für „Lesend“ keine Titel, Status oder Ausschnitte des neueren Arbeitsstands zeigen.
 - Eine gemeinsame Auflösung der für Nutzer und gewünschten Stand sichtbaren Fassung einführen beziehungsweise vorhandene Helfer zusammenführen.
@@ -70,6 +70,8 @@ flowchart LR
 **Abnahme:** Eine freigegebene Fassung mit abweichendem geheim gehaltenem Test-Arbeitsstand liefert Lesenden überall ausschließlich erlaubte Angaben; Bearbeitende können den Arbeitsstand weiter nutzen. Tests prüfen Inhalte und Metadaten, nicht nur Kennungen. Nicht erlaubte Rückverweise fehlen auch als Titel oder Zählung.
 
 **Berührungspunkte:** `kern/rechte.py`, `kern/views.py`, `suche/`, `kern/suchindex.py`, `eintragstypen/dienste.py`, Exporte und Anhangzugriffe.
+
+**Ergebnis:** Gemeinsame Lesefassung und getrennte Fassungsindizes einschließlich Migration, sichere Kontext-/Zielbeschriftungen, Rückverweise, Zählungen und Dateiabrufe umgesetzt. Abnahme und Hinweise zur nginx-Aktualisierung: [AP01_LESEFASSUNGEN.md](docs/AP01_LESEFASSUNGEN.md).
 
 ### AP02 — Dokumentzugänge und redaktionelle Bereiche
 
@@ -260,10 +262,11 @@ flowchart LR
 
 ## 6. Übergabeprotokoll für die nächste Sitzung
 
-Planungsstand: Alle Pakete sind **geplant**, keine neue Funktion aus dieser Roadmap ist umgesetzt. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP01**, anschließend die Abhängigkeiten beachten.
+Umsetzungsstand: **AP01 ist fertig**, alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP02**, anschließend die Abhängigkeiten beachten.
 
 Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 
 | Datum / Paket | Ergebnis und Commit | Tatsächliche Prüfungen | Offen / nächster konkreter Schritt |
 | --- | --- | --- | --- |
 | 30.10.2026 / Planung | Roadmap und Prozessspezifikation erstellt | Abgleich mit Produktanalyse und vorhandenem Rollen-/Nutzermodell; keine App-Funktionen geändert | AP01: konsistente Lesefassungen und Suchsichtbarkeit |
+| 31.10.2026 / AP01 | Einheitliche Lesefassungen, getrennte Indizes, geschützte Verweise und Medienzugriffe; Umsetzung in diesem Commit | Gesamtsuite 374 bestanden, abschließend 21 AP01-Regressionstests bestanden; 142 betroffene Tests zusätzlich unter Standard-Passwortkonfiguration; Browser in vier Breiten, Hell/Dunkel, Tastatur, Druck und axe; lokale Migration und Bestandsprüfung | AP02: Dokumentzugänge und redaktionelle Bereiche. Auf bestehenden nginx-Servern öffentlichen Medien-Alias gemäß Betriebsanleitung entfernen; externe Dateiversionsbindung bleibt AP09. |

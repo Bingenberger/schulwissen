@@ -38,11 +38,13 @@ Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPO
 Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
-Coding-Sitzungen. Nächster Einstieg ist **AP01**. Den ersten großen Ausbau bildet
+Coding-Sitzungen. AP01 (einheitliche Lesefassungen und Suchsichtbarkeit) ist
+umgesetzt; nächster Einstieg ist **AP02**. Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
 Personen aus dem vorhandenen Nutzerstamm besetzen. Diese Erweiterungen sind
-geplant und noch nicht umgesetzt.
+geplant und noch nicht umgesetzt. Die Abnahme von AP01 steht in
+[AP01_LESEFASSUNGEN.md](docs/AP01_LESEFASSUNGEN.md).
 
 ## Schnellstart
 

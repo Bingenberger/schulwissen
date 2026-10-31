@@ -13,7 +13,10 @@ from kern.models import Dokument, Eintrag, Status
 @login_required
 def dokumente(request):
     begriff = (request.GET.get("q") or "").strip()
-    menge = Dokument.objects.select_related("dokumenttyp").annotate(anzahl=Count("eintraege"))
+    sichtbar = rechte.sichtbare_eintraege(request.user, Eintrag.objects.all())
+    menge = Dokument.objects.select_related("dokumenttyp").annotate(
+        anzahl=Count("eintraege", filter=Q(eintraege__in=sichtbar))
+    )
     if begriff:
         menge = menge.filter(Q(titel__icontains=begriff) | Q(beschreibung__icontains=begriff))
     seite = Paginator(menge.order_by("titel", "pk"), 12).get_page(request.GET.get("seite"))

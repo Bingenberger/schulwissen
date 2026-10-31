@@ -41,10 +41,10 @@
       </table></div>
     </div>
 
-    {% if beschluss.protokoll_anhang %}
+    {% if protokoll_anhang %}
       <div class="karte">
         <h2>Protokoll</h2>
-        <p><a href="{{ beschluss.protokoll_anhang.datei.url }}">{{ beschluss.protokoll_anhang.dateiname }}</a></p>
+        <p><a href="{{ protokoll_anhang.datei.url }}">{{ protokoll_anhang.dateiname }}</a></p>
       </div>
     {% endif %}
 

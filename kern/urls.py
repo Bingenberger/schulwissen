@@ -19,6 +19,7 @@ from kern import (
 app_name = "kern"
 
 urlpatterns = [
+    path("medien/<path:pfad>", views.anhang_datei, name="anhang_datei"),
     path("", views.startseite, name="startseite"),
     path("dokumente", uebersichten.dokumente, name="dokumente"),
     path("meine-entwuerfe", uebersichten.eigene_entwuerfe, name="eigene_entwuerfe"),

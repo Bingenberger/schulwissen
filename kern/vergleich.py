@@ -101,7 +101,7 @@ def woerter_vergleichen(vorher: str, nachher: str) -> str:
     return mark_safe("".join(teile))  # noqa: S308 – alle Teile sind escaped
 
 
-def vergleichen(alt, neu) -> Fassungsvergleich:
+def vergleichen(alt, neu, nutzer=None) -> Fassungsvergleich:
     """Stellt zwei ``Eintragsversion`` gegenüber."""
     ergebnis = Fassungsvergleich(alt=alt, neu=neu)
     ergebnis.titel_geaendert = alt.titel != neu.titel
@@ -134,6 +134,10 @@ def vergleichen(alt, neu) -> Fassungsvergleich:
 
     # Verweise (Kompetenzen, Bezüge) stehen im Schnappschuss der Fassung.
     def schluessel(verlinkungen):
+        if nutzer is not None:
+            from kern.staende import sichtbare_verweise
+
+            verlinkungen = sichtbare_verweise(nutzer, verlinkungen or [])
         return {
             f"{v.get('art', '')}:{v.get('ziel_id', '')}": v.get("beschriftung") or v.get("ziel_id")
             for v in (verlinkungen or [])

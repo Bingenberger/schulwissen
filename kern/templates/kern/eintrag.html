@@ -7,8 +7,7 @@
 
   <article class="eintrag-inhalt">
     <p class="brotkrumen">
-      <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a>
-      {% if eintrag.eltern %} › {{ eintrag.eltern.anzeige_nummer }} {{ eintrag.eltern.titel }}{% endif %}
+      <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ lesekontext }}</a>
       › {{ eintrag.kennung }}
     </p>
 
@@ -63,10 +62,10 @@
       </div>
     {% endfor %}
 
-    {% if eintrag.anhaenge.all %}
+    {% if anhaenge %}
       <section class="block">
         <h2>Anhänge</h2>
-        <ul class="anhang-liste">{% for anhang in eintrag.anhaenge.all %}<li>
+        <ul class="anhang-liste">{% for anhang in anhaenge %}<li>
           {% if anhang.datei %}<a class="anhang-kachel" href="{{ anhang.datei.url }}">{% elif anhang.nextcloud_link %}<a class="anhang-kachel" href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer">{% else %}<div class="anhang-kachel">{% endif %}
           {% include "kern/_symbol.html" with name="datei" %}<span><strong>{{ anhang.dateiname }}</strong><small>{% if anhang.groesse %}{{ anhang.groesse|filesizeformat }}{% endif %}{% if anhang.nextcloud_link %} · Nextcloud{% endif %}{% if anhang.beschreibung %} · {{ anhang.beschreibung }}{% endif %}</small></span>
           {% if anhang.datei or anhang.nextcloud_link %}</a>{% else %}</div>{% endif %}</li>{% endfor %}</ul>
@@ -89,7 +88,7 @@
         {% if eintrag.fassung_stand %}<li><strong>Fassung:</strong> {{ eintrag.fassung_stand|date:"d.m.Y" }}</li>{% endif %}
         <li><strong>Zuletzt geändert:</strong> {{ eintrag.geaendert_am|date:"d.m.Y, H:i" }}</li>
         <li><strong>Fassungen:</strong>
-          <a href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">{{ eintrag.versionen.count }}</a></li>
+          <a href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">{{ anzahl_fassungen }}</a></li>
       </ul>
     </div>
 

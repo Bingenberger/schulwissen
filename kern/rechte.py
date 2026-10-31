@@ -72,7 +72,7 @@ def darf_lesen(nutzer, eintrag) -> bool:
     # Arbeitsstand auf "entwurf". Die beschlossene Fassung gilt aber weiter und
     # bleibt sichtbar (SPEC.md Paragraf 6) - sonst verschwaende ein
     # beschlossener Eintrag fuer das halbe Kollegium, sobald jemand ihn anfasst.
-    return eintrag.versionen.filter(status=Status.BESCHLOSSEN).exists()
+    return eintrag.beschlossene_version() is not None
 
 
 def zeigt_entwurf(nutzer, eintrag=None) -> bool:
@@ -92,7 +92,8 @@ def sichtbare_eintraege(nutzer, menge):
         from django.db.models import Q
 
         return menge.filter(
-            Q(status__in=OEFFENTLICHE_STATUS) | Q(versionen__status=Status.BESCHLOSSEN)
+            Q(status__in=OEFFENTLICHE_STATUS)
+            | Q(versionen__status=Status.BESCHLOSSEN, versionen__beschluss__isnull=False)
         ).distinct()
     return menge
 
