@@ -246,8 +246,17 @@ def test_lesende_sehen_in_auswertungen_nur_gueltiges(
     assert "NIE FREIGEGEBEN" not in text
 
 
-def admin_daten(eintrag=None):
+def admin_daten(eintrag=None, client=None):
+    stand = (
+        client.get(reverse("admin:kern_eintrag_change", args=[eintrag.pk]))
+        .context["adminform"]
+        .form["ausgangsstand"]
+        .value()
+        if client is not None and eintrag is not None
+        else ""
+    )
     return {
+        "ausgangsstand": stand,
         "titel": "Änderung aus der Verwaltung",
         "status": Status.ENTWURF,
         "daten": json.dumps({"text": "<p>Neue Fassung</p><script>boese()</script>"}),
@@ -261,7 +270,7 @@ def test_verwaltung_nutzt_pruefung_suchindex_und_fassungen(client, admin_nutzer,
     e, _, gueltig, _ = historie
     client.force_login(admin_nutzer)
     vorher = e.versionen.count()
-    antwort = client.post(reverse("admin:kern_eintrag_change", args=[e.pk]), admin_daten(e))
+    antwort = client.post(reverse("admin:kern_eintrag_change", args=[e.pk]), admin_daten(e, client))
     assert antwort.status_code == 302
     e.refresh_from_db()
     assert e.status == Status.ENTWURF
@@ -302,7 +311,7 @@ def test_verwaltung_legt_geprueften_eintrag_mit_fassung_an(client, admin_nutzer,
 def test_verwaltung_verhindert_ungepruefte_aenderungen(client, admin_nutzer, dokument, aenderung):
     e = schreiben(dokument, "V-3-92", "vorhaben", "Unfertig", {"jahrgang": 3})
     client.force_login(admin_nutzer)
-    daten = {**admin_daten(), "daten": '{"jahrgang": 3}', **aenderung}
+    daten = {**admin_daten(e, client), "daten": '{"jahrgang": 3}', **aenderung}
     vorher = e.versionen.count()
     antwort = client.post(reverse("admin:kern_eintrag_change", args=[e.pk]), daten)
     assert antwort.status_code == 200
@@ -320,7 +329,7 @@ def test_verwaltung_bearbeitung_eines_beschlossenen_eintrags_erzeugt_entwurf(
     gueltig = freigeben(e, 3)
     client.force_login(admin_nutzer)
     vorher = e.versionen.count()
-    daten = {**admin_daten(), "status": Status.BESCHLOSSEN}
+    daten = {**admin_daten(e, client), "status": Status.BESCHLOSSEN}
     assert client.post(reverse("admin:kern_eintrag_change", args=[e.pk]), daten).status_code == 302
     e.refresh_from_db()
     assert e.status == Status.ENTWURF
@@ -356,7 +365,7 @@ def test_verwaltung_metadaten_bleiben_bearbeitbar(client, admin_nutzer, arbeitsg
     e = historie[0]
     client.force_login(admin_nutzer)
     daten = {
-        **admin_daten(),
+        **admin_daten(e, client),
         "verantwortlich_gruppe": arbeitsgruppe.pk,
         "eltern": e.dokument.eintraege.get(kennung="2").pk,
         "position": 70,
@@ -386,7 +395,7 @@ def test_verwaltung_kann_optionale_metadaten_leeren(client, admin_nutzer, histor
     e.fassung_stand = date(2026, 1, 1)
     e.save()
     client.force_login(admin_nutzer)
-    daten = {**admin_daten(), "verantwortlich_text": "", "fassung_stand": ""}
+    daten = {**admin_daten(e, client), "verantwortlich_text": "", "fassung_stand": ""}
     assert client.post(reverse("admin:kern_eintrag_change", args=[e.pk]), daten).status_code == 302
     e.refresh_from_db()
     assert e.verantwortlich_text == ""

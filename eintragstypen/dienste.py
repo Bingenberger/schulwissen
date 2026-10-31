@@ -21,7 +21,8 @@ from django.db import transaction
 
 from eintragstypen import html
 from eintragstypen.registry import Feldtyp, registry
-from kern.models import Eintrag, ReservierteKennung, Status, Verlinkung, Zieltyp
+from kern.models import Dokument, Eintrag, ReservierteKennung, Status, Verlinkung, Zieltyp
+from kern.schreibschutz import UNGEPRUEFT, pruefe_stand
 
 FEHLER = "fehler"
 WARNUNG = "warnung"
@@ -272,7 +273,12 @@ def _verweise_pruefen(
 
 @transaction.atomic
 def speichern(
-    dokument, befundsatz: Befundsatz, nutzer=None, eltern=None, metadaten=None
+    dokument,
+    befundsatz: Befundsatz,
+    nutzer=None,
+    eltern=None,
+    metadaten=None,
+    erwarteter_stand=UNGEPRUEFT,
 ) -> Eintrag:
     """Schreibt einen geprüften Datensatz und legt eine neue Fassung an."""
     if not befundsatz.ok:
@@ -287,7 +293,21 @@ def speichern(
         # Gültigkeit entsteht ausschließlich über einen Beschluss (SPEC.md §8).
         status = Status.ABGESTIMMT
 
-    eintrag = dokument.eintraege.filter(kennung=roh.kennung).first()
+    Dokument.objects.select_for_update().get(pk=dokument.pk)
+    eintrag = dokument.eintraege.select_for_update().filter(kennung=roh.kennung).first()
+    if erwarteter_stand is not UNGEPRUEFT and nutzer is not None:
+        from django.core.exceptions import PermissionDenied
+
+        from kern import rechte
+
+        erlaubt = (
+            rechte.darf_bearbeiten(nutzer, eintrag)
+            if eintrag
+            else rechte.darf_anlegen(nutzer, dokument)
+        )
+        if not erlaubt:
+            raise PermissionDenied("Die Bearbeitungsberechtigung ist nicht mehr vorhanden.")
+    pruefe_stand(eintrag, erwarteter_stand)
     if eintrag is None:
         eintrag = Eintrag(dokument=dokument, kennung=roh.kennung, erstellt_von=nutzer)
     elif eintrag.ist_beschlossen:

@@ -38,9 +38,9 @@ Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPO
 Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
-Coding-Sitzungen. AP01 (einheitliche Lesefassungen) und AP02
-(Dokumentzugänge und redaktionelle Bereiche) sind umgesetzt;
-nächster Einstieg ist **AP03**. Den ersten großen Ausbau bildet
+Coding-Sitzungen. AP01–AP03 (Lesefassungen, Dokumentzugänge und Schutz vor
+gleichzeitigem Überschreiben) sind umgesetzt; nächster Einstieg ist **AP04**.
+Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
 Personen aus dem vorhandenen Nutzerstamm besetzen. Diese Erweiterungen sind
@@ -292,6 +292,12 @@ cd frontend && npm install && npm run build
   die zu personenbezogenen Daten einladen, gibt es bewusst nicht.
 - Sie ersetzt die Nextcloud nicht als Dateiablage.
 - Sie bietet kein gleichzeitiges Bearbeiten wie Google Docs.
+
+Mehrere Personen können Formulare parallel öffnen. Vor dem Speichern prüft die
+App den Ausgangsstand. Bei einem Konflikt bleiben die Eingaben erhalten; der
+aktuelle Stand muss verglichen und die eigene Eingabe ausdrücklich bestätigt
+werden. Verwaltung und JSON-Importvorschau sind ebenfalls geschützt. Details:
+[AP03_SCHREIBSCHUTZ.md](docs/AP03_SCHREIBSCHUTZ.md).
 
 ## Hinweise zu den Daten
 

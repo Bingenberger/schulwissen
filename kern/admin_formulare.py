@@ -1,14 +1,27 @@
 """Einträge auch in der Verwaltung über dieselbe fachliche Prüfung speichern."""
 
+import json
+
 from django import forms
+from django.urls import reverse
+from django.utils.html import format_html
 
 from eintragstypen import dienste
 from eintragstypen.registry import registry
 from kern import rechte
 from kern.models import Eintrag, Status
+from kern.schreibschutz import Schreibkonflikt, pruefe_stand, token_fuer_eintrag, token_lesen
 
 
 class EintragAdminFormular(forms.ModelForm):
+    ausgangsstand = forms.CharField(required=False, widget=forms.HiddenInput)
+    aktueller_stand = forms.CharField(required=False, widget=forms.HiddenInput)
+    konflikt_geprueft = forms.BooleanField(
+        required=False,
+        widget=forms.HiddenInput,
+        label="Ich habe meine Eingabe mit dem aktuellen Stand verglichen.",
+    )
+
     class Meta:
         model = Eintrag
         fields = [
@@ -31,6 +44,11 @@ class EintragAdminFormular(forms.ModelForm):
         self.nutzer = nutzer
         self.befundsatz = None
         self.vorher = Eintrag.objects.filter(pk=self.instance.pk).first()
+        self.erwarteter_stand = None
+        if self.vorher and not self.is_bound:
+            self.initial["ausgangsstand"] = token_fuer_eintrag(nutzer, self.vorher)
+        if self.is_bound and self.data.get("aktueller_stand"):
+            self.fields["konflikt_geprueft"].widget = forms.CheckboxInput()
         self.fields["status"].help_text = (
             "Freigaben erfolgen über die Beschlussvorlage. "
             "Das Bearbeiten eines beschlossenen Eintrags erzeugt einen Entwurf."
@@ -44,6 +62,38 @@ class EintragAdminFormular(forms.ModelForm):
         typ = daten.get("eintragstyp", self.instance.eintragstyp)
         if not dokument or not registry.bekannt(typ):
             return daten
+        if self.vorher:
+            try:
+                token = (
+                    daten.get("aktueller_stand")
+                    if daten.get("konflikt_geprueft")
+                    else daten.get("ausgangsstand")
+                )
+                self.erwarteter_stand = token_lesen(token, self.nutzer, dokument, self.vorher)[
+                    "stand"
+                ]
+                pruefe_stand(self.vorher, self.erwarteter_stand)
+            except Schreibkonflikt as fehler:
+                self.data = self.data.copy()
+                self.data["aktueller_stand"] = token_fuer_eintrag(self.nutzer, self.vorher)
+                self.data["konflikt_geprueft"] = ""
+                self.fields["konflikt_geprueft"].widget = forms.CheckboxInput()
+                self.add_error(
+                    None,
+                    format_html(
+                        '{} Deine Eingabe bleibt im Formular. <a href="{}" target="_blank" '
+                        'rel="noopener">Aktuelle Verwaltungsfassung zum Vergleichen öffnen</a>. '
+                        "<details><summary>Aktuell gespeicherter Text</summary>"
+                        '<p>{}</p><pre class="schreibkonflikt-json">{}</pre></details>'
+                        "Übernimm die Änderungen, die erhalten bleiben sollen, "
+                        "und bestätige den Vergleich vor dem Sichern.",
+                        str(fehler),
+                        reverse("admin:kern_eintrag_change", args=[self.vorher.pk]),
+                        self.vorher.titel,
+                        json.dumps(self.vorher.daten, ensure_ascii=False, indent=2),
+                    ),
+                )
+                return daten
         inhalt = daten.get("daten")
         if inhalt is None:
             inhalt = {}

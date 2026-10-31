@@ -14,7 +14,7 @@
     <p class="brotkrumen">
       <a href="{% url 'kern:dokument' dokument.schluessel %}">{{ dokument.titel }}</a>
       {% if eintrag %}
-        › <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a> › Bearbeiten
+        › {% if formular.eintrag_entfernt %}{{ eintrag.kennung }}{% else %}<a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a>{% endif %} › Bearbeiten
       {% else %}
         › Neu: {{ typ.name }}
       {% endif %}
@@ -27,7 +27,7 @@
       {% else %}Die Kennung vergibt die App beim Speichern.{% endif %}
     </p>
 
-    {% if eintrag %}<p><a class="knopf knopf-leise" href="{% url 'kern:eintrag_loeschen' dokument.schluessel eintrag.kennung %}">Eintrag löschen …</a></p>{% endif %}
+    {% if eintrag and not formular.eintrag_entfernt %}<p><a class="knopf knopf-leise" href="{% url 'kern:eintrag_loeschen' dokument.schluessel eintrag.kennung %}">Eintrag löschen …</a></p>{% endif %}
     <div class="meldung meldung-info">
       <strong>Speichern geht immer.</strong> Felder mit <span class="feld-pflicht">*</span>
       sind Pflicht, aber erst für den Status „abgestimmt in Gruppe“. Du kannst
@@ -36,8 +36,30 @@
 
     <form method="post" data-eintragsformular x-data="{ jahrgang: '{{ formular.f_jahrgang.value|default:'' }}' }">
       {% csrf_token %}
+      {{ formular.ausgangsstand }}
 
-      {% if formular.errors %}<div class="meldung meldung-error" role="alert"><strong>Bitte prüfe die markierten Felder.</strong><ul>{% for feld in formular %}{% if feld.errors %}<li><a href="#{% if feld.name|slice:":2" == 'v_' %}suche_{{ feld.name|slice:"2:" }}{% else %}{{ feld.id_for_label }}{% endif %}">{{ feld.label }}: {{ feld.errors|striptags }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+      {% if formular.schreibkonflikt %}
+        <section class="karte" aria-labelledby="konflikt-titel">
+          <h2 id="konflikt-titel">{% if formular.eintrag_entfernt %}Eintrag wurde entfernt{% else %}Zwischenzeitlich geändert{% endif %}</h2>
+          {% if formular.eintrag_entfernt %}<p>Du kannst deine Eingabe aus den Feldern kopieren. Der entfernte Eintrag wird nicht wiederhergestellt.</p><p><a href="{% url 'kern:eintrag_neu' dokument.schluessel typ.schluessel %}" target="_blank" rel="noopener">Einen neuen Eintrag in einem neuen Tab anlegen</a></p>{% else %}
+          <p>Deine Eingabe steht weiterhin im Formular. Vergleiche sie mit dem aktuellen Stand und übernimm die Änderungen, die erhalten bleiben sollen.</p>
+          <p><a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}" target="_blank" rel="noopener">Aktuell gespeicherten Eintrag in einem neuen Tab öffnen</a></p>
+          {% with vergleich=formular.konfliktvergleich %}
+          {% if vergleich %}<div class="tabelle-rahmen" role="region" aria-label="Aktueller Stand und deine Eingabe" tabindex="0"><table class="tabelle">
+            <thead><tr><th>Feld</th><th>Aktuell gespeichert</th><th>Deine Eingabe</th></tr></thead>
+            <tbody>{% if vergleich.titel_geaendert %}<tr><th>Titel</th><td>{{ vergleich.alt.titel }}</td><td>{{ vergleich.neu.titel }}</td></tr>{% endif %}
+              {% for feld in vergleich.geaenderte_felder %}<tr><th>{{ feld.label }}</th><td>{{ feld.vorher|linebreaksbr }}</td><td>{{ feld.nachher|linebreaksbr }}</td></tr>{% endfor %}
+            </tbody></table></div>
+            {% if vergleich.verweise_dazu %}<p><strong>Zusätzliche Verweise in deiner Eingabe:</strong></p><ul>{% for verweis in vergleich.verweise_dazu %}<li>{{ verweis }}</li>{% endfor %}</ul>{% endif %}
+            {% if vergleich.verweise_weg %}<p><strong>Verweise, die deine Eingabe entfernen würde:</strong></p><ul>{% for verweis in vergleich.verweise_weg %}<li>{{ verweis }}</li>{% endfor %}</ul>{% endif %}
+          {% endif %}{% endwith %}
+          <input type="hidden" name="aktueller_stand" value="{{ formular.konfliktstand }}">
+          <label><input type="checkbox" name="konflikt_geprueft"> Ich habe die Änderungen verglichen und meine Eingabe geprüft.</label>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      {% if formular.errors and not formular.schreibkonflikt %}<div class="meldung meldung-error" role="alert"><strong>Bitte prüfe die markierten Felder.</strong><ul>{% for feld in formular %}{% if feld.errors %}<li><a href="#{% if feld.name|slice:":2" == 'v_' %}suche_{{ feld.name|slice:"2:" }}{% else %}{{ feld.id_for_label }}{% endif %}">{{ feld.label }}: {{ feld.errors|striptags }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
       {% if formular.non_field_errors %}
         {% for fehler in formular.non_field_errors %}
           <div class="meldung meldung-error">{{ fehler }}</div>
@@ -117,13 +139,13 @@
       </details>
 
       <div class="knopf-reihe">
-        <button class="knopf knopf-wichtig" data-speichern type="submit">Speichern</button>
-        {% if eintrag %}
+        {% if formular.eintrag_entfernt %}<button class="knopf knopf-wichtig" data-speichern data-konflikt type="button" disabled>Eintrag entfernt</button>{% elif formular.schreibkonflikt %}<button class="knopf knopf-wichtig" data-speichern data-konflikt type="submit" name="aktion" value="konflikt_loesen">Geprüfte Eingabe speichern</button>{% else %}<button class="knopf knopf-wichtig" data-speichern type="submit">Speichern</button>{% endif %}
+        {% if eintrag and not formular.eintrag_entfernt %}
           <a class="knopf" href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">Abbrechen</a>
         {% else %}
           <a class="knopf" href="{% url 'kern:dokument' dokument.schluessel %}">Abbrechen</a>
         {% endif %}
-      </div><p class="klein leise" data-speicherhinweis>{% if eintrag %}Stand vom {{ eintrag.geaendert_am|date:"d.m.Y, H:i" }}{% else %}Noch nicht gespeichert{% endif %}</p></div>
+      </div><p class="klein leise" data-speicherhinweis>{% if formular.eintrag_entfernt %}Eintrag entfernt · Eingabe nicht gespeichert{% elif eintrag %}Stand vom {{ eintrag.geaendert_am|date:"d.m.Y, H:i" }}{% else %}Noch nicht gespeichert{% endif %}</p></div>
     </form>
   </div>
 </div>

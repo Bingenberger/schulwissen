@@ -160,9 +160,22 @@ def pruefen_json(inhalt, dokument):
 
 
 @transaction.atomic
-def uebernehmen_json(inhalt, dokument, nutzer=None):
+def uebernehmen_json(inhalt, dokument, nutzer=None, erwarteter_stand=None):
     # Verhindert konkurrierende Importe in dasselbe Dokument.
     Dokument.objects.select_for_update().get(pk=dokument.pk)
+    if erwarteter_stand is not None:
+        from django.core.exceptions import PermissionDenied
+
+        from kern import rechte
+        from kern.schreibschutz import Schreibkonflikt, dokumentstand
+
+        if nutzer is not None and not rechte.darf_importieren(nutzer):
+            raise PermissionDenied("Die Importberechtigung ist nicht mehr vorhanden.")
+        if dokumentstand(dokument) != erwarteter_stand:
+            raise Schreibkonflikt(
+                "Das Dokument wurde seit der Vorschau geändert. "
+                "Bitte prüfe die erneuerte Vorschau; es wurde nichts importiert."
+            )
     bericht = pruefen_json(inhalt, dokument)
     if not bericht.ok:
         return bericht

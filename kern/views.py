@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,12 +20,14 @@ from fachdaten.models import Stufe
 from kern import rechte
 from kern.models import (
     Anhang,
+    Dokument,
     Eintrag,
     Kommentar,
     Status,
     Verlinkung,
     Zieltyp,
 )
+from kern.schreibschutz import Schreibkonflikt, token_fuer_eintrag, token_lesen
 from kern.staende import (
     lesekontext,
     lesemenge,
@@ -388,7 +391,34 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
 
 @login_required
 def eintrag_bearbeiten(request, schluessel: str, kennung: str):
-    eintrag = _eintrag_holen(request, schluessel, kennung)
+    try:
+        eintrag = _eintrag_holen(request, schluessel, kennung)
+    except Http404:
+        if request.method != "POST":
+            raise
+        dokument = get_object_or_404(
+            rechte.sichtbare_dokumente(request.user), schluessel=schluessel
+        )
+        try:
+            alt = token_lesen(
+                request.POST.get("ausgangsstand"), request.user, dokument, kennung=kennung
+            )
+        except Schreibkonflikt as fehler:
+            raise Http404("Dieser Eintrag ist nicht vorhanden.") from fehler
+        if not rechte.darf_anlegen(request.user, dokument) or not registry.bekannt(
+            alt["eintragstyp"]
+        ):
+            raise PermissionDenied(
+                "Die Bearbeitungsberechtigung ist nicht mehr vorhanden."
+            ) from None
+        eintrag = Eintrag(
+            pk=alt["eintrag"],
+            dokument=dokument,
+            kennung=kennung,
+            eintragstyp=alt["eintragstyp"],
+            erstellt_von=request.user,
+        )
+        eintrag.entfernt = True
     if not rechte.darf_bearbeiten(request.user, eintrag):
         raise PermissionDenied(
             "Diesen Eintrag darf nur die verantwortliche Arbeitsgruppe oder die "
@@ -406,12 +436,16 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
 
     if request.method == "POST":
         formular = EintragFormular(request.POST, eintragstyp=eintrag.eintragstyp, eintrag=eintrag)
-        if formular.is_valid():
+        gueltig = formular.is_valid()
+        if getattr(eintrag, "entfernt", False):
+            _entfernt_anzeigen(formular)
+        elif gueltig:
             antwort = _speichern(request, eintrag.dokument, formular, eintrag.kennung, eintrag)
             if antwort is not None:
                 return antwort
     else:
         formular = EintragFormular(eintragstyp=eintrag.eintragstyp, eintrag=eintrag)
+        formular.initial["ausgangsstand"] = token_fuer_eintrag(request.user, eintrag)
 
     return render(
         request,
@@ -426,6 +460,7 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
             "bereiche": bereiche_fuer(eintrag.dokument.fach or "deutsch"),
             "stufen": Stufe.choices,
         },
+        status=409 if getattr(formular, "schreibkonflikt", False) else 200,
     )
 
 
@@ -449,8 +484,7 @@ def eintrag_neu(request, schluessel: str, eintragstyp: str):
     if request.method == "POST":
         formular = EintragFormular(request.POST, eintragstyp=eintragstyp)
         if formular.is_valid():
-            kennung = _kennung_vergeben(dokument, typ, formular)
-            antwort = _speichern(request, dokument, formular, kennung, None)
+            antwort = _speichern(request, dokument, formular, None, None)
             if antwort is not None:
                 return antwort
     else:
@@ -481,10 +515,14 @@ def _kennung_vergeben(dokument, typ, formular) -> str:
     return typ.kennung_bauen(dokument)
 
 
+@transaction.atomic
 def _speichern(request, dokument, formular, kennung: str, eintrag):
     """Prüft und speichert; gibt eine Weiterleitung zurück oder ``None``."""
     from deutsch import gliederung
 
+    Dokument.objects.select_for_update().get(pk=dokument.pk)
+    if eintrag is None:
+        kennung = _kennung_vergeben(dokument, formular.typ, formular)
     roh = formular.als_rohsatz(kennung)
 
     if roh.status != (eintrag.status if eintrag is not None else Status.ENTWURF):
@@ -521,7 +559,23 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
     if eintrag is None and roh.eintragstyp in ("ritual", "vorhaben"):
         eltern = gliederung.sammelkapitel(dokument)
 
-    gespeichert = dienste.speichern(dokument, befundsatz, nutzer=request.user, eltern=eltern)
+    try:
+        erwartet = None
+        if eintrag is not None:
+            token = formular.cleaned_data.get("ausgangsstand")
+            if request.POST.get("aktion") == "konflikt_loesen":
+                if request.POST.get("konflikt_geprueft") != "on":
+                    raise Schreibkonflikt(
+                        "Bitte vergleiche die Änderungen und bestätige deine geprüfte Eingabe."
+                    )
+                token = request.POST.get("aktueller_stand")
+            erwartet = token_lesen(token, request.user, dokument, eintrag)["stand"]
+        gespeichert = dienste.speichern(
+            dokument, befundsatz, nutzer=request.user, eltern=eltern, erwarteter_stand=erwartet
+        )
+    except Schreibkonflikt as fehler:
+        _schreibkonflikt_anzeigen(request, eintrag, formular, befundsatz, fehler)
+        return None
 
     if gespeichert.verantwortlich_gruppe_id is None and eintrag is None:
         # Erstanlage: die erste Arbeitsgruppe des Nutzers übernimmt die
@@ -547,6 +601,61 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
         messages.success(request, f"„{gespeichert.titel}“ wurde gespeichert.")
 
     return redirect("kern:eintrag", schluessel=dokument.schluessel, kennung=gespeichert.kennung)
+
+
+def _schreibkonflikt_anzeigen(request, eintrag, formular, befundsatz, fehler):
+    from types import SimpleNamespace
+
+    from kern import vergleich
+
+    formular.add_error(None, str(fehler))
+    formular.schreibkonflikt = True
+    if eintrag is None:
+        return
+    try:
+        eintrag.refresh_from_db()
+    except Eintrag.DoesNotExist:
+        _entfernt_anzeigen(formular)
+        return
+    if not rechte.darf_bearbeiten(request.user, eintrag):
+        raise PermissionDenied("Die Bearbeitungsberechtigung ist nicht mehr vorhanden.")
+    formular.konfliktstand = token_fuer_eintrag(request.user, eintrag)
+    verweise = []
+    for feld in eintrag.typ.verlinkungsfelder:
+        for ziel in befundsatz.verweise.get(feld.schluessel, []):
+            if feld.zieltyp == Zieltyp.EINTRAG:
+                anderes = eintrag.dokument.eintraege.filter(kennung=ziel).first()
+                if anderes is None:
+                    continue
+                ziel = str(anderes.pk)
+            verweise.append(
+                {
+                    "ziel_typ": feld.zieltyp,
+                    "ziel_id": ziel,
+                    "art": feld.verlinkungsart,
+                    "feld": feld.schluessel,
+                }
+            )
+    aktuell = SimpleNamespace(
+        eintrag=eintrag,
+        titel=eintrag.titel,
+        daten=eintrag.daten,
+        verlinkungen=[v.als_schnappschuss() for v in eintrag.verlinkungen.all()],
+    )
+    eingabe = SimpleNamespace(
+        eintrag=eintrag, titel=befundsatz.roh.titel, daten=befundsatz.daten, verlinkungen=verweise
+    )
+    formular.konfliktvergleich = vergleich.vergleichen(aktuell, eingabe, request.user)
+
+
+def _entfernt_anzeigen(formular):
+    formular.schreibkonflikt = True
+    formular.eintrag_entfernt = True
+    formular.add_error(
+        None,
+        "Dieser Eintrag wurde inzwischen entfernt. Deine Eingabe bleibt hier erhalten; "
+        "es wurde nichts gespeichert.",
+    )
 
 
 @login_required

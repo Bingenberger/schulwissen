@@ -2,7 +2,7 @@
 
 Stand: 31.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Den tatsächlichen Umsetzungsstand zeigen die Paketstatus und das Übergabeprotokoll.
 
-**Nächstes Arbeitspaket: AP03.**
+**Nächstes Arbeitspaket: AP04.**
 
 Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
 
@@ -88,13 +88,15 @@ flowchart LR
 
 ### AP03 — Gemeinsames Schreiben ohne stilles Überschreiben
 
-**Status:** geplant. **Abhängigkeiten:** AP01; vor dem gemeinsamen Prozesseditor abschließen.
+**Status:** fertig (31.10.2026). **Abhängigkeiten:** AP01; vor dem gemeinsamen Prozesseditor abschließen.
 
 - Im normalen Schreibweg eine erwartete Ausgangsversion prüfen und den Vergleich samt Speicherung atomar durchführen.
 - Bei Konflikt Eingaben erhalten, verständlichen Hinweis und Vergleich anbieten. Kein automatisches Ersetzen fremder Änderungen.
 - Die vorhandene Standprüfung der Protokollgenehmigung erhalten. Import- und Verwaltungswege bewusst berücksichtigen.
 
 **Abnahme:** Zwei gleichzeitig geöffnete Formulare können widersprüchliche Änderungen nicht unbemerkt überschreiben. Der zweite Bearbeiter kann seine Eingabe wiederverwenden. Bereits freigegebene Fassungen bleiben unverändert. Der spätere grafische Editor nutzt denselben Schutz.
+
+**Ergebnis:** Signierter Ausgangsstand, atomare Prüfung im gemeinsamen Schreibdienst, Vergleich mit erhaltener Eingabe und ausdrücklich bestätigte Auflösung; Verwaltung und Importvorschau geschützt. Details und Schnittstelle für den Prozesseditor: [AP03_SCHREIBSCHUTZ.md](docs/AP03_SCHREIBSCHUTZ.md).
 
 ### AP04 — Schulfunktionsrollen und Besetzung aus dem Nutzerstamm
 
@@ -264,7 +266,7 @@ flowchart LR
 
 ## 6. Übergabeprotokoll für die nächste Sitzung
 
-Umsetzungsstand: **AP01 und AP02 sind fertig**, alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP03**, anschließend die Abhängigkeiten beachten.
+Umsetzungsstand: **AP01–AP03 sind fertig (M1)**, alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP04**, anschließend die Abhängigkeiten beachten.
 
 Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 
@@ -272,4 +274,5 @@ Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 | --- | --- | --- | --- |
 | 30.10.2026 / Planung | Roadmap und Prozessspezifikation erstellt | Abgleich mit Produktanalyse und vorhandenem Rollen-/Nutzermodell; keine App-Funktionen geändert | AP01: konsistente Lesefassungen und Suchsichtbarkeit |
 | 31.10.2026 / AP01 | Einheitliche Lesefassungen, getrennte Indizes, geschützte Verweise und Medienzugriffe; Commit `c5da881` | Gesamtsuite 374 bestanden, abschließend 21 AP01-Regressionstests bestanden; 142 betroffene Tests zusätzlich unter Standard-Passwortkonfiguration; Browser in vier Breiten, Hell/Dunkel, Tastatur, Druck und axe; lokale Migration und Bestandsprüfung | AP02: Dokumentzugänge und redaktionelle Bereiche. Auf bestehenden nginx-Servern öffentlichen Medien-Alias gemäß Betriebsanleitung entfernen; externe Dateiversionsbindung bleibt AP09. |
-| 31.10.2026 / AP02 | Dokument-/Bereichsregeln, getrennte Redaktion und Freigabe, geschützte Beschlussrahmen, Verwaltungsoberfläche und Migration; Umsetzung in diesem Commit | 420 Tests im Gesamtlauf erfolgreich; ein ungültiger Test-Stufenwert korrigiert, danach alle 46 AP02-Tests erfolgreich (überlappend). Ruff, Django und Migrationscheck grün. Fünf Browseransichten in vier Breiten, Frontend-axe und Tastatur; Migration 0009 lokal angewandt und Bestand geprüft. | AP03: Gemeinsames Schreiben ohne stilles Überschreiben. Bestehende persönliche Redaktionszuordnungen bei gewünschter Begrenzung im Backend nachpflegen. |
+| 31.10.2026 / AP02 | Dokument-/Bereichsregeln, getrennte Redaktion und Freigabe, geschützte Beschlussrahmen, Verwaltungsoberfläche und Migration; Commit `a6a3afa` | 420 Tests im Gesamtlauf erfolgreich; ein ungültiger Test-Stufenwert korrigiert, danach alle 46 AP02-Tests erfolgreich (überlappend). Ruff, Django und Migrationscheck grün. Fünf Browseransichten in vier Breiten, Frontend-axe und Tastatur; Migration 0009 lokal angewandt und Bestand geprüft. | AP03: Gemeinsames Schreiben ohne stilles Überschreiben. Bestehende persönliche Redaktionszuordnungen bei gewünschter Begrenzung im Backend nachpflegen. |
+| 31.10.2026 / AP03 | Gemeinsame atomare Standprüfung, signierte Formulare, Vergleich und explizite Auflösung; Verwaltung, Importvorschau und parallele Neuanlage geschützt; Umsetzung in diesem Commit | Gesamtlauf 441 bestanden; nach zwei ergänzten Löschfällen 59 betroffene Tests bestanden, davon 22 Schreibschutztests mit zwei echten Paralleltests (überlappend). Ruff, Django und Migrationsabgleich grün; Browser in vier Breiten, Tastatur und axe Hell/Dunkel; Bestandsfingerabdrücke unverändert. Keine Migration nötig. | AP04: Schulfunktionsrollen und Besetzung aus dem bestehenden Nutzerstamm. M1 ist abgeschlossen. |

@@ -19,8 +19,9 @@ from dataclasses import dataclass
 
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Q
 
-from kern.models import Beschluss, Eintrag, Eintragsversion, Status
+from kern.models import Beschluss, Dokument, Eintrag, Eintragsversion, Status
 
 
 @dataclass
@@ -52,6 +53,14 @@ def beschluss_fassen(beschluss: Beschluss, eintraege, nutzer=None) -> Beschlussb
     from kern import rechte
 
     eintraege = list(eintraege)
+    auswahl = {e.pk for e in eintraege}
+    dokument_ids = sorted({e.dokument_id for e in eintraege})
+    list(Dokument.objects.select_for_update().filter(pk__in=dokument_ids).order_by("pk"))
+    eintraege = list(Eintrag.objects.select_for_update().filter(pk__in=auswahl).order_by("pk"))
+    if {e.pk for e in eintraege} != auswahl:
+        raise PermissionDenied(
+            "Die Freigabeauswahl ist nicht mehr vollständig. Bitte prüfe sie erneut."
+        )
     if nutzer is not None and any(
         not rechte.darf_beschliessen(nutzer, e.dokument) for e in eintraege
     ):
@@ -117,6 +126,12 @@ def beschluss_zuruecknehmen(beschluss: Beschluss, nutzer=None) -> int:
     eine inhaltliche Rücknahme – die ist ein neuer Beschluss.
     """
     from kern import rechte
+
+    betroffen = Dokument.objects.filter(
+        Q(pk__in=beschluss.dokumente.values("pk")) | Q(eintraege__versionen__beschluss=beschluss)
+    ).values("pk")
+    list(Dokument.objects.select_for_update().filter(pk__in=betroffen).order_by("pk"))
+    list(Eintrag.objects.select_for_update().filter(versionen__beschluss=beschluss).order_by("pk"))
 
     if nutzer is not None and not rechte.darf_beschluss_zuruecknehmen(nutzer, beschluss):
         raise PermissionDenied("Für diesen Beschluss fehlt die Freigabeberechtigung.")

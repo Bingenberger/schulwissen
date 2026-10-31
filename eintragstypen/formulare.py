@@ -103,6 +103,8 @@ def _formularfeld(feld):
 class EintragFormular(forms.Form):
     """Maske eines Eintrags – Felder und Blöcke kommen aus der Registry."""
 
+    ausgangsstand = forms.CharField(required=False, widget=forms.HiddenInput)
+
     titel = forms.CharField(
         label="Titel",
         max_length=300,

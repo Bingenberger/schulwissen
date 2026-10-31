@@ -104,7 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (!fehlend.length) { const li = document.createElement('li'); li.textContent = 'Alle Pflichtfelder sind ausgefüllt.'; liste.append(li); }
       const status = formular.querySelector('[name="status"]');
-      formular.querySelector('[data-speichern]').textContent = status?.value === 'entwurf' ? 'Als Entwurf speichern' : 'Speichern';
+      const speichern = formular.querySelector('[data-speichern]');
+      if (!speichern.hasAttribute('data-konflikt')) speichern.textContent = status?.value === 'entwurf' ? 'Als Entwurf speichern' : 'Speichern';
     }
     function geaendert() { formular.querySelector('[data-speicherhinweis]').textContent = 'Ungespeicherte Änderungen'; requestAnimationFrame(auffrischen); }
     formular.addEventListener('input', geaendert); formular.addEventListener('change', geaendert);

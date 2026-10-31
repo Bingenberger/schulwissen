@@ -53,3 +53,5 @@ html { font-size:var(--grundgroesse); }
 }
 /* Der Inhaltsbereich darf die Kopfzeile bei langen Verwaltungslisten nicht stauchen. */
 #header { flex-shrink:0; }
+.schreibkonflikt-json { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; }
+.errorlist details summary { min-height:var(--klickflaeche); cursor:pointer; }

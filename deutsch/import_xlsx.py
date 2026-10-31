@@ -332,6 +332,9 @@ def uebernehmen(
     pfad: Path, dokument, mit_beispielen: bool = False, nutzer=None, blaetter=BLAETTER
 ) -> Mappenbericht:
     """Prüft und schreibt. Bei einem Fehler wird nichts übernommen."""
+    from kern.models import Dokument
+
+    Dokument.objects.select_for_update().get(pk=dokument.pk)
     bericht = pruefen_mappe(pfad, dokument, mit_beispielen=mit_beispielen, blaetter=blaetter)
     if not bericht.ok:
         transaction.set_rollback(True)

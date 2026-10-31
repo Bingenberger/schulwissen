@@ -148,7 +148,10 @@ def test_json_oberflaeche_zeigt_vorschau_vor_import(client, admin_nutzer, dokume
     assert antwort.status_code == 200
     assert b"Gepr" in antwort.content
     assert not dokument.eintraege.filter(kennung="NEU").exists()
-    antwort = client.post(url, {"inhalt": json.dumps(inhalt), "aktion": "uebernehmen"})
+    stand = antwort.context["formular"]["ausgangsstand"].value()
+    antwort = client.post(
+        url, {"inhalt": json.dumps(inhalt), "aktion": "uebernehmen", "ausgangsstand": stand}
+    )
     assert antwort.status_code == 302
     assert dokument.eintraege.filter(kennung="NEU").exists()
 

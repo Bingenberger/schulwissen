@@ -6,6 +6,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -120,6 +121,7 @@ def beschlussvorlage(request, schluessel: str = ""):
 
 
 @login_required
+@transaction.atomic
 def beschluss_anlegen(request):
     """Beschluss eintragen und Fassungen freischalten (SPEC.md §8.4)."""
     if not rechte.darf_beschliessen(request.user):

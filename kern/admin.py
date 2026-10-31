@@ -7,6 +7,7 @@ from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
+from django.db import transaction
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -191,6 +192,20 @@ class EintragAdmin(InterneInhalteAdmin):
     autocomplete_fields = ["eltern"]
     ordering = ["dokument", "position", "kennung"]
 
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if request.method != "POST" or not rechte.ist_administration(request.user):
+            return super().changeform_view(request, object_id, form_url, extra_context)
+        # Die Formularprüfung muss dieselbe Sperre wie der Schreibdienst halten.
+        dokument_id = (
+            Eintrag.objects.filter(pk=object_id).values_list("dokument_id", flat=True).first()
+            if object_id and object_id.isdecimal()
+            else request.POST.get("dokument")
+        )
+        with transaction.atomic():
+            if dokument_id and str(dokument_id).isdecimal():
+                Dokument.objects.select_for_update().filter(pk=dokument_id).first()
+            return super().changeform_view(request, object_id, form_url, extra_context)
+
     def get_readonly_fields(self, request, obj=None):
         return [*self.readonly_fields, *(["kennung", "dokument", "eintragstyp"] if obj else [])]
 
@@ -220,6 +235,7 @@ class EintragAdmin(InterneInhalteAdmin):
             obj.dokument,
             form.befundsatz,
             nutzer=request.user,
+            erwarteter_stand=form.erwarteter_stand,
             metadaten={
                 name: getattr(obj, name)
                 for name in (

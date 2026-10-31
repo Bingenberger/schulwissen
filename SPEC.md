@@ -99,6 +99,7 @@ Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 - Jede Speicherung eines Eintrags erzeugt eine Version (`eintrag`, `versionsnummer`, `daten`-Snapshot, `titel`, `status`, `autor`, `zeitpunkt`).
 - **Beschlossene Versionen sind unveränderlich.** Wer einen beschlossenen Eintrag bearbeitet, erzeugt einen neuen Entwurf; die beschlossene Fassung bleibt bis zum nächsten Beschluss gültig und sichtbar.
 - Lesende sehen standardmäßig die zuletzt beschlossene Fassung; Bearbeitende sehen zusätzlich den Entwurf mit Unterschieden (Diff-Ansicht).
+- Seit AP03 prüfen Eingabemaske und Verwaltung einen signierten Ausgangsstand unter derselben Datenbanksperre wie die Speicherung. Konflikte erhalten die eigene Eingabe und erfordern einen Vergleich mit ausdrücklich bestätigter Auflösung. JSON-Vorschau und Übernahme sind an Importinhalt und Dokumentstand gebunden; Details: [AP03_SCHREIBSCHUTZ.md](docs/AP03_SCHREIBSCHUTZ.md).
 
 ### Beschluss
 - `datum`, `gremium` (Lehrerkonferenz, Fachkonferenz Deutsch, Schulkonferenz, Steuergruppe …), `titel`, `text`
