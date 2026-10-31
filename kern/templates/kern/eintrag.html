@@ -1,6 +1,8 @@
 {% extends "grundlage.html" %}
 {% block titel %}{{ eintrag.kennung }} {{ angezeigter_titel }}{% endblock %}
 
+{% block kopf_zusatz %}{% if prozess %}{% load static %}<link rel="stylesheet" href="{% static 'prozessgrafik.css' %}"><link rel="stylesheet" href="{% static 'prozesslesen.css' %}"><script src="{% static 'prozessgrafik.js' %}" defer></script><script src="{% static 'prozesslesen.js' %}" defer></script>{% endif %}{% endblock %}
+
 {% block inhalt %}
 <div class="geruest mit-nebenspalte leseansicht">
   {% include "kern/_navigation.html" %}
@@ -52,15 +54,16 @@
           {% if 'auspraegung_jg' in zeile.feld.schluessel %}</details>{% else %}</div>{% endif %}
         {% endfor %}
       </section>
-    {% empty %}
+    {% empty %}{% if not prozess %}
       <div class="karte">
         <p>Dieser Eintrag ist noch leer.</p>
         {% if darf_bearbeiten %}
           <a class="knopf knopf-wichtig"
              href="{% url 'kern:eintrag_bearbeiten' dokument.schluessel eintrag.kennung %}">Jetzt ausfüllen</a>
         {% endif %}
-      </div>
+      </div>{% endif %}
     {% endfor %}
+    {% if prozess %}{% include "kern/prozess/_leser.html" %}{% endif %}
 
     {% if anhaenge %}
       <section class="block">

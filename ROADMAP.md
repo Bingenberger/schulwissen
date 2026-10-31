@@ -2,7 +2,7 @@
 
 Stand: 31.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende Anwendung einschließlich Protokollfreigabe und begrenzter Übersichten. Den tatsächlichen Umsetzungsstand zeigen die Paketstatus und das Übergabeprotokoll.
 
-**Nächstes Arbeitspaket: AP07.**
+**Nächstes Arbeitspaket: AP08.**
 
 Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
 
@@ -144,7 +144,7 @@ flowchart LR
 
 ### AP07 — Ablaufgrafik und geführtes „Was passiert, wenn …?“
 
-**Status:** geplant. **Abhängigkeiten:** AP06.
+**Status:** fertig (31.10.2026). **Abhängigkeiten:** AP06.
 
 - Eine lesbare, automatisch angeordnete Ablaufgrafik aus denselben Prozessdaten rendern; Auswahl eines Schritts öffnet Erklärung, aktuelle zuständige Funktion/Person und passende Ressourcen.
 - Zusätzlich eine geführte Ansicht anbieten: Frage beantworten, nächsten passenden Schritt sehen, zurückgehen oder neu beginnen.
@@ -153,6 +153,8 @@ flowchart LR
 - Aktuelle Ansprechpartner und archivierte Prozessfassungen verständlich auseinanderhalten.
 
 **Abnahme:** Eine Lehrkraft kann jeden gültigen Zweig durchlaufen, zurückgehen und die zugehörige aktuelle Besetzung erkennen. Derselbe Ablauf wird grafisch und als Text ohne inhaltliche Widersprüche ausgegeben. Rücksprünge verursachen keine endlose Darstellung. Farben sind nicht die einzigen Informationsträger.
+
+**Ergebnis:** Gemeinsame SVG-Grafik, geführte Schrittansicht und Textalternative mit aktuellen Kontakten, rechtegebundenen Materialien und vollständigem Druck/PDF. Antworten bleiben flüchtig im Browser. Anleitung und Abnahmen: [AP07_PROZESSLESEN.md](docs/AP07_PROZESSLESEN.md).
 
 ### AP08 — Prozessveröffentlichung und erster schulischer Pilot
 
@@ -260,19 +262,19 @@ flowchart LR
 
 - [x] Eine Schulfunktionsrolle ist im Backend mit einem aktiven vorhandenen Nutzer besetzbar.
 - [x] Hauptzuständigkeit, Vertretung, Team/Geltungsbereich und unbesetzte Funktionen werden eindeutig angezeigt.
-- [ ] Eine Personenumbesetzung aktualisiert aktuelle Kontakte in allen betreffenden Abläufen.
-- [ ] Dadurch entstehen keine neuen technischen Berechtigungen und keine veränderten Prozessfassungen.
+- [x] Eine Personenumbesetzung aktualisiert aktuelle Kontakte in allen betreffenden Abläufen.
+- [x] Dadurch entstehen keine neuen technischen Berechtigungen und keine veränderten Prozessfassungen.
 - [x] Berechtigte Autoren können ohne Diagrammcode einen Ablauf mit mindestens einer Verzweigung erstellen.
 - [ ] Lehrkräfte erreichen veröffentlichte Abläufe über Suche und einen klaren Einstieg.
-- [ ] Grafik, geführte Ansicht, Textalternative und Druck stimmen überein.
+- [x] Grafik, geführte Ansicht, Textalternative und Druck stimmen überein.
 - [x] Fragen, Verbindungen, Ausgänge und Rücksprünge werden serverseitig geprüft.
 - [ ] Versionskonflikte, Entwurfsrechte und Freigaben bleiben durchgängig geschützt.
-- [ ] Es werden keine personenbezogenen Fallverläufe und keine Antwortprotokolle angelegt.
+- [x] Es werden keine personenbezogenen Fallverläufe und keine Antwortprotokolle angelegt.
 - [ ] Ein repräsentativer Ablauf wird mit einer Lehrkraft am iPad erprobt; die fachliche Richtigkeit bestätigt die zuständige Funktion.
 
 ## 6. Übergabeprotokoll für die nächste Sitzung
 
-Umsetzungsstand: **AP01–AP06 sind fertig**, M1 ist abgeschlossen; Funktionsmodell, Prozessdatenbasis und Autoreneditor von M2 sind vorhanden. Alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP07**, anschließend die Abhängigkeiten beachten.
+Umsetzungsstand: **AP01–AP07 sind fertig**, M1 ist abgeschlossen; Funktionsmodell, Prozessdatenbasis, Autoreneditor und Leseansichten von M2 sind vorhanden. Veröffentlichung und Pilot bleiben AP08. Alle weiteren Pakete sind **geplant**. Die Produktanalyse bleibt der Nachweis des Ausgangsbefunds. Nächster Einstieg ist **AP08**, anschließend die Abhängigkeiten beachten.
 
 Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 
@@ -284,4 +286,5 @@ Nach jeder Arbeitssitzung hier einen Eintrag ergänzen:
 | 31.10.2026 / AP03 | Gemeinsame atomare Standprüfung, signierte Formulare, Vergleich und explizite Auflösung; Verwaltung, Importvorschau und parallele Neuanlage geschützt; Commit `58bbe7d` | Gesamtlauf 441 bestanden; nach zwei ergänzten Löschfällen 59 betroffene Tests bestanden, davon 22 Schreibschutztests mit zwei echten Paralleltests (überlappend). Ruff, Django und Migrationsabgleich grün; Browser in vier Breiten, Tastatur und axe Hell/Dunkel; Bestandsfingerabdrücke unverändert. Keine Migration nötig. | AP04: Schulfunktionsrollen und Besetzung aus dem bestehenden Nutzerstamm. M1 ist abgeschlossen. |
 | 31.10.2026 / AP04 | Schulfunktionen und getrennte Funktionsbereiche, Besetzung aus dem Nutzerstamm, bewusste Vertretung/Team, atomarer Personalwechsel mit Revisionsschutz und Historie; aktuelles Verzeichnis mit zwölf Funktionen je Seite und Resolver; Commit `91b7512` | Gesamtlauf 486 bestanden, darin 43 AP04-Fälle einschließlich echtem Paralleltest; isolierte Testdatenbank und schneller Passwort-Hasher ausschließlich zur Testlaufzeit. Ruff, Django und Migrationsabgleich grün. Browser bei 390/768/1024/1440, Verzeichnis und Demo mit axe Hell/Dunkel, Tastatur, aktive Nutzersuche und Personalwechsel-Dialog; Lehrkraft-/OGS-Einstieg und anonyme Sperre geprüft. Migration 0010 lokal angewandt, keine produktiven Funktionen/Besetzungen angelegt. | AP05: Eintragstyp Prozess, versionierbares Graphschema, stabile Funktions-/Bereichsreferenzen und sichere Graphprüfung. Dynamische Kontaktauflösung vorhanden; Integration in tatsächliche Abläufe folgt AP05–AP08. |
 | 31.10.2026 / AP05 | Prozess-/Schulhandbuchtypen, Schema v1, Graphprüfung, rechtegebundene Ressourcen, gemeinsame Referenzhistorie, Versions-/Freigabeschutz und Archivschutz verwendeter Funktionen; Commit `239cae5` | Gesamtlauf: 537 bestanden, eine bestehende erwartete Typenliste enthielt den neuen Prozess noch nicht. Liste korrigiert; nach ergänzter Anlass- und Sammelfreigabeprüfung 89 betroffene Tests erfolgreich, darin 54 AP05-Fälle mit zwei echten Paralleltests. Isolierte Testdatenbanken, schneller Hasher nur zur Testlaufzeit. Ruff, Django und Migrationsabgleich grün. Browser in vier Breiten, Tastatur und axe Hell/Dunkel für ungespeicherte Lese-, Metadaten- und Vergleichsdemonstrationen. Migration 0011 lokal angewandt; keine produktiven Prozesse oder Funktionen angelegt. | AP06: Ablauf-Schrittbearbeitung für Kolleginnen statt der bisherigen lesbaren Formularkomponente; stabile IDs und gemeinsamer Schreibschutz. Aktuelle Personen/erlaubte Ressourcen erst in der Leseansicht nach Rechten auflösen; Grafik und geführte Ansicht AP07. |
-| 31.10.2026 / AP06 | Autoreneditor ohne Diagrammcode, native SVG-Vorschau mit Textalternative, Zuständigkeiten/Kontakte, Materialauswahl, Entfernen/Wiederherstellen und strukturierte Prüfsprünge; gemeinsamer Schreibschutz erhalten; Umsetzung in diesem Commit | Gesamtlauf 559 erfolgreich. Nach Ergänzung vollständiger Bestandsverweis-Beschriftung und Korrektur verwaister Verbindungen abschließend 97 betroffene Tests erfolgreich, davon 21 AP06-Fälle. Ruff, Django und Migrationsabgleich grün; keine Migration. Vollständiger Browserworkflow in isolierter Datenbank: Erstellen, Ja/Nein plus weitere Antwort, Funktion, Material, Rücksprung, Entfernen/Wiederherstellen, Speichern/Neuladen, Prüfsprung und Altentwurfreparatur; zwei Tabs mit 409 und bewusster Auflösung, Touch im Browser, Tastatur, vier Breiten, axe Hell/Dunkel. Schulbestand ohne erfundene Prozesse/Besetzungen. | AP07: Graph und geführte Schrittansicht für Lesende, aktuelle Ansprechpersonen und erlaubte Ressourcen aus der richtigen Lesefassung; Druck/Textalternative. Die Editorvorschau und die normalisierte Struktur wiederverwenden, keine Antworten oder Fallverläufe speichern. |
+| 31.10.2026 / AP06 | Autoreneditor ohne Diagrammcode, native SVG-Vorschau mit Textalternative, Zuständigkeiten/Kontakte, Materialauswahl, Entfernen/Wiederherstellen und strukturierte Prüfsprünge; gemeinsamer Schreibschutz erhalten; Commit `a15fa4f` | Gesamtlauf 559 erfolgreich. Nach Ergänzung vollständiger Bestandsverweis-Beschriftung und Korrektur verwaister Verbindungen abschließend 97 betroffene Tests erfolgreich, davon 21 AP06-Fälle. Ruff, Django und Migrationsabgleich grün; keine Migration. Vollständiger Browserworkflow in isolierter Datenbank: Erstellen, Ja/Nein plus weitere Antwort, Funktion, Material, Rücksprung, Entfernen/Wiederherstellen, Speichern/Neuladen, Prüfsprung und Altentwurfreparatur; zwei Tabs mit 409 und bewusster Auflösung, Touch im Browser, Tastatur, vier Breiten, axe Hell/Dunkel. Schulbestand ohne erfundene Prozesse/Besetzungen. | AP07: Graph und geführte Schrittansicht für Lesende, aktuelle Ansprechpersonen und erlaubte Ressourcen aus der richtigen Lesefassung; Druck/Textalternative. Die Editorvorschau und die normalisierte Struktur wiederverwenden, keine Antworten oder Fallverläufe speichern. |
+| 31.10.2026 / AP07 | Ablaufgrafik, geführte Auswahl mit Zurück/Neustart, Text ohne JavaScript und vollständiger Druck/PDF; aktuelle Kontakte, sichere Materialien und gemeinsame SVG mit dem Editor; Umsetzung in diesem Commit | Gesamtlauf 583 erfolgreich; 97 betroffene Tests, davon 22 AP07-Fälle. Ruff, Django und Migrationsabgleich grün; keine Migration. Browser in vier Breiten, drei Ansichten, Tastatur, Touch bei 768 Pixeln, axe Hell/Dunkel; beide Zweige/Rücksprung, keine Auswahl in URL/Speicher/Netzwerk, historische Fassung mit aktuellem Kontakt, PDF/Browserdruck und Ohne-JS-Fallback. Editor-SVG-Regression geprüft. Browserdaten ausschließlich in isolierter Testdatenbank. | AP08: Veröffentlichung, Auffindbarkeit und fachlicher schulischer Pilot einschließlich iPad; kein Pilot durch synthetische Browserprüfung ersetzt. Externe Dateiversionsbindung AP09, Nextcloud-Betriebsabnahme B01. |

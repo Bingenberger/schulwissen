@@ -419,7 +419,8 @@ def test_suche_und_lesestand_zeigen_nur_erlaubte_fassung(
     antwort = client.get(reverse("kern:eintrag", args=[handbuch.schluessel, e.kennung]))
     assert "Silbenbogenfreigabe" in antwort.content.decode()
     assert "Xylophongeheimnis" not in antwort.content.decode()
-    assert "schema_version" not in antwort.content.decode()
+    assert 'id="prozess-lesedaten"' in antwort.content.decode()
+    assert "data-prozess-leser" in antwort.content.decode()
     assert suche.suchen(admin_nutzer, "Xylophongeheimnis", gruppe="eintraege").gesamt == 1
 
 

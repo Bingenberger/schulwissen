@@ -283,6 +283,13 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
 
     version = sichtbare_beschlussmetadaten(request.user, version)
     verweise = views.verweise_aus_schnappschuss(version, request.user)
+    bloecke = list(views.bloecke_zum_lesen(eintrag.typ, version.daten, verweise))
+    prozess = None
+    if eintrag.eintragstyp == "prozess":
+        from kern import prozesslesen
+
+        prozess = prozesslesen.aufbereiten(eintrag, version.daten, request.user, version)
+        bloecke = prozesslesen.ohne_ablauf(bloecke)
 
     return render(
         request,
@@ -292,6 +299,7 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
             "eintrag": eintrag,
             "version": version,
             "typ": eintrag.typ,
-            "bloecke": list(views.bloecke_zum_lesen(eintrag.typ, version.daten, verweise)),
+            "bloecke": bloecke,
+            "prozess": prozess,
         },
     )

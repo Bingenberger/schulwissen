@@ -1,0 +1,28 @@
+<section class="block prozess-leser" data-prozess-leser>
+<h2>Ablauf nachschlagen</h2>
+{% if prozess.fehler %}<p class="meldung meldung-warning">{{ prozess.fehler }}</p>{% else %}
+<p>{{ prozess.fassung_text }}. <strong>Kontakte sind aktuell</strong>, Stand {{ prozess.kontaktstand|date:'d.m.Y, H:i' }}.</p>
+{% if prozess.historisch %}<p class="meldung meldung-info">Die Schritte stammen aus dieser älteren Prozessfassung. Die genannten Personen sind heute ansprechbar und zeigen keine damalige Besetzung.</p>{% endif %}
+{% if prozess.unvollstaendig %}<p class="meldung meldung-warning">Dieser Ablauf ist noch unvollständig. Bitte beachte den angezeigten Stand und frage bei offenen Schritten die Redaktion.</p>{% endif %}
+{{ prozess.graph|json_script:'prozess-lesedaten' }}
+<div class="knopf-reihe prozess-modus" data-lese-werkzeuge hidden>
+<button type="button" class="knopf" data-modus="gefuehrt">Schritt für Schritt</button><button type="button" class="knopf" data-modus="grafik">Gesamtgrafik</button><button type="button" class="knopf" data-modus="text">Alle Schritte als Text</button>
+<button type="button" class="knopf knopf-leise" data-prozess-drucken>Drucken</button></div>
+<p class="prozess-pdf-link"><a class="knopf knopf-leise" href="{{ prozess.pdf_url }}">Alle Schritte als PDF</a></p>
+<div data-gefuehrt hidden>
+<p class="klein leise">Deine Auswahl bleibt nur im Arbeitsspeicher dieses Tabs. Neu beginnen oder Neuladen verwirft sie.</p>
+<h3 id="prozess-gefuehrt-titel" data-gefuehrt-titel tabindex="-1"></h3>
+<div data-gefuehrt-inhalt></div><div class="knopf-reihe prozess-antworten" data-antworten></div>
+<p data-verlaufstatus role="status" aria-live="polite"></p>
+<div class="knopf-reihe"><button type="button" class="knopf knopf-leise" data-zurueck>Zurück</button><button type="button" class="knopf knopf-leise" data-neustart>Neu beginnen</button></div>
+</div>
+<div data-lesegrafik hidden>
+<div class="knopf-reihe prozess-zoom"><button type="button" class="knopf knopf-leise" data-zoom="1.2" aria-label="Grafik vergrößern">Vergrößern</button><button type="button" class="knopf knopf-leise" data-zoom="0.833333" aria-label="Grafik verkleinern">Verkleinern</button><button type="button" class="knopf knopf-leise" data-einpassen>Einpassen</button></div>
+<p class="klein leise">Wähle einen Schritt für Erklärung und aktuelle Kontakte. Die Grafik lässt sich bei Bedarf verschieben.</p>
+<div class="prozess-vorschau-scroll" data-lesegrafik-rahmen role="region" aria-label="Ablaufgrafik, bei Bedarf verschiebbar" tabindex="0"></div>
+<section data-grafik-auswahl hidden><h3 id="prozess-auswahl-titel" tabindex="-1" data-auswahl-titel></h3><div data-auswahl-inhalt></div></section>
+</div>
+<div data-lesetext><h3>Alle Schritte als Text</h3>{% include "kern/prozess/_schritte.html" %}</div>
+<noscript><p>Ohne JavaScript kannst du alle Schritte, Kontakte und Verbindungen im Text nachschlagen.</p></noscript>
+{% endif %}
+</section>

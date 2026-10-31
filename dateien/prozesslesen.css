@@ -1,0 +1,24 @@
+.prozess-leser [hidden] { display:none!important; }
+.prozess-leser { min-width:0; }
+.prozess-leser h3 { font-size:var(--schrift-abschnitt); }
+.prozess-leser h4 { font-size:var(--schrift-normal); margin-top:0; }
+.prozess-leser a,.prozess-leser button { overflow-wrap:anywhere; }
+.prozess-leser [aria-pressed=true] { background:var(--akzent-leise); color:var(--akzent); border-color:var(--akzent); box-shadow:inset 0 -3px var(--akzent); }
+.prozess-leser [tabindex="-1"]:focus { outline:3px solid var(--fokus); outline-offset:4px; }
+.prozess-leser [data-gefuehrt],.prozess-leser [data-grafik-auswahl] { margin-top:var(--abstand-5); }
+.prozess-kontakt { border-left:3px solid var(--akzent); padding-left:var(--abstand-4); margin:var(--abstand-5) 0; }
+.prozess-textliste { list-style:none; padding:0; }
+.prozess-textliste>li { border-top:1px solid var(--linie); padding-top:var(--abstand-5); margin-top:var(--abstand-5); }
+.prozess-leseschritt p { white-space:normal; }
+.prozess-materialien a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); flex-wrap:wrap; gap:var(--abstand-1); }
+.prozess-antworten { margin:var(--abstand-5) 0; }
+.prozess-antworten .knopf { text-align:left; max-width:100%; }
+.prozess-zoom { margin:var(--abstand-4) 0; }
+@media(max-width:600px) { .prozess-modus .knopf { flex:1 1 100%; } .prozess-antworten .knopf { width:100%; } }
+@media print {
+ .prozess-leser [data-lese-werkzeuge],.prozess-leser [data-gefuehrt],.prozess-leser [data-lesegrafik],.prozess-pdf-link,.prozess-leser noscript { display:none!important; }
+ .prozess-leser [data-lesetext] { display:block!important; }
+ .leseansicht .prozess-leser,.prozess-leser.block { break-inside:auto; }
+ .prozess-textliste>li { break-inside:avoid; }
+ .prozess-materialien a { display:inline; min-height:0; }
+}

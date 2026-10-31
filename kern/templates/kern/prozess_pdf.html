@@ -1,0 +1,14 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>{{ titel }}</title>
+<style>
+@page { size:A4; margin:18mm; @bottom-right { content:counter(page); font-size:9pt; } }
+body { font-family:"DejaVu Sans",sans-serif; font-size:10pt; line-height:1.5; color:#111; }
+h1 { font-size:21pt; } h2 { font-size:16pt; } h3,h4 { font-size:12pt; break-after:avoid; }
+.prozess-textliste { list-style:none; padding:0; } .prozess-leseschritt { margin:18pt 0; }
+p,li,a { overflow-wrap:anywhere; } a { color:#111; } .klein { font-size:9pt; }
+.prozess-kontakt { border-left:2pt solid #477426; padding-left:9pt; }
+</style></head><body><p>{{ kennung }} · Schulwissen</p><h1>{{ titel }}</h1>
+{% if prozess.fehler %}<p>{{ prozess.fehler }}</p>{% else %}
+<p>{{ prozess.fassung_text }}. Aktuelle Kontakte: {{ prozess.kontaktstand|date:'d.m.Y, H:i' }}.</p>
+{% if prozess.historisch %}<p>Historische Prozessschritte; die Ansprechpersonen sind aktuell, keine damalige Besetzung.</p>{% endif %}
+{% if prozess.unvollstaendig %}<p>Dieser Ablauf ist noch unvollständig und keine vollständige Handlungsanleitung.</p>{% endif %}
+{% include "kern/prozess/_schritte.html" %}{% endif %}</body></html>

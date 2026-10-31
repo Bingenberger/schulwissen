@@ -347,6 +347,13 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             )
         )
 
+    prozess = None
+    if eintrag.eintragstyp == "prozess":
+        from kern import prozesslesen
+
+        prozess = prozesslesen.aufbereiten(eintrag, stand.daten, request.user, stand.version)
+        bloecke = prozesslesen.ohne_ablauf(bloecke)
+
     # Steht der Arbeitsstand neben einer beschlossenen Fassung, soll das
     # sichtbar sein – sonst hält man den Entwurf für geltendes Recht.
     entwurf_weicht_ab = bool(
@@ -368,6 +375,7 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "anhaenge": sichtbare_anhaenge(request.user, eintrag.anhaenge.all()),
             "typ": eintrag.typ,
             "bloecke": bloecke,
+            "prozess": prozess,
             "angezeigter_titel": stand.titel,
             "angezeigter_status": stand.status,
             "angezeigter_status_text": stand.get_status_display(),

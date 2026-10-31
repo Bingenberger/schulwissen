@@ -4,7 +4,7 @@
 {% block kopf_zusatz %}
   {% load static %}
   <script src="{% static 'vendor/editor.js' %}" defer></script>
-  {% if typ.schluessel == 'prozess' %}<link rel="stylesheet" href="{% static 'prozesseditor.css' %}"><script src="{% static 'prozesseditor.js' %}" defer></script>{% endif %}
+  {% if typ.schluessel == 'prozess' %}<link rel="stylesheet" href="{% static 'prozessgrafik.css' %}"><link rel="stylesheet" href="{% static 'prozesseditor.css' %}"><script src="{% static 'prozessgrafik.js' %}" defer></script><script src="{% static 'prozesseditor.js' %}" defer></script>{% endif %}
 {% endblock %}
 
 {% block inhalt %}

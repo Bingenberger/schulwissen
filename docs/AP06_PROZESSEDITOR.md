@@ -1,6 +1,6 @@
 # AP06: Prozesse ohne Diagrammcode bearbeiten
 
-Stand: 31.10.2026. AP06 ergänzt den bedienbaren Autoreneditor zur [Prozessdatenbasis](AP05_PROZESSDATEN.md). Er nutzt die bestehende Registry, Formulare, Eintragsversionen und den gemeinsamen Schreibschutz. Die lesbare Ablaufgrafik und geführte Ansicht für das Kollegium folgen in AP07; der fachliche Pilot bleibt AP08.
+Stand: 31.10.2026. AP06 ergänzt den bedienbaren Autoreneditor zur [Prozessdatenbasis](AP05_PROZESSDATEN.md). Er nutzt die bestehende Registry, Formulare, Eintragsversionen und den gemeinsamen Schreibschutz. Die lesbare Ablaufgrafik und geführte Ansicht für das Kollegium sind seit [AP07](AP07_PROZESSLESEN.md) vorhanden; der fachliche Pilot bleibt AP08.
 
 ## Einen Ablauf erstellen
 
@@ -44,7 +44,7 @@ Bei einem Schreibkonflikt kommt **HTTP 409** mit Vergleich und eigenem Graphen z
 - `dateien/prozesseditor.js` verwaltet die ungespeicherte Eingabe, Auswahllisten und SVG-Vorschau. Es gibt keine zusätzliche Speicherung, keinen externen Diagrammdienst und keine neue Frontend-Plattform.
 - Die native SVG-Vorschau ordnet Vorwärtskanten über eine topologische Rangfolge an. Markierte Rücksprünge werden seitlich geführt; nicht vollständig prüfbare Kreise bleiben begrenzt zeichnbar. IDs, Fragen und Verbindungen stammen aus derselben Struktur wie der Editor.
 
-Für diese begrenzte Autorenansicht genügt native SVG. Eine zusätzliche Layoutbibliothek würde hier Paket- und Betriebsaufwand erzeugen, ohne für die geprüfte Verzweigung und den Rücksprung erforderlich zu sein. Die Entscheidung wurde mit beiden Fällen im Browser geprüft. Für die Leseansicht aus AP07 können Layout und Interaktion weiterentwickelt werden; das Datenschema bleibt dabei unverändert.
+Für diese begrenzte Autorenansicht genügt native SVG. Eine zusätzliche Layoutbibliothek würde hier Paket- und Betriebsaufwand erzeugen, ohne für die geprüfte Verzweigung und den Rücksprung erforderlich zu sein. Die Entscheidung wurde mit beiden Fällen im Browser geprüft. Seit AP07 nutzen Editor und Leseansicht dieselbe native SVG-Erzeugung; das Datenschema bleibt unverändert.
 
 Keine Migration erforderlich. Bestehende Dokumente und Graphen werden nicht automatisch umgeschrieben. Die gegenwärtige Leseansicht außerhalb des Editors bleibt vorerst die Textdarstellung aus AP05.
 

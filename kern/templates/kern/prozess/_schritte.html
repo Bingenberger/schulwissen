@@ -1,0 +1,8 @@
+<ol class="prozess-textliste">
+{% for schritt in prozess.knoten %}<li><section data-leseschritt="{{ schritt.id }}" class="prozess-leseschritt">
+<h4>Schritt {{ schritt.nummer }} · {{ schritt.art_text }}: {{ schritt.titel|default:'Titel noch offen' }}</h4>
+{% if schritt.text %}<p>{{ schritt.text|linebreaksbr }}</p>{% endif %}
+{% include "kern/prozess/_kontakt_material.html" %}
+{% if schritt.folgen %}<p><strong>Danach weiter</strong></p><ul>{% for v in schritt.folgen %}<li>{% if v.ruecksprung %}Rücksprung · {% endif %}{{ v.beschriftung|default:'Weiter' }} → {% if v.ziel_nummer %}Schritt {{ v.ziel_nummer }}: {% endif %}{{ v.ziel_titel }}</li>{% endfor %}</ul>{% elif schritt.art == 'ende' %}<p>Hier endet der Ablauf.</p>{% else %}<p>Ein Folgeschritt ist noch offen.</p>{% endif %}
+</section></li>{% empty %}<li>Noch keine Schritte hinterlegt.</li>{% endfor %}
+</ol>

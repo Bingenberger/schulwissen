@@ -1,0 +1,6 @@
+{% if schritt.kontakt %}<div class="prozess-kontakt"><p><strong>Aktuell zuständig: {{ schritt.kontakt.name }}</strong>{% if schritt.kontakt.bereich %} · {{ schritt.kontakt.bereich }}{% endif %}</p>
+<p>{{ schritt.kontakt.status }}</p>{% if schritt.kontakt.personen %}<ul>{% for name in schritt.kontakt.personen %}<li>{{ name }}</li>{% endfor %}</ul>{% endif %}
+{% if schritt.kontakt.hinweis %}<p>{{ schritt.kontakt.hinweis }}</p>{% endif %}
+{% if schritt.kontakt.email %}<p><a href="mailto:{{ schritt.kontakt.email }}">{{ schritt.kontakt.email }}</a></p>{% endif %}
+{% if schritt.kontakt.telefon %}<p>{{ schritt.kontakt.telefon }}</p>{% endif %}{% if schritt.kontakt.anlaufstelle %}<p>{{ schritt.kontakt.anlaufstelle }}</p>{% endif %}</div>{% endif %}
+{% if schritt.materialien %}<div class="prozess-materialien"><p><strong>Wissen und Materialien</strong></p><ul>{% for m in schritt.materialien %}<li>{% if m.url %}<a href="{{ m.url }}" target="_blank" rel="noopener noreferrer">{{ m.label }} <span class="klein">(neuer Tab)</span></a>{% if m.art %}<span class="leise klein"> · {{ m.art }}</span>{% endif %}{% else %}<span class="leise">{{ m.label }}</span>{% endif %}</li>{% endfor %}</ul></div>{% endif %}

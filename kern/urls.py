@@ -14,6 +14,7 @@ from kern import (
     oidc,
     planung,
     prozesseditor,
+    prozesslesen,
     uebersichten,
     views,
 )
@@ -21,6 +22,7 @@ from kern import (
 app_name = "kern"
 
 urlpatterns = [
+    path("d/<slug:schluessel>/<str:kennung>/prozess.pdf", prozesslesen.pdf, name="prozess_pdf"),
     path("d/<slug:schluessel>/prozess-pruefen", prozesseditor.pruefen, name="prozess_pruefen"),
     path("d/<slug:schluessel>/prozess-ziele", prozesseditor.ziele, name="prozess_ziele"),
     path("funktionen", funktionen.verzeichnis, name="funktionen"),

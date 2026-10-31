@@ -1,0 +1,12 @@
+.prozess-vorschau-scroll { max-width:100%; max-height:min(900px,85vh); overflow:auto; border:1px solid var(--linie-stark); border-radius:var(--radius); background:var(--flaeche); }
+.prozess-vorschau-scroll svg { display:block; max-width:none; font-family:var(--schrift); }
+.prozess-kante { fill:none; stroke:var(--text-leise); stroke-width:2; }
+.prozess-pfeil { fill:var(--text-leise); }
+.ist-ruecksprung { stroke-dasharray:7 4; }
+.prozess-kantenlabel { fill:var(--text); font-size:14px; paint-order:stroke; stroke:var(--flaeche); stroke-width:5; stroke-linejoin:round; }
+.prozess-knoten rect,.prozess-knoten polygon { fill:var(--papier); stroke:var(--linie-stark); stroke-width:2; }
+.prozess-knoten.ist-gewaehlt rect,.prozess-knoten.ist-gewaehlt polygon { fill:var(--akzent-leise); stroke:var(--akzent); stroke-width:3; }
+.prozess-knoten:focus-visible { outline:none; }
+.prozess-knoten:focus-visible rect,.prozess-knoten:focus-visible polygon { stroke:var(--fokus); stroke-width:5; }
+.prozess-svg-art { fill:var(--text-leise); font-size:13px; }
+.prozess-svg-titel { fill:var(--text); font-size:15px; }

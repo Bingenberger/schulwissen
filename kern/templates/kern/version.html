@@ -1,6 +1,8 @@
 {% extends "grundlage.html" %}
 {% block titel %}{{ eintrag.kennung }}, Fassung {{ version.versionsnummer }}{% endblock %}
 
+{% block kopf_zusatz %}{% if prozess %}{% load static %}<link rel="stylesheet" href="{% static 'prozessgrafik.css' %}"><link rel="stylesheet" href="{% static 'prozesslesen.css' %}"><script src="{% static 'prozessgrafik.js' %}" defer></script><script src="{% static 'prozesslesen.js' %}" defer></script>{% endif %}{% endblock %}
+
 {% block inhalt %}
 <div class="geruest ohne-navigation historische-fassung">
   <div>
@@ -50,9 +52,10 @@
           </div>
         {% endfor %}
       </section>
-    {% empty %}
-      <div class="karte"><p>Diese Fassung war leer.</p></div>
+    {% empty %}{% if not prozess %}
+      <div class="karte"><p>Diese Fassung war leer.</p></div>{% endif %}
     {% endfor %}
+    {% if prozess %}{% include "kern/prozess/_leser.html" %}{% endif %}
 
     <p class="knopf-reihe">
       <a class="knopf" href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Alle Fassungen</a>

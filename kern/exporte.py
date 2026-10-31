@@ -236,13 +236,17 @@ def abdeckung_des_stands(zeilen, fach="deutsch"):
 
 
 def pdf_rendern(kontext):
+    quelle = render_to_string("kern/export_pdf.html", kontext)
+    return html_pdf(quelle)
+
+
+def html_pdf(quelle):
     from weasyprint import HTML
 
     def keine_ressourcen(url, *args, **kwargs):
         # Der Export braucht keine externen Bilder, URLs oder lokalen Dateien.
         raise ValueError("Externe Ressourcen sind im PDF nicht vorgesehen.")
 
-    quelle = render_to_string("kern/export_pdf.html", kontext)
     return HTML(string=quelle, url_fetcher=keine_ressourcen).write_pdf()
 
 
