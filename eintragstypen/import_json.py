@@ -72,6 +72,7 @@ def pruefen_json(inhalt, dokument, nutzer=None):
             "titel",
             "status",
             "daten",
+            "wissensangaben",
             "eltern",
             "position",
             "verantwortlich_text",
@@ -127,6 +128,13 @@ def pruefen_json(inhalt, dokument, nutzer=None):
             fassung_stand=stand,
             quelle="JSON-Import",
         )
+        if "wissensangaben" in zeile:
+            from kern.wissenspflege import einlesen
+
+            try:
+                einlesen(zeile["wissensangaben"], nutzer)
+            except ValidationError as fehler:
+                bericht.fehler.extend(f"{kennung}: {m}" for m in fehler.messages)
         satz = pruefen(dokument, roh, entstehende_kennungen=kennungen, nutzer=nutzer)
         # Ein Import darf die Vollständigkeitsprüfung beim Abstimmen nicht umgehen.
         if (
@@ -196,7 +204,10 @@ def uebernehmen_json(inhalt, dokument, nutzer=None, erwarteter_stand=None):
         frisch = pruefen(dokument, satz.roh, nutzer=nutzer)
         if not frisch.ok:
             raise ValidationError("Der Datensatz ist während des Imports ungültig geworden.")
-        eintrag = speichern(dokument, frisch, nutzer=nutzer)
+        from kern.wissenspflege import einlesen
+
+        metadaten = einlesen(rohzeilen[satz.roh.kennung].get("wissensangaben", {}), nutzer)
+        eintrag = speichern(dokument, frisch, nutzer=nutzer, metadaten=metadaten)
         zeile = rohzeilen[eintrag.kennung]
         if "eltern" in zeile:
             eintrag.eltern = zuordnung.get(zeile["eltern"])

@@ -347,6 +347,9 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             )
         )
 
+    from kern.wissenspflege import kontext as pflegekontext
+
+    pflege = pflegekontext(request.user, stand)
     prozess = None
     if eintrag.eintragstyp == "prozess":
         from kern import prozesslesen
@@ -375,9 +378,9 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "anhaenge": sichtbare_anhaenge(request.user, eintrag.anhaenge.all()),
             "typ": eintrag.typ,
             "bloecke": bloecke,
+            "pflege": pflege,
             "prozess": prozess,
-            "darf_prozess_freigeben": eintrag.eintragstyp == "prozess"
-            and rechte.darf_beschliessen(request.user, eintrag.dokument),
+            "darf_prozess_freigeben": rechte.darf_beschliessen(request.user, eintrag.dokument),
             "angezeigter_titel": stand.titel,
             "angezeigter_status": stand.status,
             "angezeigter_status_text": stand.get_status_display(),
@@ -385,8 +388,10 @@ def eintrag_ansehen(request, schluessel: str, kennung: str):
             "entwurf_weicht_ab": entwurf_weicht_ab,
             "baum": _gliederungsbaum(eintrag.dokument, request.user),
             "beschlossene_version": beschlossen,
-            "beschluss": sichtbare_beschlussmetadaten(request.user, beschlossen).beschluss
-            if beschlossen
+            "beschluss": sichtbare_beschlussmetadaten(
+                request.user, stand.version or beschlossen
+            ).beschluss
+            if stand.version or beschlossen
             else None,
             "rueckverweise": _ruckverweise(request.user, eintrag),
             "kommentare": eintrag.kommentare.select_related("autor") if zeigt_entwurf else [],
@@ -701,6 +706,7 @@ def kommentar_anlegen(request, schluessel: str, kennung: str):
             autor=request.user,
             erstellt_von=request.user,
             text=formular.cleaned_data["text"],
+            fehlerhinweis=bool(request.POST.get("fehlerhinweis")),
             feld=formular.cleaned_data.get("feld", ""),
         )
         messages.success(request, "Kommentar gespeichert.")

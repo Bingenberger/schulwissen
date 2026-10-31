@@ -175,16 +175,20 @@ def darf_beschluss_zuruecknehmen(nutzer, beschluss):
 def darf_lesen(nutzer, eintrag) -> bool:
     if not _angemeldet(nutzer) or not darf_dokument_lesen(nutzer, eintrag.dokument):
         return False
-    if eintrag.status in OEFFENTLICHE_STATUS:
-        return True
     if not ist_nur_lesend(nutzer):
-        # Entwuerfe und abgestimmte Fassungen: alles ausser der Rolle Lesend.
         return True
-    # Wird gerade an einem beschlossenen Eintrag gearbeitet, steht sein
-    # Arbeitsstand auf "entwurf". Die beschlossene Fassung gilt aber weiter und
-    # bleibt sichtbar (SPEC.md Paragraf 6) - sonst verschwaende ein
-    # beschlossener Eintrag fuer das halbe Kollegium, sobald jemand ihn anfasst.
-    return eintrag.beschlossene_version() is not None
+    if eintrag.status == Status.ARCHIVIERT:
+        return True
+    if eintrag.beschlossene_version() is not None:
+        return True
+    # Bestehende Statusfreigaben ohne Versionsnachweis behalten ihren bisherigen
+    # Zugang. Datierte Freigaben dürfen auf diesen Altbestandsweg nicht fallen.
+    return bool(
+        eintrag.status == Status.BESCHLOSSEN
+        and not eintrag.wirksam_ab
+        and not eintrag.wirksam_bis
+        and not eintrag.versionen.filter(beschluss__isnull=False).exists()
+    )
 
 
 def zeigt_entwurf(nutzer, eintrag=None) -> bool:
@@ -202,12 +206,28 @@ def sichtbare_eintraege(nutzer, menge):
         return menge.none()
     menge = menge.filter(dokument__in=sichtbare_dokumente(nutzer))
     if ist_nur_lesend(nutzer):
-        from django.db.models import Q
+        from django.db.models import Exists, OuterRef, Q
 
-        return menge.filter(
-            Q(status__in=OEFFENTLICHE_STATUS)
-            | Q(versionen__status=Status.BESCHLOSSEN, versionen__beschluss__isnull=False)
-        ).distinct()
+        from kern.models import Eintragsversion
+        from kern.staende import gueltige_versionen
+
+        nachweis = Eintragsversion.objects.filter(
+            eintrag_id=OuterRef("pk"), beschluss__isnull=False
+        )
+        return (
+            menge.annotate(_hat_freigabenachweis=Exists(nachweis))
+            .filter(
+                Q(status=Status.ARCHIVIERT)
+                | Q(
+                    status=Status.BESCHLOSSEN,
+                    wirksam_ab__isnull=True,
+                    wirksam_bis__isnull=True,
+                    _hat_freigabenachweis=False,
+                )
+                | Q(pk__in=gueltige_versionen().values("eintrag_id"))
+            )
+            .distinct()
+        )
     return menge
 
 

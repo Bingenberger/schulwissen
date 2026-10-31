@@ -57,6 +57,7 @@
       <div class="karte"><p>Diese Fassung war leer.</p></div>{% endif %}
     {% endfor %}
     {% if prozess %}{% include "kern/prozess/_leser.html" %}{% endif %}
+    {% include "kern/_wissensangaben.html" %}
 
     <p class="knopf-reihe">
       <a class="knopf" href="{% url 'kern:fassungen' dokument.schluessel eintrag.kennung %}">Alle Fassungen</a>

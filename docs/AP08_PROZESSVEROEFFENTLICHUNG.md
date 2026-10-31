@@ -20,7 +20,7 @@ Lehrkräfte können über **Arbeitsstände** ausdrücklich in die vorhandene int
 4. Fachliche Prüfung bestätigen. Bei verlinkten Materialien ist zusätzlich deren Prüfung einschließlich Fassung zu bestätigen.
 5. **Geprüfte Fassung veröffentlichen** schaltet den geprüften Schnappschuss frei. Die Prozessliste und die Suche führen anschließend dorthin.
 
-Die Freigabe verwendet das bestehende Beschluss- und Versionsmodell. Der Nachweis nennt zuständige Stelle, Datum und eintragendes Konto. Eine tatsächlich erfolgte Konferenzentscheidung kann dort ebenso dokumentiert werden wie eine fachliche Freigabe durch die Schulleitung; die Maske verlangt keine erfundene Konferenz. Andere Inhaltstypen und ihre bisherigen Freigabewege ändern sich nicht. Allgemeine Gültigkeitszeiträume, Pflegeprüfungen und weitere Freigabekategorien gehören zu AP09.
+Die Freigabe verwendet das bestehende Beschluss- und Versionsmodell. Der Nachweis nennt zuständige Stelle, Datum und eintragendes Konto. Eine tatsächlich erfolgte Konferenzentscheidung kann dort ebenso dokumentiert werden wie eine fachliche Freigabe durch die Schulleitung; die Maske verlangt keine erfundene Konferenz. Andere Inhaltstypen und ihre bisherigen Freigabewege ändern sich nicht. Gültigkeitszeiträume, Pflegeprüfungen, fachliche Freigabekategorien und verbindliche Anlagen sind seit [AP09](AP09_WISSENSPFLEGE.md) ergänzt.
 
 Der signierte Freigabestand ist an Konto und Eintrag gebunden. Vor dem Schreiben werden Dokument und Eintrag gesperrt und der Stand erneut geprüft. Zwischenzeitliche Änderungen, bereits erfolgte Freigaben und Änderungen an registrierten verlinkten Dateimetadaten führen zum Konflikt; es wird weder ein Teilnachweis noch eine neue Freigabe geschrieben. Die eingegebenen Nachweistexte bleiben erhalten. Dann die aktuelle Fassung und eine neu geöffnete Freigabemaske prüfen und die Angaben bewusst übertragen.
 
@@ -28,7 +28,7 @@ Ein Wechsel der Funktionsbesetzung benötigt keine erneute Freigabe der Prozessl
 
 ## Veränderliche Materialien
 
-Die Freigabe bestätigt den geprüften Stand, friert aber keine externe Datei ein. Nextcloud- und andere externe Links tragen daher in der Leseansicht und im PDF den Hinweis **Veränderlicher Materiallink**. Die externe Dateifassung ist nicht an die Prozessfreigabe gebunden. Für verbindliche externe Anlagen ist bis AP09 eine nachprüfbare externe Fassung vorzuhalten und im Nachweis zu benennen; ein veränderlicher Link allein erfüllt das nicht.
+Die Freigabe bestätigt den geprüften Stand, friert aber keine externe Datei ein. Nextcloud- und andere externe Links tragen daher in der Leseansicht und im PDF den Hinweis **Veränderlicher Materiallink**. Die externe Dateifassung ist nicht an die Prozessfreigabe gebunden. Seit [AP09](AP09_WISSENSPFLEGE.md) benötigen verbindliche externe Anlagen eine geprüfte Dateikopie und einen Versionsnachweis. Reine Live-Links bleiben dynamisches Material.
 
 Registrierte Änderungen seit der maßgeblichen Freigabe werden beim Lesen zurückgehalten und durch einen Prüfhinweis ersetzt. Wissensverweise verwenden die gültige freigegebene Zielfassung und die aktuellen Zugangsrechte. Die Prüfung registrierter Metadaten erkennt keine externe Inhaltsänderung, die in Nextcloud ohne Rückmeldung an die App erfolgt. Die technische Nextcloud-Betriebsabnahme bleibt B01.
 

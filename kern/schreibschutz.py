@@ -7,7 +7,7 @@ from django.core import signing
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 
-from kern.models import Anhang, Dokument, Eintragsversion, Verlinkung
+from kern.models import PFLEGE_FELDER, Anhang, Dokument, Eintragsversion, Verlinkung
 
 UNGEPRUEFT = object()  # Nur für ausdrücklich aktuelle, vertrauenswürdige Import-/CLI-Aufrufe.
 SALT = "schulwissen-schreibstand-v1"
@@ -45,6 +45,12 @@ def schreibstand(eintrag):
                     "verantwortlich_text",
                     "fassung_stand",
                     "geaendert_am",
+                    *[
+                        f + "_id"
+                        if f in ("pflege_funktion", "pflege_vertretung", "ersetzt_durch")
+                        else f
+                        for f in PFLEGE_FELDER
+                    ],
                 )
             },
             "version": eintrag.versionen.order_by("-versionsnummer")
@@ -75,6 +81,12 @@ def dokumentstand(dokument):
                     "verantwortlich_text",
                     "fassung_stand",
                     "geaendert_am",
+                    *[
+                        f + "_id"
+                        if f in ("pflege_funktion", "pflege_vertretung", "ersetzt_durch")
+                        else f
+                        for f in PFLEGE_FELDER
+                    ],
                 )
             ),
             "versionen": list(

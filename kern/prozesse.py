@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from kern import beschluesse, prozessdaten, rechte
-from kern.models import Anhang, Beschluss, Dokument, Eintrag, Gremium, Schulfunktion, Status
+from kern.models import Beschluss, Dokument, Eintrag, Gremium, Schulfunktion, Status
 from kern.schreibschutz import Schreibkonflikt, schreibstand, token_fuer_eintrag, token_lesen
 from kern.staende import lesemenge
 
@@ -97,32 +97,58 @@ def verzeichnis(request):
 
 
 def materialstand(e):
-    try:
-        graph = prozessdaten.normalisieren(e.daten.get("ablauf"))
-    except ValidationError:
+    from kern.dateifassungen import anhaenge, lesen
+
+    version = e.letzte_version()
+    if not version:
         return ""
-    ids = {v["id"] for k in graph["knoten"] for v in k["verweise"] if v["typ"] == "anhang"}
-    daten = list(
-        Anhang.objects.filter(pk__in=ids)
-        .order_by("pk")
-        .values(
-            "pk",
-            "geaendert_am",
-            "datei",
-            "nextcloud_link",
-            "nextcloud_pfad",
-            "dokument_id",
-            "eintrag_id",
+    daten = []
+    for a in anhaenge(version):
+        try:
+            digest = (
+                hashlib.sha256(lesen(a)).hexdigest()
+                if a.verwendung == "verbindlich" and a.datei
+                else ""
+            )
+        except ValidationError:
+            digest = "nicht-lesbar"
+        daten.append(
+            {
+                "pk": a.pk,
+                "geaendert": a.geaendert_am,
+                "datei": a.datei.name,
+                "verwendung": a.verwendung,
+                "fassung": a.dateiversion,
+                "link": a.nextcloud_link,
+                "pfad": a.nextcloud_pfad,
+                "sha256": digest,
+            }
         )
-    )
     return hashlib.sha256(
         json.dumps(daten, cls=DjangoJSONEncoder, sort_keys=True).encode()
     ).hexdigest()
 
 
 def freigabetoken(nutzer, e):
+    from kern.dateifassungen import anhaenge, lesen, originalstand
+
+    verbindlich = {}
+    version = e.letzte_version()
+    if version:
+        for a in anhaenge(version).filter(verwendung="verbindlich"):
+            try:
+                verbindlich[str(a.pk)] = {
+                    "sha256": hashlib.sha256(lesen(a)).hexdigest(),
+                    "stand": originalstand(a),
+                }
+            except ValidationError:
+                verbindlich[str(a.pk)] = {"sha256": "nicht-lesbar", "stand": originalstand(a)}
     return signing.dumps(
-        {"eintrag": token_fuer_eintrag(nutzer, e), "material": materialstand(e)},
+        {
+            "eintrag": token_fuer_eintrag(nutzer, e),
+            "material": materialstand(e),
+            "verbindlich": verbindlich,
+        },
         salt="prozessfreigabe-v1",
     )
 
@@ -140,9 +166,16 @@ def freigabe_stand_pruefen(token, nutzer, e):
         raise Schreibkonflikt(
             "Der Freigabestand fehlt oder ist ungültig. Bitte öffne die Freigabe neu."
         ) from fehler
+    return daten
 
 
 class FreigabeFormular(forms.Form):
+    freigabeart = forms.ChoiceField(
+        label="Art der Freigabe",
+        choices=[("fachlich", "Fachliche Freigabe"), ("konferenz", "Konferenzbeschluss")],
+        initial="fachlich",
+        required=False,
+    )
     stand = forms.CharField(widget=forms.HiddenInput)
     datum = forms.DateField(
         label="Datum der Freigabe",
@@ -167,8 +200,7 @@ class FreigabeFormular(forms.Form):
     )
     geprueft = forms.BooleanField(
         label=(
-            "Ich bestätige, dass diese Prozessfassung fachlich geprüft ist "
-            "und veröffentlicht werden darf."
+            "Ich bestätige, dass diese Fassung fachlich geprüft ist und veröffentlicht werden darf."
         )
     )
     material_geprueft = forms.BooleanField(
@@ -201,12 +233,12 @@ def freigeben(request, schluessel, kennung):
     dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
     if not rechte.darf_beschliessen(request.user, dokument):
         raise PermissionDenied("Für diesen Ablauf fehlt die Freigabeberechtigung.")
-    e = get_object_or_404(Eintrag, dokument=dokument, kennung=kennung, eintragstyp="prozess")
+    e = get_object_or_404(Eintrag, dokument=dokument, kennung=kennung)
     try:
         graph = prozessdaten.normalisieren(e.daten.get("ablauf"))
-        materialien = any(k["verweise"] for k in graph["knoten"])
+        materialien = any(k["verweise"] for k in graph["knoten"]) or e.anhaenge.exists()
     except ValidationError:
-        materialien = False
+        materialien = e.anhaenge.exists()
     formular = FreigabeFormular(
         request.POST if request.method == "POST" else None,
         materialien=materialien,
@@ -220,10 +252,24 @@ def freigeben(request, schluessel, kennung):
                 e = Eintrag.objects.select_for_update().get(pk=e.pk)
                 if not rechte.darf_beschliessen(request.user, e.dokument):
                     raise PermissionDenied
-                freigabe_stand_pruefen(formular.cleaned_data["stand"], request.user, e)
+                gepruefter_stand = freigabe_stand_pruefen(
+                    formular.cleaned_data["stand"], request.user, e
+                )
                 if e.status in (Status.ARCHIVIERT, Status.BESCHLOSSEN) or not e.letzte_version():
                     raise ValidationError("Es gibt keinen neuen Arbeitsstand zur Freigabe.")
-                prozessdaten.freigabe_pruefen(e.daten, nutzer=request.user)
+                if e.eintragstyp == "prozess":
+                    prozessdaten.freigabe_pruefen(e.daten, nutzer=request.user)
+                else:
+                    from eintragstypen import dienste
+
+                    roh = dienste.Rohsatz(
+                        kennung=e.kennung, eintragstyp=e.eintragstyp, titel=e.titel, daten=e.daten
+                    )
+                    pruefung = dienste.pruefen(e.dokument, roh, nutzer=request.user)
+                    if not pruefung.ok or pruefung.fehlende_pflichtfelder:
+                        raise ValidationError(
+                            "Für die Freigabe fehlen vollständige, gültige Inhalte."
+                        )
                 text = formular.cleaned_data["text"]
                 if materialien:
                     text += (
@@ -231,14 +277,25 @@ def freigeben(request, schluessel, kennung):
                         "Externe Links bleiben veränderlich."
                     )
                 beschluss = Beschluss.objects.create(
+                    freigabeart=formular.cleaned_data.get("freigabeart") or "fachlich",
                     datum=formular.cleaned_data["datum"],
                     gremium=formular.cleaned_data["gremium"],
-                    titel=f"Prozessfreigabe: {e.titel}"[:250],
+                    titel=f"Freigabe: {e.titel}"[:250],
                     text=text,
                     erstellt_von=request.user,
                 )
                 beschluesse.beschluss_fassen(beschluss, [e], nutzer=request.user)
-                nummer = e.letzte_version().versionsnummer
+                freigegeben = e.letzte_version()
+                gesichert = {
+                    str(k.original_id): {"sha256": k.sha256, "stand": k.originalstand}
+                    for k in freigegeben.dateifassungen.all()
+                }
+                if gesichert != gepruefter_stand.get("verbindlich", {}):
+                    raise Schreibkonflikt(
+                        "Eine verbindliche Datei wurde während der Freigabe geändert. "
+                        "Bitte die Dateifassung erneut prüfen."
+                    )
+                nummer = freigegeben.versionsnummer
         except Schreibkonflikt as fehler:
             status = 409
             formular.add_error(None, str(fehler))
@@ -247,7 +304,7 @@ def freigeben(request, schluessel, kennung):
         else:
             messages.success(
                 request,
-                "Der Ablauf ist veröffentlicht. Neue Bearbeitungen ändern die gültige Fassung "
+                "Die Fassung ist freigegeben. Neue Bearbeitungen ändern die gültige Fassung "
                 "erst nach erneuter Freigabe.",
             )
             return redirect("kern:version", schluessel=schluessel, kennung=kennung, nummer=nummer)

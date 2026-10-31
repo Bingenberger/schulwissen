@@ -11,4 +11,4 @@ p,li,a { overflow-wrap:anywhere; } a { color:#111; } .klein { font-size:9pt; }
 <p>{{ prozess.fassung_text }}. Aktuelle Kontakte: {{ prozess.kontaktstand|date:'d.m.Y, H:i' }}.</p>
 {% if prozess.historisch %}<p>Historische Prozessschritte; die Ansprechpersonen sind aktuell, keine damalige Besetzung.</p>{% endif %}
 {% if prozess.unvollstaendig %}<p>Dieser Ablauf ist noch unvollständig und keine vollständige Handlungsanleitung.</p>{% endif %}
-{% include "kern/prozess/_schritte.html" %}{% endif %}</body></html>
+{% include "kern/prozess/_schritte.html" %}{% endif %}{% include "kern/_wissensangaben.html" %}</body></html>

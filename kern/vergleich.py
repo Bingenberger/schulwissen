@@ -140,6 +140,35 @@ def vergleichen(alt, neu, nutzer=None) -> Fassungsvergleich:
             )
         )
 
+    from kern.models import PFLEGE_FELDER
+
+    def pflegewert(version, name):
+        wert = getattr(version, name)
+        if name == "ersetzt_durch" and wert:
+            from kern.staende import lesestand
+
+            stand = lesestand(nutzer, wert) if nutzer is not None else wert
+            return f"{wert.kennung} {stand.titel}" if stand else "Nachfolge derzeit nicht verfügbar"
+        anzeige = getattr(version, f"get_{name}_display", None)
+        return str(anzeige() if anzeige else wert or "")
+
+    pflege_alt = alt if hasattr(alt, "_meta") else alt.eintrag
+    pflege_neu = neu if hasattr(neu, "_meta") else neu.eintrag
+    for name in PFLEGE_FELDER:
+        feld = pflege_alt._meta.get_field(name)
+        if getattr(pflege_alt, feld.attname) != getattr(pflege_neu, feld.attname):
+            vorher, nachher = pflegewert(pflege_alt, name), pflegewert(pflege_neu, name)
+            ergebnis.felder.append(
+                Feldvergleich(
+                    label=str(feld.verbose_name),
+                    schluessel="wissen_" + name,
+                    art=GEAENDERT,
+                    vorher=vorher,
+                    nachher=nachher,
+                    gegenueberstellung=woerter_vergleichen(vorher, nachher),
+                )
+            )
+
     # Verweise (Kompetenzen, Bezüge) stehen im Schnappschuss der Fassung.
     def schluessel(verlinkungen):
         if nutzer is not None:

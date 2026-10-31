@@ -6,6 +6,7 @@ from django.urls import path
 from kern import (
     arbeitsablauf,
     beschluss_views,
+    dateifassungen,
     dokument_views,
     export_views,
     funktionen,
@@ -18,11 +19,24 @@ from kern import (
     prozesslesen,
     uebersichten,
     views,
+    wissenspflege,
 )
 
 app_name = "kern"
 
 urlpatterns = [
+    path("wissenspflege", wissenspflege.uebersicht, name="wissenspflege"),
+    path("dateifassung/<int:pk>", dateifassungen.download, name="dateifassung"),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/pflege",
+        wissenspflege.bearbeiten,
+        name="wissenspflege_bearbeiten",
+    ),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/anlage/<int:pk>",
+        wissenspflege.anlage,
+        name="anlage_pflegen",
+    ),
     path("prozesse", prozesse.verzeichnis, name="prozesse"),
     path(
         "d/<slug:schluessel>/<str:kennung>/freigeben", prozesse.freigeben, name="prozess_freigeben"

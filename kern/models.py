@@ -386,7 +386,97 @@ class Status(models.TextChoices):
 STATUS_VOR_BESCHLUSS = (Status.IDEE, Status.ENTWURF, Status.ABGESTIMMT)
 
 
-class Eintrag(Zeitstempel):
+PFLEGE_FELDER = (
+    "inhaltsart",
+    "verbindlichkeit",
+    "wirksam_ab",
+    "wirksam_bis",
+    "geprueft_am",
+    "pruefen_am",
+    "quelle",
+    "pflege_funktion",
+    "pflege_vertretung",
+    "ersetzt_durch",
+)
+
+
+class Wissensangaben(models.Model):
+    """Versionierte fachliche Angaben; Zugangsrechte bleiben am Dokument."""
+
+    inhaltsart = models.CharField(
+        "Inhaltsart",
+        max_length=25,
+        default="ungeklaert",
+        choices=[
+            ("ungeklaert", "Noch nicht eingeordnet"),
+            ("information", "Information"),
+            ("regel", "Regel / Vereinbarung"),
+            ("anleitung", "Anleitung / Ablauf"),
+            ("formular", "Formular / Vorlage"),
+        ],
+    )
+    verbindlichkeit = models.CharField(
+        "Verbindlichkeit",
+        max_length=25,
+        default="ungeklaert",
+        choices=[
+            ("ungeklaert", "Noch nicht eingeordnet"),
+            ("orientierung", "Zur Orientierung"),
+            ("verbindlich", "Verbindlich"),
+        ],
+    )
+    wirksam_ab = models.DateField("Wirksam ab (einschließlich)", null=True, blank=True)
+    wirksam_bis = models.DateField("Wirksam bis (einschließlich)", null=True, blank=True)
+    geprueft_am = models.DateField("Zuletzt fachlich geprüft am", null=True, blank=True)
+    pruefen_am = models.DateField("Nächster Prüftermin", null=True, blank=True)
+    quelle = models.TextField("Quellen und Nachweise", blank=True, max_length=4000)
+    pflege_funktion = models.ForeignKey(
+        "Schulfunktion",
+        verbose_name="Pflegeverantwortliche Funktion",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    pflege_vertretung = models.ForeignKey(
+        "Schulfunktion",
+        verbose_name="Vertretung der Pflegefunktion",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    ersetzt_durch = models.ForeignKey(
+        "Eintrag",
+        verbose_name="Ersetzt durch",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+
+    class Meta:
+        abstract = True
+
+    def clean(self):
+        super().clean()
+        if self.wirksam_ab and self.wirksam_bis and self.wirksam_bis < self.wirksam_ab:
+            raise ValidationError({"wirksam_bis": "Das Ende darf nicht vor dem Beginn liegen."})
+        if self.geprueft_am and self.geprueft_am > timezone.localdate():
+            raise ValidationError(
+                {"geprueft_am": "Eine fachliche Prüfung muss bereits erfolgt sein."}
+            )
+        if self.geprueft_am and self.pruefen_am and self.pruefen_am < self.geprueft_am:
+            raise ValidationError(
+                {"pruefen_am": "Der nächste Prüftermin liegt vor der letzten Prüfung."}
+            )
+        if self.pflege_funktion_id and self.pflege_funktion_id == self.pflege_vertretung_id:
+            raise ValidationError(
+                {"pflege_vertretung": "Wähle eine andere Funktion als Vertretung."}
+            )
+
+
+class Eintrag(Wissensangaben, Zeitstempel):
     """Ein Kapitel, ein Ritual, ein Vorhaben – der Baustein jedes Dokuments."""
 
     dokument = models.ForeignKey(
@@ -591,11 +681,9 @@ class Eintrag(Zeitstempel):
         """Letzte durch einen Beschluss freigegebene Fassung – oder ``None``."""
         if hasattr(self, "_gueltige_fassungen"):
             return next(iter(self._gueltige_fassungen), None)
-        return (
-            self.versionen.filter(status=Status.BESCHLOSSEN, beschluss__isnull=False)
-            .order_by("-versionsnummer")
-            .first()
-        )
+        from kern.staende import gueltige_versionen
+
+        return gueltige_versionen().filter(eintrag=self).first()
 
     def letzte_version(self):
         return self.versionen.order_by("-versionsnummer").first()
@@ -611,10 +699,11 @@ class Eintrag(Zeitstempel):
             daten=self.daten,
             verlinkungen=[v.als_schnappschuss() for v in self.verlinkungen.all()],
             autor=autor,
+            **{name: getattr(self, name) for name in PFLEGE_FELDER},
         )
 
 
-class Eintragsversion(models.Model):
+class Eintragsversion(Wissensangaben):
     """Schnappschuss eines Eintrags. Beschlossene Versionen sind unveränderlich."""
 
     eintrag = models.ForeignKey(
@@ -672,6 +761,10 @@ class Eintragsversion(models.Model):
                     f"Fassung {self.versionsnummer} von {self.eintrag.kennung} ist beschlossen "
                     "und kann nicht geändert werden. Bearbeiten erzeugt eine neue Fassung."
                 )
+        if self.pk and self.status == Status.BESCHLOSSEN and self.dateifassungen.exists():
+            raise ValidationError(
+                "Für eine erneute Freigabe mit Anlagen bitte eine neue Arbeitsfassung anlegen."
+            )
         if self.eintrag.eintragstyp == "prozess":
             from kern import prozessdaten
 
@@ -684,12 +777,17 @@ class Eintragsversion(models.Model):
                 else prozessdaten.referenzen(graph)
             )
             self.verlinkungen = prozessdaten.schnappschuss_verweise(ziele, self.verlinkungen or [])
+        self.clean()
         if self.status == Status.BESCHLOSSEN and self.beschluss_id:
             self.freigegeben_am = timezone.now()
         ergebnis = super().save(*args, **kwargs)
         from kern.suchindex import version_indexieren
 
         version_indexieren(self)
+        if self.status == Status.BESCHLOSSEN and self.beschluss_id:
+            from kern.dateifassungen import sichern
+
+            sichern(self)
         return ergebnis
 
     def delete(self, *args, **kwargs):
@@ -750,6 +848,12 @@ class Beschluss(Zeitstempel):
         related_name="protokollierte_beschluesse",
     )
 
+    freigabeart = models.CharField(
+        "Freigabeart",
+        max_length=20,
+        default="konferenz",
+        choices=[("konferenz", "Konferenzbeschluss"), ("fachlich", "Fachliche Freigabe")],
+    )
     suchvektor = SearchVectorField(null=True, editable=False)
 
     class Meta:
@@ -771,6 +875,8 @@ class Beschluss(Zeitstempel):
     @property
     def herkunft(self) -> str:
         """Der Satz, der über jedem beschlossenen Eintrag steht (SPEC.md §8.5)."""
+        if self.freigabeart == "fachlich":
+            return f"Fachlich freigegeben durch {self.gremium} am {self.datum:%d.%m.%Y}"
         return f"Gilt seit Beschluss der {self.gremium} vom {self.datum:%d.%m.%Y}"
 
 
@@ -871,6 +977,16 @@ class Anhang(Zeitstempel):
         on_delete=models.CASCADE,
         related_name="anhaenge",
     )
+    verwendung = models.CharField(
+        "Verwendung",
+        max_length=20,
+        default="dynamisch",
+        choices=[
+            ("dynamisch", "Dynamisches Material"),
+            ("verbindlich", "Verbindliche Dateifassung"),
+        ],
+    )
+    dateiversion = models.CharField("Dateifassung / Versionsnachweis", max_length=300, blank=True)
     datei = models.FileField("Datei", upload_to=anhang_pfad, blank=True)
     nextcloud_pfad = models.CharField("Nextcloud-Pfad", max_length=500, blank=True)
     nextcloud_etag = models.CharField("Nextcloud-ETag", max_length=500, blank=True)
@@ -900,6 +1016,8 @@ class Anhang(Zeitstempel):
         # Indexierungsprüfungen ohne Inhaltsänderung sind keine neue Dateifassung.
         # Inhalts-/Metadatenänderungen dagegen gehören bis zur Freigabe zum Entwurf.
         inhaltsfelder = (
+            "verwendung",
+            "dateiversion",
             "datei",
             "dateiname",
             "beschreibung",
@@ -930,6 +1048,35 @@ class Anhang(Zeitstempel):
             )
 
 
+class FreigegebeneDatei(models.Model):
+    """Geschützte, transaktionale Kopie der tatsächlich freigegebenen Bytes."""
+
+    version = models.ForeignKey(
+        Eintragsversion, on_delete=models.CASCADE, related_name="dateifassungen"
+    )
+    original = models.ForeignKey(Anhang, on_delete=models.PROTECT, related_name="freigabekopien")
+    dateiname = models.CharField(max_length=300)
+    mimetype = models.CharField(max_length=120, blank=True)
+    dateiversion = models.CharField(max_length=300, blank=True)
+    inhalt = models.BinaryField(editable=False)
+    sha256 = models.CharField(max_length=64, editable=False)
+    originalstand = models.CharField(max_length=64, editable=False)
+    gesichert_am = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["version", "original"], name="dateifassung_je_freigabe")
+        ]
+
+    def __str__(self):
+        return f"{self.dateiname} · Fassung {self.version_id}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Eine Freigabekopie ist unveränderlich.")
+        return super().save(*args, **kwargs)
+
+
 # --- Kommentare ------------------------------------------------------------
 
 
@@ -945,6 +1092,7 @@ class Kommentar(Zeitstempel):
         on_delete=models.SET_NULL,
         related_name="kommentare",
     )
+    fehlerhinweis = models.BooleanField("Fehler melden", default=False)
     text = models.TextField("Kommentar")
     erledigt = models.BooleanField("erledigt", default=False)
     erledigt_am = models.DateTimeField("erledigt am", null=True, blank=True)

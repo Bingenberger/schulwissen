@@ -1,0 +1,11 @@
+{% if pflege %}<section class="block"><h2>Gültigkeit und Wissenspflege</h2>
+<p><strong>{{ pflege.quelle.get_inhaltsart_display }}</strong> · {{ pflege.quelle.get_verbindlichkeit_display }}</p>
+<p>{{ pflege.zeitraum }}</p>{% if pflege.status %}<p class="meldung meldung-warning">{{ pflege.status }}</p>{% endif %}
+{% if pflege.quelle.geprueft_am %}<p>Zuletzt fachlich geprüft: {{ pflege.quelle.geprueft_am|date:"d.m.Y" }}</p>{% endif %}
+{% if pflege.quelle.pruefen_am %}<p>Nächste Prüfung: {{ pflege.quelle.pruefen_am|date:"d.m.Y" }}{% if pflege.ueberfaellig %} · <strong>Prüfung überfällig; dies setzt den Inhalt nicht außer Kraft.</strong>{% endif %}</p>{% endif %}
+{% if pflege.pflege %}<p>Pflegeverantwortung: <strong>{{ pflege.pflege.name }}</strong> · {{ pflege.pflege.status }}{% for name in pflege.pflege.personen %} · {{ name }}{% endfor %}</p>{% endif %}
+{% if pflege.vertretung %}<p>Vertretung der Pflegefunktion: <strong>{{ pflege.vertretung.name }}</strong> · {{ pflege.vertretung.status }}{% for name in pflege.vertretung.personen %} · {{ name }}{% endfor %}</p>{% endif %}
+{% if pflege.quelle.quelle %}<h3>Quellen und Nachweise</h3><p>{{ pflege.quelle.quelle|linebreaksbr }}</p>{% endif %}
+{% if pflege.ersetzt %}<p>Ersetzt durch: <a href="{{ pflege.ersetzt.url }}">{{ pflege.ersetzt.titel }}</a></p>{% elif pflege.quelle.ersetzt_durch_id %}<p>Nachfolgende Fassung derzeit nicht verfügbar oder noch nicht wirksam.</p>{% endif %}
+{% if pflege.kopien %}<h3>Verbindliche Anlagen dieser Fassung</h3><ul>{% for m in pflege.kopien %}<li>{% if m.url %}<a href="{{ m.url }}">{{ m.label }}</a><p>{{ m.pruefhinweis }}</p><p class="klein">SHA-256: <code style="overflow-wrap:anywhere">{{ m.sha256 }}</code></p>{% else %}{{ m.label }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+</section>{% endif %}

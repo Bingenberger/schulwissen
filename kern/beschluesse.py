@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 
 from kern.models import Beschluss, Dokument, Eintrag, Eintragsversion, Status
 
@@ -114,16 +115,24 @@ def beschluss_fassen(beschluss: Beschluss, eintraege, nutzer=None) -> Beschlussb
             )
             continue
 
+        version.clean()
+        from kern.dateifassungen import pruefen as dateien_pruefen
+
+        dateien_pruefen(version, nutzer)
         # Ältere beschlossene Fassungen desselben Eintrags abhängen.
         # Hier steht bewusst „update" und nicht „save": der Schutz in
         # Eintragsversion.save() verbietet jede Änderung an einer beschlossenen
         # Fassung. Das Archivieren ändert aber keinen Inhalt – es hält nur
         # fest, dass ein neuerer Beschluss sie abgelöst hat.
-        bericht.archiviert += (
-            Eintragsversion.objects.filter(eintrag=eintrag, status=Status.BESCHLOSSEN)
-            .exclude(pk=version.pk)
-            .update(status=Status.ARCHIVIERT)
-        )
+        # Zeitgebundene Freigaben bleiben als Kandidaten erhalten. Die Lesefassung
+        # wird nach Wirksamkeit gewählt, auch ohne nächtlichen Status-Job.
+        if not version.wirksam_ab or version.wirksam_ab <= timezone.localdate():
+            bericht.archiviert += (
+                Eintragsversion.objects.filter(eintrag=eintrag, status=Status.BESCHLOSSEN)
+                .exclude(pk=version.pk)
+                .filter(Q(wirksam_ab__isnull=True) | Q(wirksam_ab__lte=timezone.localdate()))
+                .update(status=Status.ARCHIVIERT)
+            )
 
         version.status = Status.BESCHLOSSEN
         version.beschluss = beschluss
@@ -194,7 +203,18 @@ def aenderungen_seit_beschluss(dokument):
         if aktuell is None or aktuell.pk == beschlossen.pk:
             unveraendert.append(eintrag)
             continue
-        if aktuell.titel != beschlossen.titel or aktuell.daten != beschlossen.daten:
+        from kern.models import PFLEGE_FELDER
+
+        pflege_geaendert = any(
+            getattr(aktuell, aktuell._meta.get_field(name).attname)
+            != getattr(beschlossen, beschlossen._meta.get_field(name).attname)
+            for name in PFLEGE_FELDER
+        )
+        if (
+            aktuell.titel != beschlossen.titel
+            or aktuell.daten != beschlossen.daten
+            or pflege_geaendert
+        ):
             geaendert.append((eintrag, beschlossen, aktuell))
         else:
             unveraendert.append(eintrag)

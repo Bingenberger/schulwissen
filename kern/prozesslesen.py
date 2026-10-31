@@ -59,7 +59,7 @@ def aufbereiten(eintrag, daten, nutzer, version=None):
         return {"fehler": "Dieser Ablauf ist derzeit nicht lesbar. Bitte frage die Redaktion."}
     quelle = version
     if quelle is None and eintrag.status == Status.BESCHLOSSEN:
-        quelle = eintrag.beschlossene_version()
+        quelle = eintrag.letzte_version()
     gueltig = bool(
         quelle
         and quelle.status in (Status.BESCHLOSSEN, Status.ARCHIVIERT)
@@ -93,6 +93,18 @@ def aufbereiten(eintrag, daten, nutzer, version=None):
             )
         )
     }
+    from kern.dateifassungen import karte as dateikarte
+
+    kopien = (
+        {
+            k.original_id: k
+            for k in quelle.dateifassungen.select_related(
+                "original__dokument", "original__eintrag__dokument"
+            )
+        }
+        if gueltig
+        else {}
+    )
     kontakte = {}
     q = Q(pk__in=[])
     ids = set()
@@ -205,7 +217,18 @@ def aufbereiten(eintrag, daten, nutzer, version=None):
                             "url": reverse("kern:eintrag", args=[e.dokument.schluessel, e.kennung]),
                         }
             else:
+                if v["id"] in kopien:
+                    neu["materialien"].append(dateikarte(kopien[v["id"]], nutzer))
+                    continue
                 a = anhaenge.get(v["id"])
+                if a and gueltig and a.verwendung == "verbindlich":
+                    neu["materialien"].append(
+                        {
+                            "label": "Verbindliche Freigabekopie fehlt – bitte erneut freigeben",
+                            "url": "",
+                        }
+                    )
+                    continue
                 unveraendert = True
                 if a and gueltig:
                     referenzzeit = quelle.freigegeben_am
@@ -227,7 +250,7 @@ def aufbereiten(eintrag, daten, nutzer, version=None):
                         material = {
                             "label": a.dateiname or "Datei",
                             "url": url,
-                            "art": "Verknüpfte Datei",
+                            "art": "Dynamisches Material",
                             "pruefhinweis": (
                                 "Veränderlicher Materiallink – die externe Dateifassung ist "
                                 "nicht an diese Prozessfreigabe gebunden."
@@ -286,8 +309,16 @@ def pdf(request, schluessel, kennung):
     daten = v.daten if v else stand.daten
     prozess = aufbereiten(e, daten, request.user, v)
     titel = v.titel if v else stand.titel
+    from kern.wissenspflege import kontext as pflegekontext
+
     quelle = render_to_string(
-        "kern/prozess_pdf.html", {"prozess": prozess, "titel": titel, "kennung": e.kennung}
+        "kern/prozess_pdf.html",
+        {
+            "prozess": prozess,
+            "titel": titel,
+            "kennung": e.kennung,
+            "pflege": pflegekontext(request.user, v or e),
+        },
     )
     inhalt = exporte.html_pdf(quelle)
     antwort = HttpResponse(inhalt, content_type="application/pdf")

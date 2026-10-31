@@ -384,11 +384,15 @@ def speichern(
         "verantwortlich_text",
         "fassung_stand",
     }
+    from kern.models import PFLEGE_FELDER
+
+    erlaubte_metadaten.update(PFLEGE_FELDER)
     if metadaten:
         if set(metadaten) - erlaubte_metadaten:
             raise ValueError("Unbekannte Metadaten im gemeinsamen Schreibweg.")
         for name, wert in metadaten.items():
             setattr(eintrag, name, wert)
+    eintrag.clean()
     eintrag.save()
 
     _verlinkungen_setzen(eintrag, typ, befundsatz.verweise)

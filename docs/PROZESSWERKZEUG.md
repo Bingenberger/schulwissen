@@ -1,6 +1,6 @@
 # Prozesswerkzeug: Abläufe erklären und Zuständigkeiten auflösen
 
-Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Funktionsmodell, Prozessdaten, Autoreneditor und Leseansichten aus AP04–AP07 sind umgesetzt. Grafik, geführte Auswahl, aktuelle Kontakte und Text/Druck/PDF sind in [AP07_PROZESSLESEN.md](AP07_PROZESSLESEN.md) beschrieben. Die technische Veröffentlichung und Prozesssuche aus AP08 sind in [AP08_PROZESSVEROEFFENTLICHUNG.md](AP08_PROZESSVEROEFFENTLICHUNG.md) dokumentiert; der echte fachliche Pilot bleibt offen.
+Stand: 31.10.2026. Zugehörige Roadmap: [AP04–AP08](../ROADMAP.md). Diese Datei konkretisiert den ausdrücklichen Nutzerwunsch. Funktionsmodell, Prozessdaten, Autoreneditor und Leseansichten aus AP04–AP07 sind umgesetzt. Grafik, geführte Auswahl, aktuelle Kontakte und Text/Druck/PDF sind in [AP07_PROZESSLESEN.md](AP07_PROZESSLESEN.md) beschrieben. Die technische Veröffentlichung und Prozesssuche aus AP08 sind in [AP08_PROZESSVEROEFFENTLICHUNG.md](AP08_PROZESSVEROEFFENTLICHUNG.md) dokumentiert; der echte fachliche Pilot bleibt offen. [AP09](AP09_WISSENSPFLEGE.md) ergänzt zeitliche Gültigkeit, Quellen, Pflegefunktionen und verbindliche Dateikopien.
 
 ## 1. Nutzerziel
 

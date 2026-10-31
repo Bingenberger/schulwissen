@@ -281,6 +281,8 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
         rechte.sichtbare_versionen(request.user, eintrag.versionen.all()), versionsnummer=nummer
     )
 
+    from kern.wissenspflege import kontext as pflegekontext
+
     version = sichtbare_beschlussmetadaten(request.user, version)
     verweise = views.verweise_aus_schnappschuss(version, request.user)
     bloecke = list(views.bloecke_zum_lesen(eintrag.typ, version.daten, verweise))
@@ -298,6 +300,7 @@ def version_ansehen(request, schluessel: str, kennung: str, nummer: int):
             "dokument": eintrag.dokument,
             "eintrag": eintrag,
             "version": version,
+            "pflege": pflegekontext(request.user, version),
             "typ": eintrag.typ,
             "bloecke": bloecke,
             "prozess": prozess,

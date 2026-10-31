@@ -1,10 +1,10 @@
 {% extends "grundlage.html" %}
-{% block titel %}Ablauf freigeben{% endblock %}
+{% block titel %}Fassung fachlich freigeben{% endblock %}
 {% block inhalt %}
 <div class="start">
   <p class="brotkrumen"><a href="{% url 'kern:prozesse' %}">Abläufe</a> › <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.kennung }}</a></p>
-  <h1>Ablauf freigeben</h1><h2>{{ eintrag.titel }}</h2>
-  <p>Dokumentiere die tatsächlich erfolgte fachliche Freigabe. Diese Fassung wird danach im Bereich „Abläufe“ und in der Suche veröffentlicht. Dokumentzugänge werden dadurch nicht erweitert.</p>
+  <h1>Fassung fachlich freigeben</h1><h2>{{ eintrag.titel }}</h2>
+  <p>Dokumentiere die tatsächlich erfolgte fachliche Freigabe. Die Fassung wird entsprechend ihrem Wirksamkeitszeitraum veröffentlicht. Eine zukünftige Fassung verdrängt die heute gültige nicht. Dokumentzugänge werden dadurch nicht erweitert.</p>
   <p><a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}" target="_blank" rel="noopener noreferrer">Arbeitsstand vor der Freigabe prüfen (neuer Tab)</a></p>
   {% if materialien %}<p class="meldung meldung-info">Prüfe auch die verlinkten Materialien und ihre Fassung. Externe Dateien können sich unabhängig vom Prozess ändern und bleiben als veränderliche Links gekennzeichnet. Registrierte Dateiänderungen werden nach der Freigabe beim Lesen zurückgehalten.</p>{% endif %}
   <form method="post" class="karte">{% csrf_token %}{% include "kern/_formular.html" %}<p class="knopf-reihe"><button class="knopf knopf-wichtig" type="submit">Geprüfte Fassung veröffentlichen</button><a class="knopf" href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">Zum Arbeitsstand</a></p></form>

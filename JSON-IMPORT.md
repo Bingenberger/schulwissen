@@ -110,6 +110,10 @@ Tagesordnungspunkte können über die App oder per Import ergänzt werden.
 Beim Eintragen eines tatsächlichen Beschlusses kann ein Protokolleintrag
 zugeordnet werden; Text im Protokoll allein schaltet keine Inhalte frei.
 
+## Wissensangaben (AP09)
+
+Optional enthält ein Eintrag `wissensangaben` mit `inhaltsart`, `verbindlichkeit`, `wirksam_ab`, `wirksam_bis`, `geprueft_am`, `pruefen_am`, `quelle`, `pflege_funktion`, `pflege_vertretung` und `ersetzt_durch`. Datumswerte sind ISO-Daten oder `null`. Funktionen verwenden vorhandene aktive Schlüssel; Nachfolger sind Objekte mit `dokument` und `kennung`. Beide Ziele müssen bereits vorhanden und zugänglich sein. Fehlende Wissensangaben bleiben beim Import unverändert. Änderungen erzeugen Arbeitsstände und keine Freigaben. Details und Grenzen: [AP09_WISSENSPFLEGE.md](docs/AP09_WISSENSPFLEGE.md).
+
 ## Export und Rundlauf
 
 Die Administration findet PDF-, JSON- und (im Arbeitsplan Deutsch)

@@ -20,7 +20,7 @@ Die bestehenden Leseregeln bleiben maßgeblich: Lesende erhalten die gültige be
 
 Materialien werden beim Lesen nach den aktuellen Rechten aufgelöst. Gesperrte Verweisziele liefern weder fremde Titel noch Rohkennungen im HTML oder im ausgelieferten Graphen. Aus einem beschlossenen oder historischen Prozess führt ein Wissensverweis zur aktuell gültigen beschlossenen Zielfassung, nicht zu deren neuerem Entwurf. Nicht verfügbare Ziele erhalten einen neutralen Hinweis. Materiallinks öffnen einen neuen Tab.
 
-Dateien durchlaufen den geschützten Medienzugang. Bei beschlossenen Prozessen werden seit der maßgeblichen Freigabe geänderte Dateien zurückgehalten. Das ist noch keine unveränderliche externe Dateiversionsbindung; diese gehört zu AP09. Externe Links erlauben ausschließlich HTTP/HTTPS ohne eingebettete Zugangsdaten. Nextcloud-Pfade benötigen eine konfigurierte sichere Basisadresse. Ein echter Nextcloud-Betriebsnachweis bleibt B01.
+Dateien durchlaufen den geschützten Medienzugang. Bei beschlossenen Prozessen werden seit der maßgeblichen Freigabe geänderte Dateien zurückgehalten. Seit [AP09](AP09_WISSENSPFLEGE.md) können ausdrücklich verbindliche Anlagen stattdessen an geschützte, bytegenaue Freigabekopien gebunden werden. Dynamische Materialien bleiben davon unterschieden. Externe Links erlauben ausschließlich HTTP/HTTPS ohne eingebettete Zugangsdaten. Nextcloud-Pfade benötigen eine konfigurierte sichere Basisadresse. Ein echter Nextcloud-Betriebsnachweis bleibt B01.
 
 ## Druck und PDF
 

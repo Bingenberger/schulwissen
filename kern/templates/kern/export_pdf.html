@@ -31,6 +31,11 @@ ins { background:#d9eedc; text-decoration:none; } del { background:#f5dcdc; }
 {% if feld.verweise %}<ul>{% for v in feld.verweise %}<li>{{ v.beschriftung|default:v.ziel_id }}</li>{% endfor %}</ul>
 {% elif feld.html %}{{ feld.html|safe }}{% else %}{{ feld.text|linebreaksbr }}{% endif %}
 </dd>{% endfor %}</dl>{% endfor %}
+<h3>Gültigkeit und Quellen</h3><p>{{ z.wissensangaben.get_inhaltsart_display }} · {{ z.wissensangaben.get_verbindlichkeit_display }}</p>
+{% if z.wissensangaben.wirksam_ab %}<p>Wirksam ab {{ z.wissensangaben.wirksam_ab|date:"d.m.Y" }}</p>{% endif %}{% if z.wissensangaben.wirksam_bis %}<p>Wirksam bis einschließlich {{ z.wissensangaben.wirksam_bis|date:"d.m.Y" }}</p>{% endif %}
+{% if z.wissensangaben.geprueft_am %}<p>Zuletzt geprüft {{ z.wissensangaben.geprueft_am|date:"d.m.Y" }}</p>{% endif %}{% if z.wissensangaben.pruefen_am %}<p>Nächste Prüfung {{ z.wissensangaben.pruefen_am|date:"d.m.Y" }} · kein automatisches Außerkrafttreten</p>{% endif %}
+{% if z.wissensangaben.quelle %}<p>{{ z.wissensangaben.quelle|linebreaksbr }}</p>{% endif %}
+{% if z.version.dateifassungen.exists %}<h3>Verbindliche Anlagen</h3><ul>{% for k in z.version.dateifassungen.all %}<li>{{ k.dateiname }} · {{ k.dateiversion }} · SHA-256: {{ k.sha256 }}</li>{% endfor %}</ul>{% endif %}
 {% if z.vergleich %}<h3>Änderungen gegenüber dem letzten Beschluss</h3>
 {% if z.vergleich.titel_geaendert %}<p>Titel zuvor: {{ z.vergleich.alt.titel }}</p>{% endif %}
 {% for f in z.vergleich.geaenderte_felder %}<h4>{{ f.label }}</h4>

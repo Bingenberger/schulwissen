@@ -109,6 +109,14 @@ Alle Tabellen mit `id`, `erstellt_am`, `geaendert_am`, `erstellt_von`.
 - Lesende sehen standardmäßig die zuletzt beschlossene Fassung; Bearbeitende sehen zusätzlich den Entwurf mit Unterschieden (Diff-Ansicht).
 - Seit AP03 prüfen Eingabemaske und Verwaltung einen signierten Ausgangsstand unter derselben Datenbanksperre wie die Speicherung. Konflikte erhalten die eigene Eingabe und erfordern einen Vergleich mit ausdrücklich bestätigter Auflösung. JSON-Vorschau und Übernahme sind an Importinhalt und Dokumentstand gebunden; Details: [AP03_SCHREIBSCHUTZ.md](docs/AP03_SCHREIBSCHUTZ.md).
 
+### Gültigkeit und Wissenspflege (AP09)
+
+- Inhaltsart und Verbindlichkeit sind typisierte, versionierte Angaben; Dokumentzugang und Bearbeitungsstand bleiben getrennt. Altbestände sind zunächst nicht fachlich eingeordnet.
+- Wirksam ab/bis, letzter Prüfstand, nächster Prüftermin, Quellen, Pflegefunktion/Vertretung und Nachfolger gehören zum Schnappschuss. Eine zukünftige Freigabe verdrängt die heutige nicht. Ablauf einer jüngeren Regel reaktiviert keine ältere; ein überfälliger Prüftermin beendet keine Gültigkeit.
+- Die fachliche Freigabe für Routineinformationen benötigt keine erfundene Konferenz. Getrennte Freigaberechte, Nachweis und bestehender Schreibschutz gelten weiter.
+- Eine rechtegebundene Pflegeübersicht zeigt aktuell überfällige Prüfungen und ausdrücklich gemeldete Fehler, höchstens zwölf je Seite. Rollenwechsel aktualisieren Ansprechpartner ohne Inhaltskopien oder neue Rechte.
+- Verbindliche Anlagen werden als geschützte, bytegenaue Freigabekopie mit SHA-256 an die Eintragsversion gebunden. Externe Anlagen benötigen geprüfte Kopie und Versionsnachweis; reine Live-Links bleiben dynamisches Material. Originaländerungen werden angezeigt, Freigabekopien bleiben unverändert. Anleitung und Grenzen: [AP09_WISSENSPFLEGE.md](docs/AP09_WISSENSPFLEGE.md).
+
 ### Prozesse (AP05–AP08)
 
 - Der Dokumenttyp `schulhandbuch` erlaubt `grundlagenkapitel` und `prozess`; bestehende Typen bleiben erhalten.

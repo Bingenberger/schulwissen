@@ -34,6 +34,8 @@ def gliederungsfolge(dokument):
 
 
 def dokument_json(dokument):
+    from kern.wissenspflege import serialisieren
+
     alle = gliederungsfolge(dokument)
     kennungen = {str(e.pk): e.kennung for e in alle}
     eintraege = []
@@ -45,6 +47,7 @@ def dokument_json(dokument):
             "titel": e.titel,
             "status": e.status,
             "daten": e.daten,
+            "wissensangaben": serialisieren(e),
             "eltern": kennungen.get(str(e.eltern_id)),
             "position": e.position,
             "verantwortlich_text": e.verantwortlich_text,
@@ -67,6 +70,15 @@ def dokument_json(dokument):
                     "titel": v.titel,
                     "status": v.status,
                     "daten": v.daten,
+                    "wissensangaben": serialisieren(v),
+                    "dateifassungen": [
+                        {
+                            "dateiname": k.dateiname,
+                            "sha256": k.sha256,
+                            "dateiversion": k.dateiversion,
+                        }
+                        for k in v.dateifassungen.all()
+                    ],
                     "verlinkungen": v.verlinkungen,
                     "autor": v.autor.email if v.autor else None,
                     "zeitpunkt": v.zeitpunkt.isoformat(),
@@ -79,6 +91,7 @@ def dokument_json(dokument):
                     "id": b.pk,
                     "datum": b.datum.isoformat(),
                     "gremium": b.gremium.name,
+                    "freigabeart": b.freigabeart,
                     "titel": b.titel,
                     "text": b.text,
                 }
@@ -113,6 +126,8 @@ def _anhang(a):
         "nextcloud_link": a.nextcloud_link,
         "mimetype": a.mimetype,
         "groesse": a.groesse,
+        "verwendung": a.verwendung,
+        "dateiversion": a.dateiversion,
     }
 
 
@@ -193,6 +208,7 @@ def pdf_zeile(eintrag, version=None):
         "bloecke": bloecke,
         "beschluss": version.beschluss if version else None,
         "version": version,
+        "wissensangaben": version or eintrag,
     }
 
 

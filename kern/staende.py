@@ -2,15 +2,30 @@
 
 from dataclasses import dataclass
 
-from django.db.models import Case, F, OuterRef, Prefetch, Subquery, When
+from django.db.models import Case, Exists, F, OuterRef, Prefetch, Q, Subquery, When
+from django.utils import timezone
 
 from kern.models import Eintrag, Eintragsversion, Status, Zieltyp
 
 
 def gueltige_versionen():
-    return Eintragsversion.objects.filter(
-        status=Status.BESCHLOSSEN, beschluss__isnull=False
-    ).order_by("-versionsnummer")
+    """Jüngste bereits wirksame Freigabe; Fristablauf reaktiviert keine alte Regel."""
+    heute = timezone.localdate()
+    begonnen = Eintragsversion.objects.filter(
+        status=Status.BESCHLOSSEN,
+        beschluss__isnull=False,
+    ).filter(Q(wirksam_ab__isnull=True) | Q(wirksam_ab__lte=heute))
+    neuere = begonnen.filter(
+        eintrag_id=OuterRef("eintrag_id"), versionsnummer__gt=OuterRef("versionsnummer")
+    )
+    return (
+        begonnen.annotate(_neuere_wirksame=Exists(neuere))
+        .filter(
+            Q(wirksam_bis__isnull=True) | Q(wirksam_bis__gte=heute),
+            _neuere_wirksame=False,
+        )
+        .order_by("-versionsnummer")
+    )
 
 
 def mit_lesefassungen(menge):
@@ -41,7 +56,11 @@ def lesestand(nutzer, eintrag):
 
     if not rechte.darf_lesen(nutzer, eintrag):
         return None
-    version = eintrag.beschlossene_version() if rechte.ist_nur_lesend(nutzer) else None
+    version = None
+    if rechte.ist_nur_lesend(nutzer) or eintrag.status == Status.BESCHLOSSEN:
+        version = eintrag.beschlossene_version()
+        if version is None and not rechte.ist_nur_lesend(nutzer):
+            version = eintrag.letzte_version()
     return Eintragsstand(eintrag, version)
 
 
@@ -67,7 +86,14 @@ def lesemenge(nutzer, menge, *, nur_beschlossene=False):
                         default=F(feld),
                     )
                     if nur_beschlossene or rechte.ist_nur_lesend(nutzer)
-                    else F(feld)
+                    else Case(
+                        When(
+                            status=Status.BESCHLOSSEN,
+                            _leseversion__isnull=False,
+                            then=Subquery(versionen.values(feld)[:1]),
+                        ),
+                        default=F(feld),
+                    )
                 )
                 for feld in felder
             }
@@ -157,6 +183,10 @@ class Eintragsstand:
     version: Eintragsversion | None = None
 
     def __getattr__(self, name):
+        from kern.models import PFLEGE_FELDER
+
+        if self.version and (name in PFLEGE_FELDER or name.removesuffix("_id") in PFLEGE_FELDER):
+            return getattr(self.version, name)
         # Unversionierte Strukturangaben (Kennung, Dokument, Nummer) weiterreichen.
         return getattr(self.eintrag, name)
 
@@ -211,9 +241,7 @@ def auswertungsstaende(dokument, nur_beschlossene=False):
         menge = menge.prefetch_related(
             Prefetch(
                 "versionen",
-                queryset=Eintragsversion.objects.filter(
-                    status=Status.BESCHLOSSEN, beschluss__isnull=False
-                ).order_by("-versionsnummer"),
+                queryset=gueltige_versionen(),
                 to_attr="_gueltige_fassungen",
             )
         )

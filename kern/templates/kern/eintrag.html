@@ -66,13 +66,15 @@
     {% endfor %}
     {% if prozess %}{% include "kern/prozess/_leser.html" %}{% endif %}
 
+    {% include "kern/_wissensangaben.html" %}
+    <p class="knopf-reihe">{% if darf_bearbeiten %}<a class="knopf" href="{% url 'kern:wissenspflege_bearbeiten' dokument.schluessel eintrag.kennung %}">Wissensangaben bearbeiten</a>{% endif %}{% if darf_prozess_freigeben and not prozess and angezeigter_status != 'beschlossen' and angezeigter_status != 'archiviert' %}<a class="knopf" href="{% url 'kern:prozess_freigeben' dokument.schluessel eintrag.kennung %}">Fachlich freigeben</a>{% endif %}</p>
     {% if anhaenge %}
       <section class="block">
         <h2>Anhänge</h2>
         <ul class="anhang-liste">{% for anhang in anhaenge %}<li>
           {% if anhang.datei %}<a class="anhang-kachel" href="{{ anhang.datei.url }}">{% elif anhang.nextcloud_link %}<a class="anhang-kachel" href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer">{% else %}<div class="anhang-kachel">{% endif %}
           {% include "kern/_symbol.html" with name="datei" %}<span><strong>{{ anhang.dateiname }}</strong><small>{% if anhang.groesse %}{{ anhang.groesse|filesizeformat }}{% endif %}{% if anhang.nextcloud_link %} · Nextcloud{% endif %}{% if anhang.beschreibung %} · {{ anhang.beschreibung }}{% endif %}</small></span>
-          {% if anhang.datei or anhang.nextcloud_link %}</a>{% else %}</div>{% endif %}</li>{% endfor %}</ul>
+          {% if anhang.datei or anhang.nextcloud_link %}</a>{% else %}</div>{% endif %}<p class="klein">{{ anhang.get_verwendung_display }}{% if darf_bearbeiten %} · <a href="{% url 'kern:anlage_pflegen' dokument.schluessel eintrag.kennung anhang.pk %}">Dateifassung pflegen</a>{% endif %}</p></li>{% endfor %}</ul>
       </section>
     {% endif %}
   </article>
@@ -118,7 +120,7 @@
       {% for kommentar in kommentare %}
         <div class="kommentar{% if kommentar.erledigt %} ist-erledigt{% endif %}">
           <p class="kommentar-kopf">
-            {{ kommentar.autor.anzeigename|default:"Unbekannt" }} · {{ kommentar.erstellt_am|date:"d.m.Y" }}
+            {% if kommentar.fehlerhinweis %}<strong>Fehlermeldung</strong> · {% endif %}{{ kommentar.autor.anzeigename|default:"Unbekannt" }} · {{ kommentar.erstellt_am|date:"d.m.Y" }}
             {% if kommentar.erledigt %} · erledigt{% endif %}
           </p>
           <p>{{ kommentar.text|linebreaksbr }}</p>
@@ -139,6 +141,7 @@
         <form action="{% url 'kern:kommentar_anlegen' dokument.schluessel eintrag.kennung %}" method="post">
           {% csrf_token %}
           <div class="feld">
+            <label><input type="checkbox" name="fehlerhinweis"> Fehler melden</label>
             <label for="{{ kommentar_formular.text.id_for_label }}">Kommentar schreiben</label>
             {{ kommentar_formular.text }}
           </div>
