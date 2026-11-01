@@ -5,15 +5,17 @@
 <div class="geruest ohne-navigation">
   <div>
     <h1>Kompetenzerwartungen · {{ fachname }}</h1>
-    <p class="leise">Importierte Lehrplandaten für {{ fachname }}.
-      Diese Daten sind amtliche Vorgabe und werden nur ausgewählt, nicht bearbeitet.</p>
+    <p class="leise">Lehrplan für die Primarstufe in Nordrhein-Westfalen (RdErl. v. 01.07.2021).
+      Diese Angaben sind amtliche Vorgabe: sie werden ausgewählt, nicht bearbeitet.
+      Veränderbar ist allein, was bei einem „u. a.“ an unserer Schule verbindlich gilt.
+      {% if fachquelle %}<a href="{{ fachquelle }}" rel="noopener noreferrer" target="_blank">Lehrplannavigator</a>{% endif %}
+    </p>
 
     <div class="karte">
       <form method="get" class="auswahl-kopf filter-ohne-rahmen">
         <label class="nur-fuer-vorleser" for="fach">Fach</label>
         <select id="fach" name="fach">
-          <option value="">Alle Fächer</option>
-          {% for f in faecher %}<option value="{{ f.schluessel }}" {% if fach == f.schluessel %}selected{% endif %}>{{ f.name }}</option>{% endfor %}
+          {% for f in faecher %}<option value="{{ f.schluessel }}" {% if fach == f.schluessel %}selected{% endif %}>{{ f.name }} ({{ f.anzahl }})</option>{% endfor %}
         </select>
         <label class="nur-fuer-vorleser" for="suche">Suchen</label>
         <input type="search" id="suche" name="q" value="{{ begriff }}"
@@ -33,53 +35,91 @@
           {% endfor %}
         </select>
         <button class="knopf" type="submit">Filtern</button>
+        {% if gefiltert %}<a class="knopf knopf-leise" href="{% url 'fachdaten:uebersicht' %}?fach={{ fach }}">Filter zurücksetzen</a>{% endif %}
       </form>
     </div>
 
-    <p>{{ anzahl }} Erwartung{{ anzahl|pluralize:"en" }}.</p>
+    <p>
+      {{ anzahl }} Erwartung{{ anzahl|pluralize:"en" }}
+      {% if gefiltert %}von {{ anzahl_fach }} in {{ fachname }}{% endif %}
+      · {{ gesamt }} insgesamt in allen Fächern
+      {% if offene_festlegungen %}· <strong>{{ offene_festlegungen }} ohne schulische Festlegung</strong>{% endif %}
+    </p>
 
-    <div class="karte">
-      <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p><div class="tabelle-rahmen" role="region" aria-label="Tabelle, seitlich verschiebbar" tabindex="0"><table class="tabelle">
-        <thead>
-          <tr>
-            <th>Kennung</th><th>Kompetenzerwartung</th><th>Bereich / Schwerpunkt</th>
-            <th>Stufe</th><th>Hinweise</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for erwartung in erwartungen %}
-            <tr>
-              <td><span class="kompetenz-kennung">{{ erwartung.pk }}</span></td>
-              <td>
-                {{ erwartung.text }}
-                {% if erwartung.klammer %}<br><span class="leise klein">{{ erwartung.klammer }}</span>{% endif %}
-                {% if erwartung.schulische_festlegung %}
-                  <br><span class="klein"><strong>Bei uns verbindlich:</strong> {{ erwartung.schulische_festlegung }}</span>
-                {% endif %}
-              </td>
-              <td class="klein">{{ erwartung.bereich_name }}<br>{{ erwartung.schwerpunkt_voll }}</td>
-              <td class="klein">{{ erwartung.stufe }} – {{ erwartung.stufe_klartext }}
-                {% if erwartung.progressionspartner_id %}
-                  <br><span class="leise">Partner: {{ erwartung.progressionspartner_id }}</span>
-                {% endif %}
-              </td>
-              <td class="klein">
-                {% if erwartung.festlegung_fehlt %}
-                  <span class="schild schild-klein schild-entwurf">Festlegung fehlt</span>
-                {% endif %}
-                {% if erwartung.stufe_pruefen %}
-                  <span class="schild schild-klein schild-idee">Stufe prüfen</span>
-                {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="5">
-              Keine passenden Kompetenzen gefunden. Versuche ein anderes Wort oder wähle ein anderes Fach.
-            </td></tr>
-          {% endfor %}
-        </tbody>
-      </table></div>
+    <div class="knopf-reihe">
+      <a class="knopf knopf-leise" href="{% url 'fachdaten:export' 'xlsx' %}?{{ exportparameter }}">Als Tabelle (XLSX)</a>
+      <a class="knopf knopf-leise" href="{% url 'fachdaten:export' 'csv' %}?{{ exportparameter }}">Als CSV</a>
+      <a class="knopf knopf-leise" href="{% url 'fachdaten:export' 'json' %}?{{ exportparameter }}">Als JSON</a>
+      {% if darf_importieren %}<a class="knopf" href="{% url 'fachdaten:import' %}">Importieren</a>{% endif %}
     </div>
+    <p class="leise klein">Der Export enthält genau die oben gefilterte Auswahl – mit der Spalte
+      „Schulische Festlegung“, die sich ausgefüllt wieder importieren lässt.</p>
+
+    {% if gruppen|length > 1 %}
+      <nav class="karte sprungliste" aria-label="Zu einem Schwerpunkt springen">
+        <h2>Schwerpunkte</h2>
+        <ul>
+          {% for gruppe in gruppen %}
+            <li><a href="#{{ gruppe.anker }}">{{ gruppe.schwerpunkt }} <span class="leise">({{ gruppe.zeilen|length }})</span></a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endif %}
+
+    <p class="tabellen-hinweis">Die Tabellen lassen sich bei Bedarf seitlich verschieben. Die erste Spalte bleibt sichtbar.</p>
+
+    {% for gruppe in gruppen %}
+      {% if gruppe.neuer_bereich %}<h2 class="bereichstitel" {% if not gruppe.eigener_schwerpunkt %}id="{{ gruppe.anker }}"{% endif %}>{{ gruppe.bereich_name }}</h2>{% endif %}
+      <section class="karte" {% if gruppe.eigener_schwerpunkt %}id="{{ gruppe.anker }}"{% endif %}>
+        {% if gruppe.eigener_schwerpunkt %}
+          <h3>{{ gruppe.schwerpunkt }}
+            <span class="leise klein">{{ gruppe.zeilen|length }} Erwartung{{ gruppe.zeilen|length|pluralize:"en" }}</span></h3>
+        {% else %}
+          <p class="leise klein">{{ gruppe.zeilen|length }} Erwartung{{ gruppe.zeilen|length|pluralize:"en" }}</p>
+        {% endif %}
+        <div class="tabelle-rahmen" role="region" aria-label="{{ gruppe.bereich_name }}, {{ gruppe.schwerpunkt }}" tabindex="0">
+          <table class="tabelle">
+            <thead>
+              <tr><th>Kennung</th><th>Kompetenzerwartung</th><th>Gilt</th></tr>
+            </thead>
+            <tbody>
+              {% for erwartung in gruppe.zeilen %}
+                <tr>
+                  <td><span class="kompetenz-kennung">{{ erwartung.pk }}</span></td>
+                  <td>
+                    {{ erwartung.text }}
+                    {% if erwartung.klammer %}<br><span class="leise klein">Verbindlich: {{ erwartung.klammer }}</span>{% endif %}
+                    {% if erwartung.schulische_festlegung %}
+                      <br><span class="klein"><strong>Bei uns verbindlich:</strong> {{ erwartung.schulische_festlegung }}</span>
+                    {% elif erwartung.festlegung_fehlt %}
+                      <br><span class="schild schild-klein schild-entwurf">Schulische Festlegung fehlt</span>
+                    {% endif %}
+                  </td>
+                  <td class="klein">{{ erwartung.stufe_klartext }}
+                    {% if erwartung.progressionspartner_id %}
+                      <br><span class="leise">Partner: {{ erwartung.progressionspartner_id }}</span>
+                    {% endif %}
+                    {% if erwartung.stufe_pruefen %}
+                      <br><span class="schild schild-klein schild-idee">Stufe prüfen</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% empty %}
+      <div class="karte">
+        <p>Keine passenden Kompetenzen gefunden.
+          {% if gefiltert %}Versuche ein anderes Wort oder setze die Filter zurück.
+          {% else %}Für {{ fachname }} sind noch keine Lehrplandaten importiert.
+            {% if darf_importieren %}Das geht über <a href="{% url 'fachdaten:import' %}">Importieren</a>
+              oder mit <code>manage.py kompetenzen_importieren</code>.{% endif %}
+          {% endif %}
+        </p>
+      </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}

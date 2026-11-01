@@ -1,5 +1,5 @@
 {
-  "datum": "2026-10-30T13:17:34.520Z",
+  "datum": "2026-10-31T23:59:48.772Z",
   "breiten": [
     390,
     768,
@@ -535,6 +535,99 @@
       ]
     },
     {
+      "seite": "04-kompetenzen-mathematik",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "04-kompetenzen-gefiltert",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
+      "seite": "05-kompetenzimport",
+      "breiten": [
+        {
+          "breite": 1440,
+          "ueberlauf": false
+        },
+        {
+          "breite": 768,
+          "ueberlauf": false
+        },
+        {
+          "breite": 390,
+          "ueberlauf": false
+        },
+        {
+          "breite": 1024,
+          "ueberlauf": false
+        }
+      ],
+      "barrierefreiheit": [
+        {
+          "thema": "light",
+          "befunde": []
+        },
+        {
+          "thema": "dark",
+          "befunde": []
+        }
+      ]
+    },
+    {
       "seite": "05-planung",
       "breiten": [
         {
@@ -696,6 +789,5 @@
     "escape": true,
     "pflichtfeldfortschritt": true,
     "pflichtfeldsprung": true
-  },
-  "nachpruefungVerwaltung": "2026-10-30T16:15:15.707Z"
+  }
 }

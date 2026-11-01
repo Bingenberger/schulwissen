@@ -14,6 +14,7 @@ from django.urls import reverse
 from joserfc import jwt
 from joserfc.jwk import RSAKey
 
+from deutsch.auswertungen import abdeckungsmatrix
 from eintragstypen.dienste import Rohsatz, pruefen
 from fachdaten.importe import importieren
 from fachdaten.models import Fach, Kompetenzerwartung
@@ -256,18 +257,22 @@ def test_oidc_deaktiviert_ohne_konfiguration(client, settings):
     assert b"Mit Nextcloud anmelden" not in client.get(reverse("kern:anmelden")).content
 
 
-def test_alle_gewuenschten_faecher_sind_vorhanden():
+def test_alle_zehn_faecher_der_primarstufe_sind_vorhanden():
+    """Die zehn Lehrpläne des Sammelbands – mit ihren amtlichen Namen."""
     assert set(Fach.objects.values_list("name", flat=True)) == {
-        "Mathematik",
         "Deutsch",
-        "Sport",
-        "Kunst",
-        "Musik",
-        "Religion katholisch",
-        "Religion evangelisch",
-        "Sachunterricht",
         "Englisch",
+        "Evangelische Religionslehre",
+        "Katholische Religionslehre",
+        "Kunst",
+        "Mathematik",
+        "Musik",
+        "Praktische Philosophie",
+        "Sachunterricht",
+        "Sport",
     }
+    # Jedes Fach kennt seine Kompetenzbereiche, sonst scheitert der Import.
+    assert all(fach.bereiche for fach in Fach.objects.all())
 
 
 @pytest.fixture
@@ -363,3 +368,60 @@ def test_oidc_unicode_state_wird_abgewiesen(client, oidc_provider):
         == 403
     )
     assert not oidc_provider["token_anfragen"]
+
+
+def test_arbeitsplan_fuer_ein_zweites_fach_anlegen(client, admin_nutzer, lehrplanverzeichnis):
+    """Abnahme aus PHASE4.md: „Arbeitsplan Mathematik anlegen“.
+
+    Der Dokumenttyp „Arbeitsplan“ ist fachoffen. Nach dem Anlegen muss die
+    Kompetenzauswahl die Erwartungen des gewählten Fachs anbieten – und keine
+    aus einem anderen.
+    """
+    from fachdaten import lehrplan
+
+    for fach, pfad in lehrplan.vorhandene_dateien():
+        assert not importieren(pfad, fach=fach).fehler
+    client.force_login(admin_nutzer)
+
+    antwort = client.post(
+        reverse("kern:dokument_neu"),
+        {
+            "titel": "Arbeitsplan Mathematik",
+            "schluessel": "arbeitsplan-mathematik",
+            "dokumenttyp": Dokumenttyp.objects.get(schluessel="arbeitsplan").pk,
+            "fach": "mathematik",
+            "kollegiumsweit": "on",
+            "gueltig_ab_schuljahr": "",
+        },
+    )
+
+    assert antwort.status_code == 302, antwort.context["formular"].errors if antwort.context else ""
+    dokument = Dokument.objects.get(schluessel="arbeitsplan-mathematik")
+    assert dokument.fach == "mathematik"
+    assert dokument.ist_arbeitsplan
+
+    # Die Auswahl im Dokument bietet Mathematik an, nicht Deutsch.
+    treffer = client.get(
+        reverse("fachdaten:suche"), {"fach": "mathematik", "q": "Zahlenraum"}
+    ).content.decode()
+    assert 'data-kennung="MA-' in treffer
+    assert 'data-kennung="SZ' not in treffer
+
+    # Die Abdeckungsmatrix des neuen Dokuments rechnet mit Mathematik – und
+    # ordnet die Bereiche wie der Lehrplan, nicht nach den Deutsch-Kürzeln.
+    antwort = client.get(reverse("deutsch:abdeckung", args=[dokument.schluessel]))
+    assert antwort.status_code == 200
+    seite = antwort.content.decode()
+    assert "Zahlen und Operationen" in seite
+    assert "Sprechen und Zuhören" not in seite
+
+    matrix = abdeckungsmatrix(dokument, fach="mathematik")
+    assert [zeile.bereich for zeile in matrix.schwerpunkte][:6] == [
+        "PL",
+        "MO",
+        "KO",
+        "AR",
+        "DA",
+        "ZO",
+    ]
+    assert len(matrix.zeilen) == 136

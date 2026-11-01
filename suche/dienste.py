@@ -406,7 +406,7 @@ def _kompetenzen_suchen(begriff: str, fach: str = "") -> Gruppe:
                 kontext=f"{erwartung.bereich_name} › {erwartung.schwerpunkt_voll}",
                 ausschnitt=escape(erwartung.klammer),
                 kennung=erwartung.pk,
-                zusatz=f"Stufe {erwartung.stufe}",
+                zusatz=erwartung.stufe_klartext,
             )
         )
     return gruppe

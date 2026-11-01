@@ -26,7 +26,7 @@
     </div>
   </section>
 
-  <section class="start-dokumente" aria-labelledby="alltag-titel"><div class="abschnitt-kopf"><div><h2 id="alltag-titel">Im Schulalltag nachschlagen</h2><p>Die gültige Antwort finden, ohne einen Ordnernamen zu kennen.</p></div></div><p class="knopf-reihe"><a class="knopf knopf-wichtig" href="{% url 'kern:handbuch' %}">Schulhandbuch nach Aufgaben</a><a class="knopf" href="{% url 'kern:formulare' %}">Formulare und Vorlagen</a><a class="knopf" href="{% url 'kern:prozesse' %}">Abläufe Schritt für Schritt</a></p></section>
+  <section class="start-dokumente" aria-labelledby="alltag-titel"><div class="abschnitt-kopf"><div><h2 id="alltag-titel">Im Schulalltag nachschlagen</h2><p>Die gültige Antwort finden, ohne einen Ordnernamen zu kennen.</p></div></div><p class="knopf-reihe"><a class="knopf knopf-wichtig" href="{% url 'kern:handbuch' %}">Schulhandbuch nach Aufgaben</a><a class="knopf" href="{% url 'kern:formulare' %}">Formulare und Vorlagen</a><a class="knopf" href="{% url 'kern:prozesse' %}">Abläufe Schritt für Schritt</a><a class="knopf" href="{% url 'fachdaten:uebersicht' %}">Kompetenzerwartungen des Lehrplans</a></p></section>
   {% if zuletzt_beschlossen or eigene_entwuerfe %}
     <section class="start-aktuell" aria-label="Deine Einstiege">
       {% if zuletzt_beschlossen %}

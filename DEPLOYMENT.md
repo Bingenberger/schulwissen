@@ -102,8 +102,8 @@ diese Dauer. `SW_HSTS_TAGE=0` schaltet sie ab.
 ## 4. Stammdaten einspielen
 
 ```bash
-docker compose exec app python manage.py kompetenzen_importieren \
-    kompetenzerwartungen_lp2021.json
+# Alle zehn Faecher aus lehrplan/ (927 Kompetenzerwartungen)
+docker compose exec app python manage.py kompetenzen_importieren
 
 docker compose exec app python manage.py arbeitsplan_importieren \
     Datenmodell_Arbeitsplan_Deutsch.xlsx --vorschau

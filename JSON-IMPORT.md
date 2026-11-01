@@ -161,3 +161,13 @@ beziehen sich auf den vorhandenen Datenbestand. Ein Dokumentexport überträgt k
 Nutzerkonten und ist keine automatische Neuinstallation aller externen Ressourcen.
 
 Die [AP10-Aufnahmevorlage](docs/beispiele/ap10-aufnahmeplan.json) enthält zehn ausdrücklich unvollständige Aufnahmeentwürfe. Sie setzt ein passendes Schulhandbuch voraus, veröffentlicht nichts und ersetzt keine fachliche Bestätigung. Aufgaben verwenden die in der Wissensangaben-Maske angebotenen Schlüssel. Kurzantworten sind auf 600, Suchbegriffe auf 500 Zeichen begrenzt.
+
+## Kompetenzerwartungen
+
+Kompetenzerwartungen sind amtliche Lehrplandaten und haben ihren eigenen Weg:
+**Kompetenzen** im Benutzermenü, dort **Importieren** beziehungsweise die drei
+Exportschaltflächen. Das Format, die beiden Betriebsarten und der Weg über eine
+XLSX-Tabelle stehen in [docs/KOMPETENZDATEN.md](docs/KOMPETENZDATEN.md).
+
+Kurz: Exportiert und importiert werden dieselben Spalten. Für die Schule
+relevant ist davon genau eine – **Schulische Festlegung**.

@@ -1,0 +1,76 @@
+{% extends "grundlage.html" %}
+{% block titel %}Kompetenzerwartungen importieren{% endblock %}
+
+{% block inhalt %}
+<div class="start">
+  <p class="brotkrumen"><a href="{% url 'fachdaten:uebersicht' %}">Kompetenzerwartungen</a> › Import</p>
+  <h1>Kompetenzerwartungen importieren</h1>
+  <p class="leise">Zuerst prüfst du die Datei; erst mit „Übernehmen“ wird geschrieben.
+    Findet die Prüfung einen Fehler, wird nichts geschrieben.</p>
+
+  <form method="post" enctype="multipart/form-data" class="karte">{% csrf_token %}
+    {% include "kern/_formular.html" %}
+    <div class="knopf-reihe">
+      <button class="knopf" type="submit" name="aktion" value="vorschau">Datei prüfen</button>
+      {% if geprueft %}<button class="knopf knopf-wichtig" type="submit" name="aktion" value="uebernehmen">Geprüfte Daten übernehmen</button>{% endif %}
+    </div>
+    {% if geprueft %}<p class="feld-hilfe">Geprüft ist „{{ geprueft }}“. „Übernehmen“ schreibt genau diese Daten – ohne Dateiauswahl.</p>{% endif %}
+  </form>
+
+  {% if bericht %}
+    <section>
+      <h2>Prüfung · {{ bericht.saetze|length }} Zeile{{ bericht.saetze|length|pluralize:"n" }} gelesen</h2>
+      {% if bericht.ok %}
+        <p class="meldung meldung-success">Die Datei ist in Ordnung.
+          {% if bericht.modus == modus_festlegungen %}
+            {{ bericht.festlegungen }} Festlegung{{ bericht.festlegungen|pluralize:"en" }} würde{{ bericht.festlegungen|pluralize:"n" }} geändert, {{ bericht.unveraendert }} bleib{{ bericht.unveraendert|pluralize:"t,en" }} unverändert.
+          {% else %}
+            {{ bericht.angelegt }} neu, {{ bericht.aktualisiert }} aktualisiert, {{ bericht.unveraendert }} unverändert.
+          {% endif %}
+        </p>
+      {% else %}
+        <div class="meldung meldung-error">
+          <div>
+            <strong>Es wurde nichts geschrieben. Bitte korrigiere die Datei:</strong>
+            {% for fehler in bericht.fehler|slice:":40" %}<p>{{ fehler }}</p>{% endfor %}
+            {% if bericht.fehler|length > 40 %}<p>… und {{ bericht.fehler|length|add:"-40" }} weitere.</p>{% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="karte">
+        <p class="tabellen-hinweis">Bei Bedarf seitlich verschieben. Die ersten 50 Zeilen der Datei.</p>
+        <div class="tabelle-rahmen" role="region" aria-label="Importvorschau, seitlich verschiebbar" tabindex="0">
+          <table class="tabelle">
+            <thead><tr><th>Kennung</th><th>Kompetenzerwartung</th><th>Stufe</th><th>Schulische Festlegung</th></tr></thead>
+            <tbody>
+              {% for satz in bericht.saetze|slice:":50" %}
+                <tr>
+                  <td><span class="kompetenz-kennung">{{ satz.id|default:"—" }}</span></td>
+                  <td>{{ satz.text|default:"(unverändert)"|truncatechars:150 }}</td>
+                  <td class="klein">{{ satz.stufe|default:"—" }}</td>
+                  <td class="klein">{{ satz.schulischeFestlegung|default:"—"|truncatechars:90 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4">Die Datei enthält keine Zeilen.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="karte">
+    <h2>So geht der Weg über die Tabelle</h2>
+    <ol>
+      <li>In der Übersicht das Fach wählen und <strong>Als Tabelle (XLSX)</strong> herunterladen.</li>
+      <li>In der Tabelle nur die Spalte <strong>Schulische Festlegung</strong> ausfüllen.</li>
+      <li>Hier wieder hochladen, Betriebsart <strong>nur schulische Festlegungen</strong>, prüfen, übernehmen.</li>
+    </ol>
+    <p class="leise">Die Lehrplanangaben selbst sind amtliche Vorgabe. Sie ändern sich nur,
+      wenn das Land einen neuen Lehrplan erlässt – dann kommen sie über die Betriebsart
+      <strong>Lehrplandaten</strong> herein.</p>
+  </section>
+</div>
+{% endblock %}

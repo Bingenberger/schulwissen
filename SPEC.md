@@ -277,7 +277,7 @@ Status, Verantwortlich, Fassung/Version kommen aus dem Kern.
 ## 11. Import und Export
 
 ### Import (Admin-Oberfläche + Management-Commands)
-- **Kompetenzen** aus `kompetenzerwartungen_lp2021.json` (Felder: `id, bereich, bereichName, schwerpunktNr, schwerpunkt, stufe, text, klammer, uaWeitererInhalt, progressionspartner, stufePruefen`). Idempotent: erneuter Import aktualisiert, legt nicht doppelt an.
+- **Kompetenzen** aus `lehrplan/kompetenzerwartungen_<fach>.json` (Felder: `id, bereich, bereichName, schwerpunktNr, schwerpunkt, stufe, text, klammer, uaWeitererInhalt, progressionspartner, stufePruefen, schulischeFestlegung`). Idempotent: erneuter Import aktualisiert, legt nicht doppelt an. Zusätzlich in der Oberfläche unter **Kompetenzen**: Export der gefilterten Auswahl als JSON, XLSX oder CSV und Import derselben Spalten – wahlweise als Lehrplandaten oder nur als schulische Festlegungen (docs/KOMPETENZDATEN.md).
 - **Rituale und Vorhaben** aus `Datenmodell_Arbeitsplan_Deutsch.xlsx`, Blätter `Rituale` und `Vorhaben`: Spaltenüberschriften = Feldnamen laut Blatt `Felddefinitionen`; ID-Listen mit `;` getrennt; gelb markierte Beispielzeilen (Titel endet auf „(Beispiel)“) überspringen. Vor dem Import **Vorschau mit Validierung** (unbekannte Kompetenz-IDs, fehlende Pflichtfelder) und erst dann übernehmen.
 - **Generischer JSON-Import** für Einträge beliebiger Dokumenttypen (Schema dokumentieren), damit Bestandskonzepte per KI-Agent umgewandelt und eingespielt werden können. Beispiel:
 
@@ -375,5 +375,6 @@ Nach jeder Phase: kurze Demo-Anleitung für mich (was testen, wie), Tests grün,
 ## 16. Dateien, die ich bereitstelle
 
 - `Datenmodell_Arbeitsplan_Deutsch.xlsx` (Blätter: Anleitung, Übersicht, Kompetenzerwartungen, Rituale, Vorhaben, Felddefinitionen, Wertelisten)
-- `kompetenzerwartungen_lp2021.json` (117 Kompetenzerwartungen)
-- Hinweis: 58 Erwartungen haben `stufePruefen = true`; ich prüfe sie vor dem Produktivimport am Lehrplan-PDF.
+- `ps_lp_sammelband_2025_03_18_0.pdf` – der amtliche Sammelband aller zehn Lehrpläne der Primarstufe
+- daraus gelesen: `lehrplan/kompetenzerwartungen_<fach>.json` (927 Kompetenzerwartungen in zehn Fächern) und `lehrplan/faecher.json`
+- Der frühere Datensatz `kompetenzerwartungen_lp2021.json` hatte 61 Stufen als „zu prüfen“ markiert; sie sind am Sammelband geprüft und neun Angaben berichtigt (docs/KOMPETENZDATEN.md).

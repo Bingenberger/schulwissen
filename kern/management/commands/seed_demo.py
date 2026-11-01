@@ -132,24 +132,33 @@ class Command(BaseCommand):
     def _stammdaten(self, dokument) -> None:
         """Kompetenzen und Arbeitsmappe importieren, falls die Dateien da sind."""
         from deutsch import import_xlsx
+        from fachdaten import lehrplan
         from fachdaten.importe import importieren
         from fachdaten.models import Kompetenzerwartung
 
         basis = Path(settings.BASIS)
 
-        kompetenzen = basis / "kompetenzerwartungen_lp2021.json"
+        dateien = lehrplan.vorhandene_dateien()
         if Kompetenzerwartung.objects.exists():
             self.stdout.write(
                 f"{Kompetenzerwartung.objects.count()} Kompetenzerwartungen sind schon da."
             )
-        elif kompetenzen.exists():
-            bericht = importieren(kompetenzen)
-            self.stdout.write(f"{bericht.angelegt} Kompetenzerwartungen importiert.")
+        elif dateien:
+            angelegt = 0
+            for fach, pfad in dateien:
+                bericht = importieren(pfad, fach=fach)
+                if bericht.fehler:
+                    self.stdout.write(self.style.ERROR(f"{fach}: {bericht.als_text()}"))
+                    continue
+                angelegt += bericht.angelegt
+            self.stdout.write(
+                f"{angelegt} Kompetenzerwartungen aus {len(dateien)} Fächern importiert."
+            )
         else:
             self.stdout.write(
                 self.style.WARNING(
-                    f"{kompetenzen.name} nicht gefunden – ohne Stammdaten lassen sich "
-                    "keine Kompetenzen verlinken."
+                    f"In {lehrplan.verzeichnis()} liegen keine Kompetenzdateien – ohne "
+                    "Stammdaten lassen sich keine Kompetenzen verlinken."
                 )
             )
             return

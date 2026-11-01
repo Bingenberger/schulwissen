@@ -177,3 +177,12 @@ button.marke-text { font:inherit; background:transparent; border:0; color:inheri
 .entwurfsliste a>span { display:block; }
 .knopf-gefahr { color:var(--fehler); border-color:var(--fehler); }
 @media(max-width:550px) { .entwurfsliste>li { flex-wrap:wrap; } }
+
+/* Kompetenzübersicht: Sprungliste über die Schwerpunkte eines Fachs.
+   Mathematik hat 16 Schwerpunkte – ohne Sprungliste wäre die Seite nur
+   durch langes Wischen zu bedienen. */
+.sprungliste ul { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:var(--abstand-2); }
+.sprungliste li { margin:0; }
+.sprungliste a { display:inline-flex; align-items:center; min-height:var(--klickflaeche); padding:var(--abstand-1) var(--abstand-3); border:1px solid var(--linie); border-radius:var(--radius-feld); text-decoration:none; }
+.sprungliste a:hover { background:var(--flaeche-tief); }
+.bereichstitel { margin-top:var(--abstand-6); }

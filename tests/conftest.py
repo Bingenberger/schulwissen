@@ -21,15 +21,23 @@ from kern.models import (
 BASIS = Path(__file__).resolve().parent.parent
 
 #: Die Dateien aus SPEC.md §16. Sie liegen im Projektverzeichnis.
-KOMPETENZ_JSON = BASIS / "kompetenzerwartungen_lp2021.json"
+LEHRPLAN = BASIS / "lehrplan"
+KOMPETENZ_JSON = LEHRPLAN / "kompetenzerwartungen_deutsch.json"
 ARBEITSMAPPE = BASIS / "Datenmodell_Arbeitsplan_Deutsch.xlsx"
 
 
 @pytest.fixture
 def kompetenz_json() -> Path:
     if not KOMPETENZ_JSON.exists():
-        pytest.skip(f"{KOMPETENZ_JSON.name} fehlt im Projektverzeichnis.")
+        pytest.skip(f"{KOMPETENZ_JSON.name} fehlt in lehrplan/.")
     return KOMPETENZ_JSON
+
+
+@pytest.fixture
+def lehrplanverzeichnis() -> Path:
+    if not (LEHRPLAN / "faecher.json").exists():
+        pytest.skip("Das Verzeichnis lehrplan/ fehlt.")
+    return LEHRPLAN
 
 
 @pytest.fixture

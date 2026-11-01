@@ -27,9 +27,14 @@ Beschlussvorlagen, JSON-/XLSX-Export, Dokumenttypen „Konzept“ und
 „Konferenzprotokoll“ sowie generischer JSON-Import mit Vorschau.
 
 Phase 4: ETag-basierte Nextcloud-Indexierung, konfigurierbare OIDC-Anmeldung
-über Nextcloud und Fachverwaltung für alle neun benötigten Fächer. Die
-Live-Verbindungen benötigen die Nextcloud-Konfiguration; weitere amtliche
-Kompetenzdaten müssen fachweise importiert werden.
+über Nextcloud und Fachverwaltung für alle Fächer. Die
+Live-Verbindungen benötigen die Nextcloud-Konfiguration.
+
+Die Kompetenzerwartungen **aller zehn Fächer der Primarstufe NRW** (927) liegen
+in `lehrplan/` bereit und lassen sich als Tabelle ausgeben und wieder
+einlesen – siehe [docs/KOMPETENZDATEN.md](docs/KOMPETENZDATEN.md). Der
+Prüfbericht vom 1.11.2026 steht in
+[docs/PRUEFUNG_KOMPETENZEN_UND_BEDIENUNG.md](docs/PRUEFUNG_KOMPETENZEN_UND_BEDIENUNG.md).
 Einrichtung und Abnahme stehen in [PHASE4.md](PHASE4.md).
 Das JSON-Importformat und die Exportgrenzen stehen in [JSON-IMPORT.md](JSON-IMPORT.md).
 
@@ -39,7 +44,7 @@ Die [Roadmap](ROADMAP.md) übersetzt die
 [Analyse des Grundschulalltags](docs/PRODUKTANALYSE_GRUNDSCHULE.md) in
 priorisierte Arbeitspakete mit Abhängigkeiten und Abnahmekriterien für kommende
 Coding-Sitzungen. AP01–AP07 (Lesefassungen, Dokumentzugänge, Schreibschutz,
-Schulfunktionen, Prozessdaten, Autoreneditor und Leseansichten) sind umgesetzt; AP08 ergänzt Veröffentlichung und Prozesssuche. AP09 ergänzt [Gültigkeit, Quellen und Wissenspflege](docs/AP09_WISSENSPFLEGE.md) sowie verbindliche Dateikopien. [AP10](docs/AP10_SCHULHANDBUCH.md) ergänzt Handbuch nach Aufgaben, Kurzantworten/Synonyme und das Formularverzeichnis mit geschützten Downloads. Die Aufnahme zehn echter Schulabläufe und die fachliche Pilotabnahme bleiben offen; nächstes Coding-Paket ist **AP11**.
+Schulfunktionen, Prozessdaten, Autoreneditor und Leseansichten) sind umgesetzt; AP08 ergänzt Veröffentlichung und Prozesssuche. AP09 ergänzt [Gültigkeit, Quellen und Wissenspflege](docs/AP09_WISSENSPFLEGE.md) sowie verbindliche Dateikopien. [AP10](docs/AP10_SCHULHANDBUCH.md) ergänzt Handbuch nach Aufgaben, Kurzantworten/Synonyme und das Formularverzeichnis mit geschützten Downloads. Die Aufnahme zehn echter Schulabläufe und die fachliche Pilotabnahme bleiben offen; nächstes geplantes Coding-Paket ist **AP11**. Der [Prüfbericht vom 1.11.2026](docs/PRUEFUNG_KOMPETENZEN_UND_BEDIENUNG.md) schlägt vor, davor die Arbeitsplan-Gliederung für jedes Fach anzubieten: die Kompetenzdaten aller zehn Fächer liegen vor und ein Arbeitsplan Mathematik lässt sich anlegen, die Kapitelstruktur entsteht aber nur für Deutsch.
 Den ersten großen Ausbau bildet
 das [Prozesswerkzeug](docs/PROZESSWERKZEUG.md): Abläufe definieren, als
 „Was passiert, wenn …?“-Grafik anzeigen und zuständige Schulfunktionsrollen mit
@@ -83,7 +88,8 @@ den Server in [DEPLOYMENT.md](DEPLOYMENT.md).
 | `schulwissen/` | Einstellungen, URLs, WSGI |
 | `kern/` | Nutzer, Rollen, Dokumente, Fassungen, Beschlüsse, Anhänge, Kommentare, Planung, Exporte, Konzepte und Protokolle |
 | `eintragstypen/` | Registry der Feldschemata, Formular-Fabrik, gemeinsamer Schreibweg |
-| `fachdaten/` | Kompetenzerwartungen des Lehrplans, ihr Import und ihre Suche |
+| `fachdaten/` | Kompetenzerwartungen des Lehrplans, ihr Import, Export und ihre Suche |
+| `lehrplan/` | Die 927 Kompetenzerwartungen aller zehn Fächer als Importdateien |
 | `deutsch/` | Dokumenttyp „Arbeitsplan Deutsch“: Gliederung, Eintragstypen, XLSX-Import, Auswertungen |
 | `suche/` | Volltextsuche über alle Gruppen und die Autovervollständigung |
 | `vorlagen/`, `dateien/` | Seitengerüst und statische Dateien |
@@ -236,9 +242,9 @@ Prüfliste.
 ## Import
 
 ```bash
-# Kompetenzerwartungen (idempotent; schulische Festlegungen bleiben erhalten)
-docker compose exec app python manage.py kompetenzen_importieren \
-    kompetenzerwartungen_lp2021.json
+# Kompetenzerwartungen aller zehn Faecher aus lehrplan/
+# (idempotent; schulische Festlegungen bleiben erhalten)
+docker compose exec app python manage.py kompetenzen_importieren
 
 # Rituale und Vorhaben: erst ansehen, dann übernehmen
 docker compose exec app python manage.py arbeitsplan_importieren \
@@ -307,9 +313,14 @@ werden. Verwaltung und JSON-Importvorschau sind ebenfalls geschützt. Details:
 
 ## Hinweise zu den Daten
 
-- Die Datei `kompetenzerwartungen_lp2021.json` enthält **61** Erwartungen mit
-  `stufePruefen = true`; SPEC.md §16 nennt 58. Es gilt die Datei. Die Prüfliste
-  in der App zeigt alle 61.
-- Die Kompetenzerwartungen sind amtliche Vorgabe (Lehrplan Deutsch Primarstufe
-  NRW, RdErl. v. 01.07.2021) und werden nur importiert, nie in der App
-  geschrieben. Die einzige Ausnahme ist `schulische_festlegung`.
+- In `lehrplan/` liegen die **927 Kompetenzerwartungen aller zehn Fächer** der
+  Primarstufe NRW, eine Datei je Fach. Sie sind aus dem amtlichen Sammelband
+  (RdErl. v. 01.07.2021) gelesen; Herkunft, Kennungen, Export und Import stehen
+  in [docs/KOMPETENZDATEN.md](docs/KOMPETENZDATEN.md).
+- Die Kompetenzerwartungen sind amtliche Vorgabe und werden nur importiert, nie
+  in der App geschrieben. Die einzige Ausnahme ist `schulische_festlegung`:
+  dort legt die Schule fest, was bei einem „u. a.“ verbindlich gilt. Diese
+  Spalte lässt sich als Tabelle herunterladen, ausfüllen und zurückspielen.
+- Der frühere Deutsch-Datensatz hatte 61 Stufen als „zu prüfen“ markiert. Sie
+  sind jetzt am Lehrplan-PDF geprüft; neun Angaben wurden berichtigt
+  (docs/KOMPETENZDATEN.md).

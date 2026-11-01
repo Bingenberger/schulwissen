@@ -187,6 +187,12 @@ h1 { font-size: var(--schrift-titel); line-height: 1.25; margin: 0 0 0.5rem; }
 h2 { font-size: var(--schrift-abschnitt); line-height: 1.3; margin: 1.75rem 0 0.5rem; }
 h3 { font-size: var(--schrift-normal); margin: 1.25rem 0 0.4rem; }
 
+/* Schulsprache ist voll von langen Zusammensetzungen –
+   „Kompetenzerwartungen“, „Rechtschreibstrategien“. In einer Überschrift
+   passt so ein Wort auf einem 390 px breiten Bildschirm nicht in eine Zeile
+   und würde die ganze Seite seitlich verschieben. */
+h1, h2, h3, h4 { overflow-wrap: anywhere; }
+
 .ueberschrift-zeile {
   display: flex;
   flex-wrap: wrap;

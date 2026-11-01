@@ -24,7 +24,7 @@
         <tbody>
           {% for zeile in matrix.schwerpunkte %}
             <tr>
-              <td>{{ zeile.bereich }}</td>
+              <td class="klein"><span class="kompetenz-kennung">{{ zeile.bereich }}</span><br>{{ zeile.bereich_name }}</td>
               <td>{{ zeile.beschriftung }}</td>
               <td class="zahl">{{ zeile.erwartungen }}</td>
               <td class="zahl {% if zeile.mit_schwerpunkt %}abdeckung-schwerpunkt{% endif %}">{{ zeile.mit_schwerpunkt }}</td>
@@ -72,7 +72,7 @@
           {% for zeile in matrix.zeilen %}
             <tr>
               <td class="matrix-kompetenz"><details><summary>{{ zeile.erwartung.text }}</summary><span class="kompetenz-kennung">{{ zeile.erwartung.pk }}</span><p class="klein">Aufgebaut in:</p><ul>{% for eintrag in zeile.als_schwerpunkt %}<li><a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.titel }}</a> · Schwerpunkt</li>{% empty %}<li>Noch kein Schwerpunkt.</li>{% endfor %}{% for eintrag in zeile.nur_beruehrt %}<li><a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">{{ eintrag.titel }}</a> · berührt</li>{% endfor %}</ul></details></td>
-              <td class="klein">{{ zeile.erwartung.stufe }}</td>
+              <td class="klein"><abbr title="{{ zeile.erwartung.stufe_klartext }}">{{ zeile.erwartung.stufe }}</abbr></td>
               <td class="abdeckung-{{ zeile.abdeckung }}">{{ zeile.beschriftung }}</td>
               <td class="zahl">{{ zeile.rituale_schwerpunkt }}{% if zeile.rituale_beruehrt %} <span class="leise">({{ zeile.rituale_beruehrt }})</span>{% endif %}</td>
               <td class="zahl">{{ zeile.vorhaben_schwerpunkt }}{% if zeile.vorhaben_beruehrt %} <span class="leise">({{ zeile.vorhaben_beruehrt }})</span>{% endif %}</td>

@@ -4,6 +4,8 @@ Stand: 31.10.2026. Ausgangspunkt: Produktanalyse in Commit `8d4a9d7`, bestehende
 
 **Nächstes Coding-Paket: AP11. AP10 ist technisch fertig; die Aufnahme zehn echter Abläufe, der AP08-Pilot und B01 bleiben offen.**
 
+**Zwischenstand 01.11.2026:** Die Kompetenzerwartungen aller zehn Fächer der Primarstufe NRW (927) sind eingelesen, Export und Import stehen in der Oberfläche ([docs/KOMPETENZDATEN.md](docs/KOMPETENZDATEN.md)). Der [Prüfbericht](docs/PRUEFUNG_KOMPETENZEN_UND_BEDIENUNG.md) nennt als größte Lücke, dass die Arbeitsplan-Gliederung nur für Deutsch entsteht, und empfiehlt, dieses Paket vor AP11 zu ziehen.
+
 Einstieg für die nächste Sitzung: „Arbeite das nächste offene, durch seine Abhängigkeiten freigegebene Paket der ROADMAP.md ab und aktualisiere anschließend Status und Übergabeprotokoll.“
 
 ## 1. Verbindlicher Schwerpunkt

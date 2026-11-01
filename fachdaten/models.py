@@ -20,9 +20,11 @@ class Fach(Zeitstempel):
     name = models.CharField("Name", max_length=100, unique=True)
     bereiche = models.JSONField(
         "Kompetenzbereiche",
-        default=dict,
+        default=list,
         blank=True,
-        help_text='Objekt aus Kürzel und Name, z. B. {"ZA": "Zahlen"}.',
+        help_text="Liste aus Kürzel und Name in der Reihenfolge des Lehrplans, "
+        'z. B. [["ZA", "Zahlen"], ["RF", "Raum und Form"]]. '
+        'Ein Objekt {"ZA": "Zahlen"} geht auch, wird dann aber alphabetisch sortiert.',
     )
     quelle = models.URLField("Lehrplanquelle", max_length=500, blank=True)
 
@@ -34,21 +36,45 @@ class Fach(Zeitstempel):
     def __str__(self):
         return self.name
 
+    def bereichspaare(self) -> list[tuple[str, str]]:
+        """Kürzel und Name in der Reihenfolge des Lehrplans.
+
+        Die Reihenfolge ist fachlich: Mathematik beginnt mit „Problemlösen“,
+        nicht mit „Argumentieren“. Ein JSON-Objekt kann sie nicht halten –
+        PostgreSQL speichert ``jsonb`` und sortiert dessen Schlüssel um. Eine
+        Liste bleibt dagegen so, wie sie geschrieben wurde. Ältere Fächer mit
+        Objekt werden alphabetisch ausgegeben.
+        """
+        if isinstance(self.bereiche, dict):
+            return sorted(self.bereiche.items())
+        return [(paar[0], paar[1]) for paar in self.bereiche or [] if len(paar) == 2]
+
     def clean(self):
         import re
 
         from django.core.exceptions import ValidationError
 
-        if not isinstance(self.bereiche, dict) or any(
-            not re.fullmatch(r"[A-Z][A-Z0-9_]{0,19}", key)
-            or not isinstance(wert, str)
-            or not wert.strip()
-            or len(wert) > 80
-            for key, wert in self.bereiche.items()
+        fehler = ValidationError(
+            {"bereiche": "Bitte Bereichskürzel (bis 20 Zeichen) und Namen angeben."}
+        )
+        if not isinstance(self.bereiche, (dict, list)):
+            raise fehler
+        if isinstance(self.bereiche, list) and any(
+            not isinstance(paar, (list, tuple)) or len(paar) != 2 for paar in self.bereiche
         ):
-            raise ValidationError(
-                {"bereiche": "Bitte Bereichskürzel (bis 20 Zeichen) und Namen angeben."}
-            )
+            raise fehler
+        paare = self.bereichspaare()
+        if len(paare) != len(self.bereiche) or len({k for k, _ in paare}) != len(paare):
+            raise fehler
+        if any(
+            not isinstance(kuerzel, str)
+            or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,19}", kuerzel)
+            or not isinstance(name, str)
+            or not name.strip()
+            or len(name) > 80
+            for kuerzel, name in paare
+        ):
+            raise fehler
 
 
 class Bereich(models.TextChoices):

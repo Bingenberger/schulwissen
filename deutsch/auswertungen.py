@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from fachdaten.faecher import bereiche_fuer
 from fachdaten.models import Kompetenzerwartung
 from kern.models import Verlinkungsart, Zieltyp
 from kern.staende import auswertungsstaende
@@ -80,6 +81,7 @@ class Schwerpunktzeile:
     """Aggregat je Schwerpunkt – entspricht einer Zeile im Blatt „Übersicht“."""
 
     bereich: str
+    bereich_name: str
     schwerpunkt_nr: int
     schwerpunkt: str
     zeilen: list[Erwartungszeile] = field(default_factory=list)
@@ -202,16 +204,20 @@ def abdeckungsmatrix(
         if schluessel not in nach_schwerpunkt:
             nach_schwerpunkt[schluessel] = Schwerpunktzeile(
                 bereich=erwartung.bereich,
+                bereich_name=erwartung.bereich_name,
                 schwerpunkt_nr=erwartung.schwerpunkt_nr,
                 schwerpunkt=erwartung.schwerpunkt,
             )
         nach_schwerpunkt[schluessel].zeilen.append(zeile)
 
-    # Reihenfolge wie im Lehrplan und im Blatt „Übersicht“: SZ, SC, LE, SP.
-    reihenfolge = {"SZ": 1, "SC": 2, "LE": 3, "SP": 4}
+    # Reihenfolge wie im Lehrplan: für Deutsch SZ, SC, LE, SP – für jedes
+    # andere Fach die Reihenfolge, die am Fach hinterlegt ist. Ohne das
+    # stünden die Bereiche eines Fachs durcheinander, weil die
+    # Schwerpunktnummern in jedem Bereich wieder bei 1 beginnen.
+    reihenfolge = {kuerzel: nr for nr, (kuerzel, _) in enumerate(bereiche_fuer(fach))}
     matrix.schwerpunkte = sorted(
         nach_schwerpunkt.values(),
-        key=lambda s: (reihenfolge.get(s.bereich, 9), s.schwerpunkt_nr),
+        key=lambda s: (reihenfolge.get(s.bereich, len(reihenfolge)), s.schwerpunkt_nr),
     )
     return matrix
 

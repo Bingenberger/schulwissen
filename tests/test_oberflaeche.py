@@ -133,8 +133,12 @@ def test_pruefliste_laedt(client, lehrkraft, importierter_arbeitsplan):
 
     antwort = client.get(reverse("deutsch:pruefliste", args=[importierter_arbeitsplan.schluessel]))
 
+    seite = antwort.content.decode()
     assert antwort.status_code == 200
-    assert "Stufenzuordnung prüfen (61)" in antwort.content.decode()
+    # Die Stufen sind am Lehrplan-PDF geprüft (docs/KOMPETENZDATEN.md);
+    # offen bleiben die schulischen Festlegungen bei „u. a.“.
+    assert "Stufenzuordnung prüfen (0)" in seite
+    assert "Schulische Festlegung fehlt (20)" in seite
 
 
 def test_fassungen_laden(client, lehrkraft, importierter_arbeitsplan):
@@ -189,14 +193,17 @@ def test_kompetenzsuche_schlaegt_stufen_nach_jahrgang_vor(client, lehrkraft, kom
     jg3 = client.get(reverse("fachdaten:suche"), {"jahrgang": "3"})
 
     # Jahrgang 1/2 → Stufen S und D, Jahrgang 3/4 → K und D (SPEC.md §7.4).
-    def kennungen(antwort):
+    def stufen(antwort):
         inhalt = antwort.content.decode()
+        # Maßgeblich ist das Feld „stufe“, nicht der Buchstabe der Kennung:
+        # bei acht Deutsch-Erwartungen wurde die Stufe am Lehrplan berichtigt,
+        # die Kennung aber bewusst nicht umbenannt (docs/KOMPETENZDATEN.md).
         return {
-            e.pk for e in Kompetenzerwartung.objects.all() if f'data-kennung="{e.pk}"' in inhalt
+            e.stufe for e in Kompetenzerwartung.objects.all() if f'data-kennung="{e.pk}"' in inhalt
         }
 
-    stufen_jg1 = {k[-1] for k in kennungen(jg1)}
-    stufen_jg3 = {k[-1] for k in kennungen(jg3)}
+    stufen_jg1 = stufen(jg1)
+    stufen_jg3 = stufen(jg3)
 
     assert stufen_jg1 == {"S", "D"}
     assert stufen_jg3 == {"K", "D"}

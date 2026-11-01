@@ -43,7 +43,7 @@
               <tr>
                 <td><span class="kompetenz-kennung">{{ erwartung.pk }}</span></td>
                 <td>{{ erwartung.text }}</td>
-                <td class="klein">{{ erwartung.stufe }} – {{ erwartung.stufe_klartext }}</td>
+                <td class="klein">{{ erwartung.stufe_klartext }}</td>
                 <td class="klein">{{ erwartung.progressionspartner_id|default:"–" }}</td>
               </tr>
             {% endfor %}

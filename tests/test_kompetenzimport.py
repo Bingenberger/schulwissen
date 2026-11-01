@@ -58,15 +58,21 @@ def test_progressionspartner_werden_verknuepft(kompetenz_json):
         assert {erwartung.stufe, partner.stufe} == {"S", "K"}
 
 
-def test_stufe_pruefen_wird_uebernommen(kompetenz_json):
-    """SPEC.md §16 nennt 58 Fälle, die Datei enthält 61 – es gilt die Datei."""
+def test_stufe_pruefen_ist_erledigt(kompetenz_json):
+    """Die Stufen stehen jetzt am Lehrplan-PDF geprüft fest.
+
+    Der frühere Datensatz kam aus der Arbeitsmappe und hatte 61 Stufen als „zu
+    prüfen“ markiert. Der Datensatz in ``lehrplan/`` ist aus dem amtlichen
+    Sammelband gelesen, in dem eine über beide Spalten verbundene Tabellenzeile
+    „durchgängig“ bedeutet – es bleibt nichts zu prüfen
+    (docs/KOMPETENZDATEN.md).
+    """
     rohdaten = json.loads(kompetenz_json.read_text(encoding="utf-8"))
-    erwartet = sum(1 for satz in rohdaten if satz.get("stufePruefen"))
+    assert [satz["id"] for satz in rohdaten if satz.get("stufePruefen")] == []
 
     importieren(kompetenz_json)
 
-    assert Kompetenzerwartung.objects.filter(stufe_pruefen=True).count() == erwartet
-    assert erwartet == 61
+    assert Kompetenzerwartung.objects.filter(stufe_pruefen=True).count() == 0
 
 
 def test_fehlerhafte_datei_schreibt_nichts(tmp_path):

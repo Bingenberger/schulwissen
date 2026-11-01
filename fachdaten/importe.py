@@ -1,13 +1,30 @@
-"""Import der Kompetenzerwartungen aus ``kompetenzerwartungen_lp2021.json``.
+"""Import der Kompetenzerwartungen aus ``lehrplan/kompetenzerwartungen_*.json``.
 
 Der Import ist **idempotent**: ein erneuter Lauf aktualisiert die Lehrplandaten
 und legt nichts doppelt an. ``schulische_festlegung`` wird dabei nie
 überschrieben – das ist die einzige Spalte, die der Schule gehört und nicht dem
 Lehrplan (SPEC.md §7.3, §11).
+
+Es gibt zwei Betriebsarten:
+
+``lehrplan``
+    Die amtlichen Angaben werden geschrieben, die schulischen Festlegungen
+    bleiben unberührt. So kommen neue oder berichtigte Lehrplandaten herein.
+
+``festlegungen``
+    Nur ``schulische_festlegung`` wird geschrieben, die Lehrplanangaben bleiben
+    unberührt. So spielt die Schule eine in der Tabelle gepflegte Spalte
+    zurück. Kennungen, die es nicht gibt, sind hier ein Fehler – sonst fiele
+    ein Tippfehler in der Kennung nicht auf.
+
+Gelesen werden JSON, XLSX und CSV. Die Spalten sind in ``fachdaten.felder``
+beschrieben und für Import und Export dieselben.
 """
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -15,9 +32,18 @@ from pathlib import Path
 from django.db import transaction
 
 from fachdaten.faecher import bereiche_fuer
+from fachdaten.felder import FESTLEGUNG, UEBERSCHRIFT_ZU_SCHLUESSEL
 from fachdaten.models import Fach, Kompetenzerwartung, Stufe
 
-#: Schlüssel der JSON-Datei (SPEC.md §11) auf Modellfelder.
+MODUS_LEHRPLAN = "lehrplan"
+MODUS_FESTLEGUNGEN = "festlegungen"
+MODI = (
+    (MODUS_LEHRPLAN, "Lehrplandaten (amtlich)"),
+    (MODUS_FESTLEGUNGEN, "nur schulische Festlegungen"),
+)
+
+#: Schlüssel der JSON-Datei (SPEC.md §11) auf Modellfelder – ohne „fach“ und
+#: ohne die schulische Festlegung, die beide gesondert behandelt werden.
 JSON_FELDER = {
     "id": "id",
     "bereich": "bereich",
@@ -31,6 +57,13 @@ JSON_FELDER = {
     "stufePruefen": "stufe_pruefen",
 }
 
+#: Höchstlänge der schulischen Festlegung. Ein Textfeld ohne Grenze lädt dazu
+#: ein, ganze Konzepte hineinzuschreiben; dafür gibt es Einträge.
+FESTLEGUNG_MAXLAENGE = 2000
+
+WAHR = {"ja", "wahr", "true", "1", "x", "j"}
+FALSCH = {"", "nein", "falsch", "false", "0", "n", "-"}
+
 
 @dataclass
 class Importbericht:
@@ -38,28 +71,46 @@ class Importbericht:
     aktualisiert: int = 0
     unveraendert: int = 0
     partner_gesetzt: int = 0
+    festlegungen: int = 0
+    modus: str = MODUS_LEHRPLAN
+    fach: str = "deutsch"
+    saetze: list[dict] = field(default_factory=list)
     fehler: list[str] = field(default_factory=list)
 
     @property
     def gesamt(self) -> int:
         return self.angelegt + self.aktualisiert + self.unveraendert
 
+    @property
+    def ok(self) -> bool:
+        return not self.fehler
+
     def als_text(self) -> str:
-        zeilen = [
-            f"{self.gesamt} Kompetenzerwartungen verarbeitet:",
-            f"  neu angelegt:  {self.angelegt}",
-            f"  aktualisiert:  {self.aktualisiert}",
-            f"  unverändert:   {self.unveraendert}",
-            f"  Progressionspartner verknüpft: {self.partner_gesetzt}",
-        ]
+        if self.modus == MODUS_FESTLEGUNGEN:
+            zeilen = [
+                f"{len(self.saetze)} Zeilen gelesen:",
+                f"  Festlegungen geändert: {self.festlegungen}",
+                f"  unverändert:           {self.unveraendert}",
+            ]
+        else:
+            zeilen = [
+                f"{self.gesamt} Kompetenzerwartungen verarbeitet:",
+                f"  neu angelegt:  {self.angelegt}",
+                f"  aktualisiert:  {self.aktualisiert}",
+                f"  unverändert:   {self.unveraendert}",
+                f"  Progressionspartner verknüpft: {self.partner_gesetzt}",
+            ]
         if self.fehler:
             zeilen.append(f"  Fehler: {len(self.fehler)}")
             zeilen.extend(f"    - {f}" for f in self.fehler)
         return "\n".join(zeilen)
 
 
-def saetze_lesen(pfad: Path) -> list[dict]:
-    rohdaten = json.loads(Path(pfad).read_text(encoding="utf-8"))
+# --- Dateien lesen ---------------------------------------------------------
+
+
+def _json_lesen(rohtext: str) -> list[dict]:
+    rohdaten = json.loads(rohtext)
     if isinstance(rohdaten, dict):
         # Erlaubt sowohl eine nackte Liste als auch ein umhüllendes Objekt.
         for schluessel in ("kompetenzerwartungen", "daten", "eintraege"):
@@ -71,7 +122,104 @@ def saetze_lesen(pfad: Path) -> list[dict]:
     return rohdaten
 
 
-def _satz_pruefen(satz: dict, nummer: int, bereiche) -> list[str]:
+def _wert_wandeln(schluessel: str, wert) -> object:
+    """Einen Tabellenwert in die Form bringen, die der JSON-Satz hat."""
+    if wert is None:
+        wert = ""
+    text = str(wert).strip()
+    if schluessel in ("uaWeitererInhalt", "stufePruefen"):
+        if text.lower() in WAHR:
+            return True
+        if text.lower() in FALSCH:
+            return False
+        return text
+    if schluessel == "schwerpunktNr":
+        try:
+            return int(float(text))
+        except ValueError:
+            return text
+    if schluessel == "progressionspartner":
+        return text or None
+    return text
+
+
+def _tabelle_wandeln(zeilen: list[list]) -> list[dict]:
+    if not zeilen:
+        raise ValueError("Die Tabelle ist leer.")
+    kopf = [str(z or "").strip().lower() for z in zeilen[0]]
+    zuordnung = {
+        nummer: UEBERSCHRIFT_ZU_SCHLUESSEL[name]
+        for nummer, name in enumerate(kopf)
+        if name in UEBERSCHRIFT_ZU_SCHLUESSEL
+    }
+    if "id" not in zuordnung.values():
+        raise ValueError(
+            "Die erste Zeile muss die Spaltenüberschriften enthalten, "
+            "darunter „Kennung“. Am einfachsten geht das mit einer "
+            "exportierten Datei."
+        )
+    saetze = []
+    for zeile in zeilen[1:]:
+        if not any(str(z or "").strip() for z in zeile):
+            continue
+        satz = {}
+        for nummer, schluessel in zuordnung.items():
+            wert = zeile[nummer] if nummer < len(zeile) else ""
+            satz[schluessel] = _wert_wandeln(schluessel, wert)
+        saetze.append(satz)
+    return saetze
+
+
+def _csv_lesen(rohdaten: bytes) -> list[dict]:
+    text = rohdaten.decode("utf-8-sig")
+    probe = text[:2000]
+    trenner = ";" if probe.count(";") >= probe.count(",") else ","
+    return _tabelle_wandeln(list(csv.reader(io.StringIO(text), delimiter=trenner)))
+
+
+def _xlsx_lesen(rohdaten: bytes) -> list[dict]:
+    from openpyxl import load_workbook
+
+    mappe = load_workbook(io.BytesIO(rohdaten), read_only=True, data_only=True)
+    blatt = mappe.active
+    return _tabelle_wandeln([list(zeile) for zeile in blatt.iter_rows(values_only=True)])
+
+
+def saetze_aus_daten(dateiname: str, rohdaten: bytes) -> list[dict]:
+    """Sätze aus einer hochgeladenen Datei – JSON, XLSX oder CSV."""
+    endung = Path(dateiname or "").suffix.lower()
+    if endung == ".xlsx":
+        return _xlsx_lesen(rohdaten)
+    if endung == ".csv":
+        return _csv_lesen(rohdaten)
+    try:
+        return _json_lesen(rohdaten.decode("utf-8"))
+    except UnicodeDecodeError as fehler:
+        raise ValueError("Bitte eine UTF-8-Datei verwenden.") from fehler
+
+
+def saetze_lesen(pfad: Path) -> list[dict]:
+    pfad = Path(pfad)
+    return saetze_aus_daten(pfad.name, pfad.read_bytes())
+
+
+# --- Prüfen ----------------------------------------------------------------
+
+
+def _festlegung_pruefen(satz: dict, kennung: str) -> list[str]:
+    wert = satz.get(FESTLEGUNG)
+    if wert is None:
+        return []
+    if not isinstance(wert, str):
+        return [f"{kennung}: „Schulische Festlegung“ muss Text sein."]
+    if len(wert) > FESTLEGUNG_MAXLAENGE:
+        return [
+            f"{kennung}: Die schulische Festlegung ist länger als {FESTLEGUNG_MAXLAENGE} Zeichen."
+        ]
+    return []
+
+
+def _satz_pruefen(satz: dict, nummer: int, bereiche, modus: str, fach: str = "") -> list[str]:
     fehler = []
     if not isinstance(satz, dict):
         return [f"Satz {nummer}: ein JSON-Objekt wird erwartet."]
@@ -79,6 +227,18 @@ def _satz_pruefen(satz: dict, nummer: int, bereiche) -> list[str]:
     if not isinstance(kennung, str) or not kennung.strip() or len(kennung) > 20:
         fehler.append(f"Satz {nummer}: ohne „id“.")
         return fehler
+    fehler.extend(_festlegung_pruefen(satz, kennung))
+    if modus == MODUS_FESTLEGUNGEN:
+        # Die Lehrplanspalten dürfen dabeistehen, werden aber nicht geprüft:
+        # geschrieben wird nur die Festlegung.
+        return fehler
+    if fach and satz.get("fach") and satz["fach"] != fach:
+        # Die Datei nennt ihr Fach. Eine Sportdatei unter „Musik“ einzulesen
+        # wäre ein Griff daneben, der sich schlecht rückgängig machen lässt.
+        fehler.append(
+            f"{kennung}: Die Datei gehört zum Fach „{satz['fach']}“, "
+            f"importiert werden soll „{fach}“."
+        )
     if not isinstance(satz.get("bereich"), str) or satz.get("bereich") not in bereiche:
         fehler.append(
             f"{kennung}: unbekannter Bereich „{satz.get('bereich')}“ "
@@ -116,38 +276,39 @@ def _satz_pruefen(satz: dict, nummer: int, bereiche) -> list[str]:
     return fehler
 
 
-@transaction.atomic
-def importieren(pfad: Path, fach: str = "deutsch", nur_pruefen: bool = False) -> Importbericht:
-    bericht = Importbericht()
-    try:
-        saetze = saetze_lesen(Path(pfad))
-    except (ValueError, OSError) as fehler:
-        bericht.fehler.append(f"Datei nicht lesbar: {fehler}")
-        return bericht
-    bereiche = dict(bereiche_fuer(fach))
-    if not Fach.objects.filter(schluessel=fach).exists() and fach != "deutsch":
-        bericht.fehler.append("Das Fach muss zuerst in der Verwaltung angelegt werden.")
-        return bericht
-    gesehen = set()
+# --- Schreiben -------------------------------------------------------------
+
+
+def _festlegungen_schreiben(saetze, fach: str, bericht: Importbericht) -> None:
+    vorhanden = {
+        e.pk: e
+        for e in Kompetenzerwartung.objects.filter(
+            fach=fach, pk__in=[s["id"] for s in saetze if isinstance(s.get("id"), str)]
+        )
+    }
     for satz in saetze:
-        if not isinstance(satz, dict) or not isinstance(satz.get("id"), str):
-            continue
         kennung = satz["id"]
-        if kennung in gesehen:
-            bericht.fehler.append(f"Doppelte Kompetenzkennung: {kennung}.")
-        gesehen.add(kennung)
-        if Kompetenzerwartung.objects.filter(pk=kennung).exclude(fach=fach).exists():
-            bericht.fehler.append(f"{kennung}: Diese Kennung gehört bereits zu einem anderen Fach.")
+        erwartung = vorhanden.get(kennung)
+        if erwartung is None:
+            bericht.fehler.append(
+                f"{kennung}: Diese Kennung gibt es im Fach nicht. "
+                "Bitte zuerst die Lehrplandaten importieren."
+            )
+            continue
+        if FESTLEGUNG not in satz:
+            bericht.unveraendert += 1
+            continue
+        neu = (satz[FESTLEGUNG] or "").strip()
+        if neu == erwartung.schulische_festlegung:
+            bericht.unveraendert += 1
+            continue
+        erwartung.schulische_festlegung = neu
+        erwartung.save(update_fields=["schulische_festlegung", "suchtext", "geaendert_am"])
+        bericht.festlegungen += 1
 
-    for nummer, satz in enumerate(saetze, start=1):
-        bericht.fehler.extend(_satz_pruefen(satz, nummer, bereiche))
-    if bericht.fehler:
-        # Lehrplandaten sind amtlich: lieber gar nicht importieren als halb.
-        transaction.set_rollback(True)
-        return bericht
 
+def _lehrplan_schreiben(saetze, fach: str, bericht: Importbericht) -> None:
     partner: dict[str, str] = {}
-
     for satz in saetze:
         werte = {
             modellfeld: satz.get(jsonfeld)
@@ -194,6 +355,54 @@ def importieren(pfad: Path, fach: str = "deutsch", nur_pruefen: bool = False) ->
             .update(progressionspartner_id=partner_kennung)
         )
         bericht.partner_gesetzt += anzahl
+
+
+@transaction.atomic
+def importieren(
+    quelle,
+    fach: str = "deutsch",
+    nur_pruefen: bool = False,
+    modus: str = MODUS_LEHRPLAN,
+) -> Importbericht:
+    """Kompetenzerwartungen einlesen. ``quelle`` ist ein Pfad oder eine Liste."""
+    bericht = Importbericht(modus=modus, fach=fach)
+    if isinstance(quelle, (str, Path)):
+        try:
+            saetze = saetze_lesen(Path(quelle))
+        except (ValueError, OSError) as fehler:
+            bericht.fehler.append(f"Datei nicht lesbar: {fehler}")
+            return bericht
+    else:
+        saetze = list(quelle)
+    bericht.saetze = saetze
+
+    bereiche = dict(bereiche_fuer(fach))
+    if not Fach.objects.filter(schluessel=fach).exists() and fach != "deutsch":
+        bericht.fehler.append("Das Fach muss zuerst in der Verwaltung angelegt werden.")
+        return bericht
+
+    gesehen = set()
+    for satz in saetze:
+        if not isinstance(satz, dict) or not isinstance(satz.get("id"), str):
+            continue
+        kennung = satz["id"]
+        if kennung in gesehen:
+            bericht.fehler.append(f"Doppelte Kompetenzkennung: {kennung}.")
+        gesehen.add(kennung)
+        if Kompetenzerwartung.objects.filter(pk=kennung).exclude(fach=fach).exists():
+            bericht.fehler.append(f"{kennung}: Diese Kennung gehört bereits zu einem anderen Fach.")
+
+    for nummer, satz in enumerate(saetze, start=1):
+        bericht.fehler.extend(_satz_pruefen(satz, nummer, bereiche, modus, fach))
+    if bericht.fehler:
+        # Lehrplandaten sind amtlich: lieber gar nicht importieren als halb.
+        transaction.set_rollback(True)
+        return bericht
+
+    if modus == MODUS_FESTLEGUNGEN:
+        _festlegungen_schreiben(saetze, fach, bericht)
+    else:
+        _lehrplan_schreiben(saetze, fach, bericht)
 
     if bericht.fehler or nur_pruefen:
         transaction.set_rollback(True)

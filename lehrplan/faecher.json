@@ -1,0 +1,326 @@
+[
+ {
+  "schluessel": "deutsch",
+  "name": "Deutsch",
+  "bereiche": [
+   [
+    "SZ",
+    "Sprechen und Zuhören"
+   ],
+   [
+    "SC",
+    "Schreiben"
+   ],
+   [
+    "LE",
+    "Lesen – mit Texten und Medien umgehen"
+   ],
+   [
+    "SP",
+    "Sprache und Sprachgebrauch untersuchen"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 117
+ },
+ {
+  "schluessel": "englisch",
+  "name": "Englisch",
+  "bereiche": [
+   [
+    "FK",
+    "Funktionale kommunikative Kompetenz"
+   ],
+   [
+    "SM",
+    "Verfügen über sprachliche Mittel"
+   ],
+   [
+    "IK",
+    "Interkulturelle kommunikative Kompetenz"
+   ],
+   [
+    "TM",
+    "Text- und Medienkompetenz"
+   ],
+   [
+    "SL",
+    "Sprachlernkompetenz"
+   ],
+   [
+    "SB",
+    "Sprachbewusstheit"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 40
+ },
+ {
+  "schluessel": "kunst",
+  "name": "Kunst",
+  "bereiche": [
+   [
+    "BV",
+    "Bilder betrachten und verstehen"
+   ],
+   [
+    "MA",
+    "Malen"
+   ],
+   [
+    "ZD",
+    "Zeichnen und Drucken"
+   ],
+   [
+    "PM",
+    "Plastizieren und Montieren"
+   ],
+   [
+    "AI",
+    "Agieren und Inszenieren"
+   ],
+   [
+    "FF",
+    "Fotografieren und Filmen"
+   ],
+   [
+    "TG",
+    "Textiles Gestalten"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 60
+ },
+ {
+  "schluessel": "mathematik",
+  "name": "Mathematik",
+  "bereiche": [
+   [
+    "PL",
+    "Problemlösen"
+   ],
+   [
+    "MO",
+    "Modellieren"
+   ],
+   [
+    "KO",
+    "Kommunizieren"
+   ],
+   [
+    "AR",
+    "Argumentieren"
+   ],
+   [
+    "DA",
+    "Darstellen"
+   ],
+   [
+    "ZO",
+    "Zahlen und Operationen"
+   ],
+   [
+    "RF",
+    "Raum und Form"
+   ],
+   [
+    "GM",
+    "Größen und Messen"
+   ],
+   [
+    "DH",
+    "Daten, Häufigkeiten, Wahrscheinlichkeiten"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 136
+ },
+ {
+  "schluessel": "musik",
+  "name": "Musik",
+  "bereiche": [
+   [
+    "MG",
+    "Musik machen und gestalten"
+   ],
+   [
+    "MH",
+    "Musik hören und verstehen"
+   ],
+   [
+    "MU",
+    "Musik umsetzen und darstellen"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 46
+ },
+ {
+  "schluessel": "philosophie",
+  "name": "Praktische Philosophie",
+  "bereiche": [
+   [
+    "ICH",
+    "Das Ich"
+   ],
+   [
+    "DU",
+    "Das Du"
+   ],
+   [
+    "WIR",
+    "Das Wir und das Miteinander"
+   ],
+   [
+    "VL",
+    "Verantwortetes Leben – Umwelt und Technik"
+   ],
+   [
+    "SW",
+    "Sichtweisen auf die Welt"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 91
+ },
+ {
+  "schluessel": "religion-evangelisch",
+  "name": "Evangelische Religionslehre",
+  "bereiche": [
+   [
+    "MS",
+    "Miteinander leben in Gottes Schöpfung"
+   ],
+   [
+    "FG",
+    "Die Frage nach Gott"
+   ],
+   [
+    "JC",
+    "Jesus Christus"
+   ],
+   [
+    "KG",
+    "Kirche und Gemeinde"
+   ],
+   [
+    "BI",
+    "Die Bibel"
+   ],
+   [
+    "RW",
+    "Religionen und Weltanschauungen"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 93
+ },
+ {
+  "schluessel": "religion-katholisch",
+  "name": "Katholische Religionslehre",
+  "bereiche": [
+   [
+    "MS",
+    "Miteinander leben in Gottes Schöpfung"
+   ],
+   [
+    "FG",
+    "Die Frage nach Gott"
+   ],
+   [
+    "JC",
+    "Jesus Christus"
+   ],
+   [
+    "KG",
+    "Kirche und Gemeinde"
+   ],
+   [
+    "BI",
+    "Die Bibel"
+   ],
+   [
+    "RW",
+    "Religionen und Weltanschauungen"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 122
+ },
+ {
+  "schluessel": "sachunterricht",
+  "name": "Sachunterricht",
+  "bereiche": [
+   [
+    "DG",
+    "Demokratie und Gesellschaft"
+   ],
+   [
+    "KG",
+    "Körper und Gesundheit"
+   ],
+   [
+    "NU",
+    "Natur und Umwelt"
+   ],
+   [
+    "RM",
+    "Raum und Mobilität"
+   ],
+   [
+    "TA",
+    "Technik, digitale Technologie und Arbeit"
+   ],
+   [
+    "ZW",
+    "Zeit und Wandel"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 98
+ },
+ {
+  "schluessel": "sport",
+  "name": "Sport",
+  "bereiche": [
+   [
+    "KW",
+    "Den Körper wahrnehmen und Bewegungsfähigkeiten ausprägen"
+   ],
+   [
+    "SE",
+    "Das Spielen entdecken und Spielräume nutzen"
+   ],
+   [
+    "LA",
+    "Laufen, Springen, Werfen - Leichtathletik"
+   ],
+   [
+    "SW",
+    "Bewegen im Wasser – Schwimmen"
+   ],
+   [
+    "TU",
+    "Bewegen an Geräten – Turnen"
+   ],
+   [
+    "GT",
+    "Gestalten, Tanzen, Darstellen – Gymnastik/Tanz, Bewegungskünste"
+   ],
+   [
+    "SS",
+    "Spielen in und mit Regelstrukturen – Sportspiele"
+   ],
+   [
+    "GF",
+    "Gleiten, Fahren, Rollen – Rollsport/Bootssport/Wintersport"
+   ],
+   [
+    "RK",
+    "Ringen und Kämpfen – Zweikampfsport"
+   ]
+  ],
+  "quelle": "https://www.schulentwicklung.nrw.de/lehrplaene/lehrplannavigator-grundschule/",
+  "anzahl": 124
+ }
+]
