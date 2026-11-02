@@ -77,6 +77,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "kern.proxy.TrustedProxyHeaders",
     "django.middleware.security.SecurityMiddleware",
     # whitenoise liefert die statischen Dateien aus – auch in der Entwicklung,
     # denn hinter gunicorn tut das sonst niemand.

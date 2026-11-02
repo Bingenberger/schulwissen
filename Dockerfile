@@ -1,5 +1,5 @@
 # Schulwissen-Plattform – Abbild für den Betrieb mit Docker Compose.
-FROM python:3.12-slim
+FROM python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # uv löst die Abhängigkeiten reproduzierbar aus uv.lock auf.
-RUN pip install --no-cache-dir uv
+RUN pip install --no-cache-dir uv==0.9.7
 
 WORKDIR /app
 
@@ -34,7 +34,7 @@ COPY . .
 
 # Statische Dateien einmal beim Bauen sammeln. Dafür genügen Platzhalterwerte –
 # collectstatic braucht keine Datenbank.
-RUN SW_DEBUG=true SW_SECRET_KEY=bauen SW_DATABASE_URL=postgresql://x:x@127.0.0.1:5432/x \
+RUN SW_DEBUG=false SW_ALLOWED_HOSTS=localhost SW_SECRET_KEY=bauen SW_DATABASE_URL=postgresql://x:x@127.0.0.1:5432/x \
     python manage.py collectstatic --noinput --clear
 
 RUN useradd --create-home --uid 10001 schulwissen \

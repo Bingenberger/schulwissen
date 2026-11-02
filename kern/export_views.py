@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 
 from kern import beschluesse, exporte, rechte, vergleich
 from kern.models import Dokument
+from kern.export_limit import limited_pdf
 
 
 def download(inhalt, mimetype, name):
@@ -16,6 +17,7 @@ def download(inhalt, mimetype, name):
 
 
 @login_required
+@limited_pdf
 def export(request, schluessel, format):
     if not rechte.ist_administration(request.user):
         raise PermissionDenied("Dokumente exportiert die Administration.")
@@ -34,6 +36,7 @@ def export(request, schluessel, format):
 
 
 @login_required
+@limited_pdf
 def vorlage_pdf(request):
     if not rechte.darf_vorlage(request.user):
         raise PermissionDenied("Beschlussvorlagen stellt die Redaktion zusammen.")

@@ -1,7 +1,9 @@
 # Schulwissen-Plattform – Betrieb mit Docker Compose.
 #
 #   cp .env.example .env      # SW_SECRET_KEY und POSTGRES_PASSWORD setzen
-#   docker compose up -d --build
+#   docker compose build
+#   docker compose run --rm app python manage.py platform_migrate
+#   docker compose up -d
 #   docker compose exec app python manage.py admin_anlegen deine@adresse.de
 #
 # Die App lauscht nur auf 127.0.0.1 – davor gehört nginx mit HTTPS
@@ -9,7 +11,7 @@
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
     restart: unless-stopped
     environment:
       POSTGRES_DB: schulwissen
@@ -25,7 +27,7 @@ services:
 
   app:
     build: .
-    image: schulwissen:latest
+    image: schulwissen:0.1.0-dev
     restart: unless-stopped
     env_file: .env
     environment:
@@ -35,7 +37,15 @@ services:
       # X-Forwarded-For nur von nginx glauben. „*" ist unbedenklich, solange der
       # Port auf 127.0.0.1 liegt. Wird der Port geöffnet, MUSS hier die Adresse
       # des Proxys stehen (SW_PROXY_IPS).
-      FORWARDED_ALLOW_IPS: "${SW_PROXY_IPS:-*}"
+      FORWARDED_ALLOW_IPS: "${SW_PROXY_IPS:-127.0.0.1}"
+      SW_WORKER: "${SW_WORKER:-2}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 128
     volumes:
       - medien:/medien
     depends_on:

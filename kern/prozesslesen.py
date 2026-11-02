@@ -290,7 +290,11 @@ def aufbereiten(eintrag, daten, nutzer, version=None):
     }
 
 
+from kern.export_limit import limited_pdf
+
+
 @login_required
+@limited_pdf
 def pdf(request, schluessel, kennung):
     from kern import exporte, views
 

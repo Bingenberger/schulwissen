@@ -8,6 +8,7 @@ genügen hier drei Funktionen – das hält die Abhängigkeiten klein und macht 
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 
@@ -19,6 +20,12 @@ _FEHLT = object()
 
 
 def text(name: str, standard: object = _FEHLT) -> str:
+    datei = os.environ.get(name + "_FILE")
+    if datei:
+        wert = Path(datei).read_text().strip()
+        if not wert:
+            raise EinstellungFehlt(f"Die Secretdatei für {name} ist leer.")
+        return wert
     wert = os.environ.get(name)
     if wert:
         return wert
