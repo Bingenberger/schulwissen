@@ -9,6 +9,46 @@ der ab dem pädagogischen Ganztag am 9.11.2026 erarbeitet wird.
 
 Die vollständige fachliche Beschreibung steht in [SPEC.md](SPEC.md).
 
+<!-- schulplattform:installation -->
+## Installation
+
+### Im Rahmen der Schulplattform
+
+Empfohlen für den Schulserver: Die [Schulplattform](https://github.com/Bingenberger/schulplattform) installiert diese App zusammen mit den
+anderen Schul-Apps auf einem leeren Ubuntu-24.04-Server, mit eigener Subdomain, TLS-Zertifikat, Mailversand,
+Sicherung und Dashboard. Sie verwendet das signierte Release-Image `ghcr.io/bingenberger/schulwissen`
+und die unveränderte `docker-compose.yml` dieses Repositorys plus eine Override-Datei.
+
+1. In der Plattformkonfiguration (`./install.sh configure` bzw. `/etc/schulplattform/platform.toml`)
+   unter `[apps.schulwissen]` `enabled = true` und den Hostnamen setzen, z. B. `wissen.ihre-schule.de`,
+   und beim DNS-Provider einen A-Eintrag auf den Server anlegen.
+2. `./install.sh apply …` installiert die App. Migration, Proxy, Zertifikat und Sicherung übernimmt die Plattform.
+3. `./install.sh app-setup schulwissen` legt das erste Konto per E-Mail-Adresse an (`manage.py admin_anlegen`); das Startpasswort erscheint nur am Terminal.
+4. Daten vom bisherigen Server übernehmen: `./install.sh import schulwissen …` nach dem
+   [Umzugs-Runbook](https://github.com/Bingenberger/schulplattform/blob/main/docs/betrieb/umzug.md).
+
+### Standalone mit Docker Compose
+
+Ohne Plattform, z. B. zum Ausprobieren oder für einen eigenen Server mit eigenem Proxy.
+Benötigt Docker Engine mit Compose v2 (amd64). Die App lauscht danach nur auf `http://127.0.0.1:8001`.
+
+```sh
+cp .env.example .env && chmod 600 .env   # SW_SECRET_KEY und POSTGRES_PASSWORD setzen
+docker compose build
+docker compose run --rm app python manage.py platform_migrate
+docker compose up -d
+docker compose exec app python manage.py admin_anlegen deine@adresse.de
+```
+
+Die Migration läuft nicht mehr beim Containerstart, sondern ausdrücklich über `platform_migrate`.
+
+Statt selbst zu bauen, kann das veröffentlichte Image verwendet werden (dann `docker compose build` weglassen):
+
+```sh
+docker pull ghcr.io/bingenberger/schulwissen:0.1.0 && docker tag ghcr.io/bingenberger/schulwissen:0.1.0 schulwissen:0.1.0-dev
+```
+<!-- /schulplattform:installation -->
+
 ## Stand
 
 **Die Hauptbausteine der Phasen 1 bis 3 sind vorhanden** (SPEC.md §13).
@@ -67,7 +107,9 @@ cp .env.example .env
 nano .env                 # SW_SECRET_KEY und POSTGRES_PASSWORD setzen
 chmod 600 .env
 
-docker compose up -d --build
+docker compose build
+docker compose run --rm app python manage.py platform_migrate
+docker compose up -d
 docker compose exec app python manage.py admin_anlegen deine@adresse.de
 ```
 
