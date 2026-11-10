@@ -542,8 +542,25 @@ def _kennung_vergeben(dokument, typ, formular) -> str:
 def _speichern(request, dokument, formular, kennung: str, eintrag):
     """Prüft und speichert; gibt eine Weiterleitung zurück oder ``None``."""
     from deutsch import gliederung
+    from kern import anhaenge as anhangdienst
 
     Dokument.objects.select_for_update().get(pk=dokument.pk)
+    ausgewaehlt = formular.cleaned_data.get("anhang_entfernen", [])
+    zu_entfernen = []
+    if eintrag:
+        zu_entfernen = list(
+            Anhang.objects.select_for_update().filter(
+                pk__in=[a.pk for a in ausgewaehlt], eintrag=eintrag,
+            )
+        )
+    if len(zu_entfernen) != len(ausgewaehlt):
+        formular.add_error("anhang_entfernen", "Die Anhangliste hat sich geändert. Bitte neu laden.")
+        return None
+    for anhang in zu_entfernen:
+        grund = anhangdienst.loeschhindernis(anhang)
+        if grund:
+            formular.add_error("anhang_entfernen", grund)
+            return None
     if eintrag is None:
         kennung = _kennung_vergeben(dokument, formular.typ, formular)
     roh = formular.als_rohsatz(kennung)
@@ -623,6 +640,9 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
             gespeichert.verantwortlich_gruppe = gruppe
             gespeichert.save(update_fields=["verantwortlich_gruppe"])
 
+    for anhang in zu_entfernen:
+        anhangdienst.entfernen(anhang)
+
     for datei in formular.cleaned_data.get("anhang_dateien", []):
         Anhang.objects.create(
             dokument=dokument, eintrag=gespeichert, erstellt_von=request.user,
@@ -648,7 +668,7 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
                 "nextcloud_link": nextcloud.weblink(auswahl["pfad"]),
             },
         )
-    if (formular.cleaned_data.get("anhang_dateien") or link
+    if (zu_entfernen or formular.cleaned_data.get("anhang_dateien") or link
             or formular.cleaned_data.get("anhang_nextcloud")):
         dienste.suchtext_aktualisieren(gespeichert)
 
@@ -858,11 +878,15 @@ def nextcloud_erfassung(request, schluessel: str):
                     "pfad": datei.pfad, "name": datei.name,
                     "mimetype": datei.mimetype, "groesse": datei.groesse,
                 }, salt="anhang-erfassung")
-            dateien.append({"datei": datei, "token": token})
+            dateien.append({
+                "datei": datei, "token": token,
+                "original": nextcloud.weblink(datei.pfad) if not datei.ist_ordner else "",
+            })
     except nextcloud.NextcloudFehler as problem:
         fehler = str(problem)
     return render(request, "kern/_nextcloud_erfassung.html", {
         "dokument": dokument, "kennung": kennung, "dateien": dateien,
+        "direkt": request.GET.get("direkt") == "1" and bool(kennung),
         "brotkrumen": nextcloud.brotkrumen(pfad), "fehler": fehler,
     })
 

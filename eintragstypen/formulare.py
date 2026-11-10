@@ -14,7 +14,7 @@ from django.core import signing
 from eintragstypen import html
 from eintragstypen.dienste import Rohsatz
 from eintragstypen.registry import Feldtyp, registry
-from kern.models import Status
+from kern.models import Anhang, Status
 
 #: Prefix der Datenfelder im Formular.
 DATEN = "f_"
@@ -129,6 +129,10 @@ class EintragFormular(forms.Form):
         label="Nextcloud-Link", required=False, max_length=500, assume_scheme="https"
     )
     anhang_nextcloud = forms.Field(required=False, widget=forms.MultipleHiddenInput)
+    anhang_entfernen = forms.ModelMultipleChoiceField(
+        label="Vorhandene Anhänge löschen", queryset=Anhang.objects.none(),
+        required=False, widget=forms.CheckboxSelectMultiple,
+    )
 
     titel = forms.CharField(
         label="Titel",
@@ -143,6 +147,8 @@ class EintragFormular(forms.Form):
         self.nutzer = nutzer
         self.dokument = dokument or (eintrag.dokument if eintrag else None)
         super().__init__(*args, **kwargs)
+        if eintrag is not None and eintrag.pk:
+            self.fields["anhang_entfernen"].queryset = eintrag.anhaenge.all()
 
         for feld in self.typ.felder:
             if feld.ist_verlinkung:
@@ -188,12 +194,30 @@ class EintragFormular(forms.Form):
         tokens = self.cleaned_data["anhang_nextcloud"] or []
         return [self._nextcloud_lesen(token) for token in dict.fromkeys(tokens)]
 
+    def clean_anhang_entfernen(self):
+        from kern.anhaenge import loeschhindernis
+
+        auswahl = self.cleaned_data["anhang_entfernen"]
+        for anhang in auswahl:
+            grund = loeschhindernis(anhang)
+            if grund:
+                raise forms.ValidationError(f"{anhang.dateiname}: {grund}")
+        return auswahl
+
     def nextcloud_auswahl(self):
+        from kern import nextcloud
+
         for token in self["anhang_nextcloud"].value() or []:
             try:
-                yield {"token": token, **self._nextcloud_lesen(token)}
+                daten = self._nextcloud_lesen(token)
+                yield {"token": token, "original": nextcloud.weblink(daten["pfad"]), **daten}
             except forms.ValidationError:
                 continue
+
+    def vorhandene_anhaenge(self):
+        ausgewaehlt = {str(pk) for pk in self["anhang_entfernen"].value() or []}
+        for anhang in self.fields["anhang_entfernen"].queryset:
+            yield {"anhang": anhang, "entfernen": str(anhang.pk) in ausgewaehlt}
 
     def _vorbelegen(self, eintrag) -> None:
         self.fields["titel"].initial = eintrag.titel

@@ -1,0 +1,16 @@
+<section id="dateivorschau" class="dateifenster dateivorschau" popover="auto" role="dialog" aria-labelledby="dateivorschau-titel" hidden>
+  <div class="dateifenster-kopf">
+    <h2 id="dateivorschau-titel">Dateivorschau</h2>
+    <button type="button" class="knopf knopf-leise" data-vorschau-schliessen aria-label="Dateivorschau schließen">Schließen</button>
+  </div>
+  <p class="klein">PDFs lassen sich im Vorschaufenster scrollen und durchblättern. <a data-vorschau-original target="_blank" rel="noopener noreferrer">Datei öffnen</a></p>
+  <iframe title="Dateivorschau" referrerpolicy="same-origin"></iframe>
+</section>
+<dialog id="nextcloud-dialog" class="dateifenster" aria-labelledby="nextcloud-dialog-titel">
+  <div class="dateifenster-kopf">
+    <h2 id="nextcloud-dialog-titel">Dateien aus der Nextcloud auswählen</h2>
+    <button type="button" class="knopf knopf-leise" data-nextcloud-schliessen>Schließen</button>
+  </div>
+  <p>Durchsuche die Ordner und wähle die gewünschten Dateien aus.</p>
+  <div id="nextcloud-ordner" class="dateifenster-ordner" aria-live="polite"></div>
+</dialog>

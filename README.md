@@ -325,6 +325,30 @@ hinzufügen** mehrere Dateien vom Gerät, ein Nextcloud-Link oder Dateien aus
 dem Eintrag gespeichert. Eine Nextcloud-Auswahl bleibt bei Formularfehlern
 erhalten; Dateien vom Gerät müssen dann erneut ausgewählt werden.
 
+Dateianhänge besitzen eine schwebende Vorschau: mit der Maus kurz über der Datei
+verweilen oder **Vorschau** anklicken. PDF-Dateien werden vollständig im
+PDF-Betrachter des Browsers angezeigt, einschließlich aller Seiten; auch Bilder
+werden unterstützt. Fehlt im Browser ein PDF-Betrachter, lässt sich die Datei
+über **Datei öffnen** aufrufen. Die Nextcloud-Ordnerauswahl öffnet sich ebenfalls
+in einem Fenster über der Eingabemaske.
+
+Bestehende Anhänge lassen sich auf der Ansichtsseite über **Anhang löschen …**
+oder in der Bearbeitungsmaske durch Markieren und Speichern entfernen.
+Verwendete Anhänge und gesicherte Freigabefassungen bleiben geschützt.
+Nextcloud-Originale werden beim Entfernen eines Verweises nicht gelöscht.
+Vorschauen registrierter Nextcloud-Pfade werden über das technische Konto
+abgerufen und unter den Leserechten des Schulwissen-Anhangs bereitgestellt.
+Reine Freigabelinks werden dafür nicht vom Server abgerufen.
+
+Unter **Verwaltung → Nextcloud-Suchordner** lassen sich außerdem ganze Ordner
+für die Suche festlegen: Name, Pfad relativ zum technischen Konto,
+Unterordner und berechtigte Gruppen. Ohne ausgewählte Gruppen oder Freigabe
+für alle Schulkonten sind die Dateien nur für die Administration sichtbar.
+Der bestehende Nextcloud-Timer erfasst die Ordner und liest die Dateiinhalte
+schrittweise ein. Die Dateien erscheinen unter **Dateien** in den Suchergebnissen,
+mit Ordnerkontext, Link zur Nextcloud und Vorschau.
+Details zu Einrichtung und Grenzen stehen in [PHASE4.md](PHASE4.md).
+
 ## Entwickeln
 
 ```bash

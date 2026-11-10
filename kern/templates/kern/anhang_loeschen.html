@@ -1,0 +1,13 @@
+{% extends "grundlage.html" %}
+{% block titel %}Anhang löschen{% endblock %}
+{% block inhalt %}
+<div class="geruest ohne-navigation"><section class="karte">
+  <h1>Anhang löschen</h1>
+  <p>„{{ anhang.dateiname }}“ aus „{{ eintrag.titel }}“ entfernen?</p>
+  {% if grund %}<p class="meldung meldung-error" role="alert">{{ grund }}</p>{% else %}
+  <p>Eine hochgeladene Datei wird gelöscht. Eine verlinkte Nextcloud-Datei bleibt in der Nextcloud erhalten.</p>
+  <form method="post">{% csrf_token %}<input type="hidden" name="stand" value="{{ stand }}"><button class="knopf knopf-wichtig" type="submit">Anhang löschen</button></form>
+  {% endif %}
+  <p><a class="knopf" href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}">Zurück zum Eintrag</a></p>
+</section></div>
+{% endblock %}

@@ -73,9 +73,14 @@
       <section class="block">
         <h2>Anhänge</h2>
         <ul class="anhang-liste">{% for anhang in anhaenge %}<li>
-          {% if anhang.datei %}<a class="anhang-kachel" href="{{ anhang.datei.url }}">{% elif anhang.nextcloud_link %}<a class="anhang-kachel" href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer">{% else %}<div class="anhang-kachel">{% endif %}
+          {% if anhang.datei %}<a class="anhang-kachel" href="{{ anhang.datei.url }}" data-dateivorschau="{% url 'kern:anhang_vorschau' anhang.pk %}" data-name="{{ anhang.dateiname }}">{% elif anhang.nextcloud_link %}<a class="anhang-kachel" href="{{ anhang.nextcloud_link }}" rel="noopener noreferrer" data-dateivorschau="{% url 'kern:anhang_vorschau' anhang.pk %}" data-name="{{ anhang.dateiname }}">{% else %}<div class="anhang-kachel">{% endif %}
           {% include "kern/_symbol.html" with name="datei" %}<span><strong>{{ anhang.dateiname }}</strong><small>{% if anhang.groesse %}{{ anhang.groesse|filesizeformat }}{% endif %}{% if anhang.nextcloud_link %} · Nextcloud{% endif %}{% if anhang.beschreibung %} · {{ anhang.beschreibung }}{% endif %}</small></span>
-          {% if anhang.datei or anhang.nextcloud_link %}</a>{% else %}</div>{% endif %}<p class="klein">{{ anhang.get_verwendung_display }}{% if darf_bearbeiten %} · <a href="{% url 'kern:anlage_pflegen' dokument.schluessel eintrag.kennung anhang.pk %}">Dateifassung pflegen</a>{% endif %}</p></li>{% endfor %}</ul>
+          {% if anhang.datei or anhang.nextcloud_link %}</a>{% else %}</div>{% endif %}
+          <div class="anhang-aktionen">
+            <a class="knopf knopf-leise" href="{% url 'kern:anhang_vorschau' anhang.pk %}" target="_blank" rel="noopener" data-vorschau-oeffnen data-name="{{ anhang.dateiname }}" data-dateivorschau="{% url 'kern:anhang_vorschau' anhang.pk %}" data-vorschau-original="{% if anhang.datei %}{{ anhang.datei.url }}{% else %}{{ anhang.nextcloud_link }}{% endif %}">Vorschau</a>
+            {% if darf_bearbeiten %}<a class="knopf knopf-leise" href="{% url 'kern:anhang_loeschen' dokument.schluessel eintrag.kennung anhang.pk %}">Anhang löschen …</a>{% endif %}
+          </div>
+          <p class="klein">{{ anhang.get_verwendung_display }}{% if darf_bearbeiten %} · <a href="{% url 'kern:anlage_pflegen' dokument.schluessel eintrag.kennung anhang.pk %}">Dateifassung pflegen</a>{% endif %}</p></li>{% endfor %}</ul>
       </section>
     {% endif %}
   </article>
@@ -156,7 +161,7 @@
       <div class="karte">
         <h3>Anhang hinzufügen</h3>
         <form action="{% url 'kern:anhang_hochladen' dokument.schluessel eintrag.kennung %}"
-              method="post" enctype="multipart/form-data">
+              method="post" enctype="multipart/form-data" data-anhang-upload>
           {% csrf_token %}
           {% for feld in anhang_formular %}
             <div class="feld">
@@ -170,7 +175,7 @@
         <p class="klein leise">
           Oder eine Datei aus der Nextcloud verlinken:
         </p>
-        <a class="knopf" href="{% url 'kern:nextcloud_waehlen' dokument.schluessel eintrag.kennung %}">
+        <a class="knopf" href="{% url 'kern:nextcloud_waehlen' dokument.schluessel eintrag.kennung %}" data-nextcloud-oeffnen hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ eintrag.kennung|urlencode }}&amp;direkt=1" hx-target="#nextcloud-ordner">
           Nextcloud durchsuchen</a>
       </div>
     {% endif %}

@@ -1,15 +1,23 @@
 {% if fehler %}<p class="meldung meldung-error" role="alert">{{ fehler }}</p>{% else %}
 <nav aria-label="Nextcloud-Ordner">
 {% for name, pfad in brotkrumen %}
-<button type="button" class="knopf knopf-leise" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ kennung|urlencode }}&amp;pfad={{ pfad|urlencode }}" hx-target="#nextcloud-ordner">{{ name }}</button>
+<button type="button" class="knopf knopf-leise" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ kennung|urlencode }}&amp;pfad={{ pfad|urlencode }}{% if direkt %}&amp;direkt=1{% endif %}" hx-target="#nextcloud-ordner">{{ name }}</button>
 {% endfor %}
 </nav>
 <ul>
 {% for zeile in dateien %}<li>
 {% if zeile.datei.ist_ordner %}
-<button type="button" class="knopf knopf-leise" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ kennung|urlencode }}&amp;pfad={{ zeile.datei.pfad|urlencode }}" hx-target="#nextcloud-ordner">Ordner: {{ zeile.datei.name }}</button>
+<button type="button" class="knopf knopf-leise" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ kennung|urlencode }}&amp;pfad={{ zeile.datei.pfad|urlencode }}{% if direkt %}&amp;direkt=1{% endif %}" hx-target="#nextcloud-ordner">Ordner: {{ zeile.datei.name }}</button>
 {% else %}
-<button type="button" class="knopf" data-nextcloud-auswahl="{{ zeile.token }}" data-name="{{ zeile.datei.pfad }}">{{ zeile.datei.name }} hinzufügen</button>
+{% if direkt %}
+<span>{{ zeile.datei.name }}</span>
+<form method="post" action="{% url 'kern:nextcloud_verlinken' dokument.schluessel kennung %}">
+{% csrf_token %}<input type="hidden" name="pfad" value="{{ zeile.datei.pfad }}"><input type="hidden" name="mimetype" value="{{ zeile.datei.mimetype }}"><button type="submit" class="knopf">Verlinken</button>
+</form>
+{% else %}
+<button type="button" class="knopf" data-nextcloud-auswahl="{{ zeile.token }}" data-name="{{ zeile.datei.pfad }}" data-dateivorschau="{% url 'kern:nextcloud_vorschau' dokument.schluessel %}?auswahl={{ zeile.token|urlencode }}&amp;kennung={{ kennung|urlencode }}" data-vorschau-original="{{ zeile.original }}">{{ zeile.datei.name }} hinzufügen</button>
+{% endif %}
+<button type="button" class="knopf knopf-leise" data-vorschau-oeffnen data-name="{{ zeile.datei.name }}" data-dateivorschau="{% url 'kern:nextcloud_vorschau' dokument.schluessel %}?auswahl={{ zeile.token|urlencode }}&amp;kennung={{ kennung|urlencode }}" data-vorschau-original="{{ zeile.original }}">Vorschau</button>
 {% endif %}
 </li>{% empty %}<li>Dieser Ordner ist leer.</li>{% endfor %}
 </ul>

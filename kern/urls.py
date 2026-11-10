@@ -4,6 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from kern import (
+    anhaenge,
     arbeitsablauf,
     beschluss_views,
     dateifassungen,
@@ -50,6 +51,17 @@ urlpatterns = [
     path("funktionen", funktionen.verzeichnis, name="funktionen"),
     path("funktionen/<slug:schluessel>", funktionen.detail, name="funktion"),
     path("medien/<path:pfad>", views.anhang_datei, name="anhang_datei"),
+    path("anhang/<int:pk>/vorschau", anhaenge.vorschau, name="anhang_vorschau"),
+    path(
+        "d/<slug:schluessel>/<str:kennung>/anhang/<int:pk>/loeschen",
+        anhaenge.loeschen,
+        name="anhang_loeschen",
+    ),
+    path(
+        "d/<slug:schluessel>/anhangauswahl/vorschau",
+        anhaenge.nextcloud_vorschau,
+        name="nextcloud_vorschau",
+    ),
     path("", views.startseite, name="startseite"),
     path("dokumente", uebersichten.dokumente, name="dokumente"),
     path("meine-entwuerfe", uebersichten.eigene_entwuerfe, name="eigene_entwuerfe"),

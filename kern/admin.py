@@ -9,6 +9,7 @@ from django.contrib.auth.forms import AdminPasswordChangeForm, UserChangeForm, U
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 
 from eintragstypen import dienste
@@ -28,6 +29,7 @@ from kern.models import (
     Gremium,
     Gruppenprofil,
     Kommentar,
+    NextcloudOrdner,
     Nutzer,
     OIDCIdentitaet,
     Verlinkung,
@@ -359,9 +361,83 @@ class BeschlussAdmin(InterneInhalteAdmin):
 @admin.register(Anhang)
 class AnhangAdmin(AdministrationsMixin, admin.ModelAdmin):
     list_display = ["dateiname", "eintrag", "mimetype", "groesse", "index_stand"]
-    list_filter = ["mimetype"]
+    list_filter = ["mimetype", "nextcloud_ordner", "nextcloud_verfuegbar"]
     search_fields = ["dateiname", "beschreibung", "extrahierter_text"]
-    readonly_fields = ["extrahierter_text", "index_stand"]
+    readonly_fields = [
+        "extrahierter_text", "index_stand", "nextcloud_ordner", "nextcloud_verfuegbar",
+        "nextcloud_inventur_etag",
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.nextcloud_ordner_id:
+            return [feld.name for feld in self.model._meta.fields]
+        return self.readonly_fields
+
+    def has_change_permission(self, request, obj=None):
+        return not (obj and obj.nextcloud_ordner_id) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return not (obj and obj.nextcloud_ordner_id) and super().has_delete_permission(request, obj)
+
+    def get_actions(self, request):
+        aktionen = super().get_actions(request)
+        aktionen.pop("delete_selected", None)
+        return aktionen
+
+
+@admin.register(NextcloudOrdner)
+class NextcloudOrdnerAdmin(AdministrationsMixin, admin.ModelAdmin):
+    list_display = [
+        "name", "pfad", "aktiv", "unterordner", "anzahl_dateien", "geprueft_am", "index_fehler",
+    ]
+    list_filter = ["aktiv", "kollegiumsweit", "unterordner"]
+    search_fields = ["name", "pfad"]
+    filter_horizontal = ["gruppen"]
+    readonly_fields = ["geprueft_am", "index_stand", "index_fehler", "anzahl_dateien"]
+    actions = ["neu_indexieren"]
+    fieldsets = (
+        (None, {
+            "fields": ["name", "pfad", "unterordner", "aktiv"],
+            "description": "Die Dateien werden beim nächsten Nextcloud-Indexierungslauf erfasst. "
+            "Ohne eingerichteten Timer den Befehl nextcloud_indexieren ausführen.",
+        }),
+        ("Sichtbarkeit in Schulwissen", {
+            "fields": ["kollegiumsweit", "gruppen"],
+            "description": "Diese Freigabe gilt für Dateinamen, Suchtexte und Vorschauen. "
+            "Persönliche Nextcloud-Dateirechte werden nicht übertragen.",
+        }),
+        ("Indexierungsstand", {
+            "fields": ["anzahl_dateien", "geprueft_am", "index_stand", "index_fehler"],
+        }),
+    )
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.erstellt_von = request.user
+        super().save_model(request, obj, form, change)
+
+    @admin.display(description="Erfasste Dateien")
+    def anzahl_dateien(self, obj):
+        if obj is None or not obj.pk:
+            return "Noch nicht eingelesen"
+        anzahl = obj.dateien.filter(nextcloud_verfuegbar=True).count()
+        url = reverse("admin:kern_anhang_changelist") + f"?nextcloud_ordner__id__exact={obj.pk}"
+        return format_html('<a href="{}">{}</a>', url, anzahl)
+
+    @admin.action(description="Beim nächsten Lauf vollständig neu indexieren", permissions=["change"])
+    def neu_indexieren(self, request, queryset):
+        with transaction.atomic():
+            ids = list(queryset.select_for_update().values_list("pk", flat=True))
+            NextcloudOrdner.objects.filter(pk__in=ids).update(
+                geprueft_am=None, index_fehler="", geaendert_am=timezone.now(),
+            )
+            Anhang.objects.filter(nextcloud_ordner_id__in=ids).update(
+                nextcloud_geprueft_am=None, nextcloud_etag="",
+            )
+        self.message_user(request, "Die ausgewählten Ordner sind für den nächsten Lauf vorgemerkt.")
 
 
 @admin.register(Kommentar)

@@ -8,8 +8,10 @@
   <link rel="stylesheet" href="{% static 'tokens.css' %}">
   <link rel="stylesheet" href="{% static 'schulwissen.css' %}">
   <link rel="stylesheet" href="{% static 'inhalte.css' %}">
+  <link rel="stylesheet" href="{% static 'anhaenge.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'oberflaeche.js' %}" defer></script>
+  <script src="{% static 'anhaenge.js' %}" defer></script>
   <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
   {% block kopf_zusatz %}{% endblock %}
 </head>
@@ -84,6 +86,7 @@
 </main>
 
 <footer class="seitenfuss"><span>Schulwissen · GGS Niederkassel</span><span>Gemeinsam festhalten, was uns wichtig ist.</span></footer>
+{% if user.is_authenticated %}{% include "kern/_dateifenster.html" %}{% endif %}
 {% block ende %}{% endblock %}
 </body>
 </html>

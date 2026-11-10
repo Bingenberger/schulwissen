@@ -96,6 +96,19 @@ def darf_dokument_lesen(nutzer, dokument):
     return bool(dokument and sichtbare_dokumente(nutzer).filter(pk=dokument.pk).exists())
 
 
+def sichtbare_nextcloud_ordner(nutzer):
+    from django.db.models import Q
+
+    from kern.models import NextcloudOrdner
+
+    menge = NextcloudOrdner.objects.filter(aktiv=True)
+    if not _angemeldet(nutzer):
+        return menge.none()
+    if ist_administration(nutzer):
+        return menge
+    return menge.filter(Q(kollegiumsweit=True) | Q(gruppen__in=nutzer.groups.all())).distinct()
+
+
 def berechtigte_dokumente(nutzer, recht):
     from django.db.models import Q
 

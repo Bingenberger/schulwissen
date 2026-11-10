@@ -1,0 +1,26 @@
+.dateifenster {
+  box-sizing: border-box;
+  width: min(940px, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+  padding: 1.25rem;
+  border: 1px solid var(--linie, #aaa);
+  border-radius: 1rem;
+  background: var(--flaeche, #fff);
+  color: var(--text, #222);
+  box-shadow: 0 1rem 4rem #0004;
+  overflow: auto;
+}
+.dateifenster::backdrop { background: #0005; }
+.dateivorschau[data-offen] { display: block; position: fixed; inset: 1rem; margin: auto; z-index: 1000; }
+.dateifenster-kopf { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.dateifenster-kopf h2 { margin: 0; font-size: 1.15rem; overflow-wrap: anywhere; }
+.dateivorschau iframe { width: 100%; height: min(65dvh, 780px); border: 0; background: #fff; }
+.dateifenster-ordner { min-height: 8rem; max-height: 65dvh; overflow: auto; }
+.dateifenster-ordner ul { list-style: none; padding: 0; }
+.dateifenster-ordner li { display: flex; flex-wrap: wrap; gap: .5rem; padding: .5rem 0; border-bottom: 1px solid var(--linie, #ddd); }
+.dateifenster-ordner li > :first-child { overflow-wrap: anywhere; }
+.dateifenster-ordner form { margin: 0; }
+.anhang-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-block: .5rem; }
+.anhang-auswahl li { margin-block: .5rem; overflow-wrap: anywhere; }
+@media print { .dateifenster { display: none !important; } }

@@ -2,7 +2,8 @@
 
 ## Stand und Voraussetzungen
 
-Die App unterstützt die regelmäßige Indexierung verlinkter Nextcloud-Dateien,
+Die App unterstützt die regelmäßige Indexierung verlinkter Nextcloud-Dateien und
+konfigurierter Nextcloud-Suchordner,
 OIDC-Anmeldung über Nextcloud sowie Arbeitspläne und Kompetenzimporte für
 Deutsch, Mathematik, Sport, Kunst, Musik, Religion katholisch, Religion evangelisch,
 Sachunterricht und Englisch.
@@ -46,6 +47,61 @@ verknüpften Eintrags in Schulwissen. OIDC überträgt keine Nextcloud-Dateirech
 das technische Konto sollte nur für das Kollegium bestimmte Inhalte lesen können.
 
 Referenz: [Nextcloud WebDAV](https://docs.nextcloud.com/server/latest/developer_manual/client_apis/WebDAV/basic.html).
+
+## Ganze Nextcloud-Ordner in die Suche aufnehmen
+
+Voraussetzung ist Migration **0014**. Im üblichen Aktualisierungsablauf zuerst
+das neue Abbild bauen und `python manage.py platform_migrate` als separaten
+Migrationsjob ausführen, anschließend Webdienst und Indexierung aktualisieren.
+Vor dem Aktualisieren die Datenbank sichern.
+
+1. Unter **Verwaltung → Nextcloud-Suchordner → Hinzufügen** einen Namen und den
+   Ordnerpfad aus Sicht des technischen Kontos eingeben, etwa `Kollegium/Konzepte`.
+   Keine Nextcloud-URL eingeben.
+2. **Unterordner einbeziehen** nach Bedarf aktivieren.
+3. Die **berechtigten Gruppen** auswählen oder ausdrücklich für **alle aktiven
+   Schulkonten** freigeben. Ohne beides sieht nur die Administration die Dateien.
+4. Speichern. Der vorhandene Timer `schulwissen-nextcloud.timer` übernimmt die
+   Quelle beim nächsten Lauf. Zum sofortigen Starten:
+
+       docker compose exec app python manage.py nextcloud_indexieren
+
+Die Aktion **Beim nächsten Lauf vollständig neu indexieren** merkt ausgewählte
+Ordner für eine erneute Inventur und das erneute Lesen ihrer Dateien vor. Sie
+führt keine langsamen Nextcloud-Anfragen innerhalb der Verwaltungsseite aus.
+In der Ordnerliste stehen Dateizahl, letzte Prüfung und Fehler. Ein Klick auf
+die Dateizahl öffnet die automatisch verwalteten Dateieinträge.
+
+Je Lauf werden bis zu zehn seit mindestens 15 Minuten nicht geprüfte Suchordner
+erfasst; `--ordner-anzahl` verändert dieses Limit. Das bestehende Dateibudget
+`--anzahl` gilt gemeinsam für verlinkte Anhänge und Dateien aus Suchordnern.
+Große Bestände benötigen mehrere Läufe. `--alle` ignoriert das Prüfintervall und
+die Datei-ETags innerhalb dieser Laufbudgets. Pro Suchordner sind höchstens
+500 Ordner, 10.000 Dateien und etwa 60 Sekunden für die Inventur vorgesehen.
+Bei Erreichen einer Grenze bleibt der vorherige vollständige Bestand bestehen;
+in diesem Fall kleinere, nicht überlappende Suchordner konfigurieren.
+
+Dateinamen sind nach erfolgreicher Inventur suchbar. Unterstützte PDF-, DOCX-,
+ODT-/ODS-/ODP- und Textdateien werden zusätzlich nach Inhalt durchsucht. Bilder,
+andere nicht unterstützte Formate und reine Bildscans ohne erkennbaren PDF-Text
+bleiben über ihre Dateinamen auffindbar; es findet keine OCR statt.
+
+Entfernte Dateien und nicht mehr zugängliche Ordner (403/404/410) werden aus
+den Suchergebnissen und Vorschauen ausgeblendet; ihr gespeicherter Suchtext
+wird entfernt. Ein vorübergehender Fehler in einem Unterordner verwirft die
+unvollständige Inventur und erhält den letzten erfolgreichen Bestand.
+Deaktivieren, Pfadwechsel und Änderungen an der Gruppenauswahl gelten sofort.
+Die Ordnerdateien werden automatisch verwaltet; zum Entfernen einer ganzen
+Quelle deren Indexierung deaktivieren. Aktive Suchordner dürfen sich nicht
+überlappen. Ein Dokument-, Status-, Jahrgangs- oder Fachfilter beschränkt die
+Dateisuche weiterhin auf passende Eintragsanhänge, da Ordnerdateien keine
+entsprechenden Dokumentmetadaten besitzen.
+
+Die Gruppenfreigabe schützt Dateinamen, Textausschnitte und Vorschauen gemeinsam.
+Für das Öffnen des Originals gelten zusätzlich die persönlichen Nextcloud-Rechte.
+Der technische Zugriff auf Inhalte erfolgt mit dem bereits eingerichteten
+App-Konto; persönliche Nextcloud-Dateirechte werden nicht synchronisiert.
+Die Suchordner geben keine Schulwissen-Einträge oder Konferenzbeschlüsse frei.
 
 ## Mit Nextcloud anmelden
 

@@ -135,7 +135,17 @@
       <section class="block" aria-labelledby="anhaenge-titel">
         <h2 id="anhaenge-titel">Anhänge hinzufügen</h2>
         <p>Die ausgewählten Dateien werden beim Speichern angehängt.</p>
-        {% if eintrag.anhaenge.exists %}<p>Bereits vorhandene Anhänge findest du auf der <a href="{% url 'kern:eintrag' dokument.schluessel eintrag.kennung %}" target="_blank" rel="noopener">Ansichtsseite des Eintrags</a>.</p>{% endif %}
+        {% if eintrag.anhaenge.exists %}
+        <h3>Vorhandene Anhänge</h3>
+        <p>Markierte Anhänge werden beim Speichern gelöscht. Dateien in der Nextcloud bleiben dort erhalten.</p>
+        <ul class="anhang-auswahl" id="id_anhang_entfernen">
+          {% for zeile in formular.vorhandene_anhaenge %}<li>
+            <label><input type="checkbox" name="anhang_entfernen" value="{{ zeile.anhang.pk }}"{% if zeile.entfernen %} checked{% endif %}> „{{ zeile.anhang.dateiname }}“ löschen</label>
+            <button type="button" class="knopf knopf-leise" data-vorschau-oeffnen data-name="{{ zeile.anhang.dateiname }}" data-dateivorschau="{% url 'kern:anhang_vorschau' zeile.anhang.pk %}" data-vorschau-original="{% if zeile.anhang.datei %}{{ zeile.anhang.datei.url }}{% else %}{{ zeile.anhang.nextcloud_link }}{% endif %}">Vorschau</button>
+          </li>{% endfor %}
+        </ul>
+        {% endif %}
+        {{ formular.anhang_entfernen.errors }}
         <div class="feld">
           <label for="{{ formular.anhang_dateien.id_for_label }}">{{ formular.anhang_dateien.label }}</label>
           {{ formular.anhang_dateien }}
@@ -151,11 +161,12 @@
         <ul id="nextcloud-auswahl" aria-label="Ausgewählte Nextcloud-Dateien" aria-live="polite">
           {% for auswahl in formular.nextcloud_auswahl %}<li data-nextcloud-pfad="{{ auswahl.pfad }}">
             <input type="hidden" name="anhang_nextcloud" value="{{ auswahl.token }}">
-            {{ auswahl.pfad }} <button type="button" class="knopf knopf-leise" data-nextcloud-entfernen>Auswahl entfernen</button>
+            {{ auswahl.pfad }}
+            <button type="button" class="knopf knopf-leise" data-vorschau-oeffnen data-name="{{ auswahl.pfad }}" data-dateivorschau="{% url 'kern:nextcloud_vorschau' dokument.schluessel %}?auswahl={{ auswahl.token|urlencode }}{% if eintrag %}&amp;kennung={{ eintrag.kennung|urlencode }}{% endif %}" data-vorschau-original="{{ auswahl.original }}">Vorschau</button>
+            <button type="button" class="knopf knopf-leise" data-nextcloud-entfernen>Auswahl entfernen</button>
           </li>{% endfor %}
         </ul>
-        <button type="button" class="knopf" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}{% if eintrag %}?kennung={{ eintrag.kennung|urlencode }}{% endif %}" hx-target="#nextcloud-ordner">Nextcloud durchsuchen</button>
-        <div id="nextcloud-ordner" aria-live="polite"></div>
+        <button type="button" class="knopf" data-nextcloud-oeffnen hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}{% if eintrag %}?kennung={{ eintrag.kennung|urlencode }}{% endif %}" hx-target="#nextcloud-ordner">Nextcloud durchsuchen</button>
         <noscript><p>Zum Durchsuchen der Nextcloud ist JavaScript erforderlich. Du kannst stattdessen einen Nextcloud-Link einfügen oder Dateien vom Gerät anhängen.</p></noscript>
       </section>
 
@@ -184,33 +195,6 @@
 
 {% block ende %}
 <script>
-document.addEventListener("click", (ereignis) => {
-  const entfernen = ereignis.target.closest("[data-nextcloud-entfernen]");
-  if (entfernen) {
-    entfernen.closest("li").remove();
-    document.querySelector("[data-eintragsformular]").dispatchEvent(new Event("input", {bubbles: true}));
-    return;
-  }
-  const knopf = ereignis.target.closest("[data-nextcloud-auswahl]");
-  if (!knopf) return;
-  const liste = document.getElementById("nextcloud-auswahl");
-  if (Array.from(liste.children).some(zeile => zeile.dataset.nextcloudPfad === knopf.dataset.name)) return;
-  const zeile = document.createElement("li");
-  zeile.dataset.nextcloudPfad = knopf.dataset.name;
-  const feld = document.createElement("input");
-  feld.type = "hidden";
-  feld.name = "anhang_nextcloud";
-  feld.value = knopf.dataset.nextcloudAuswahl;
-  const loeschen = document.createElement("button");
-  loeschen.type = "button";
-  loeschen.className = "knopf knopf-leise";
-  loeschen.dataset.nextcloudEntfernen = "";
-  loeschen.textContent = "Auswahl entfernen";
-  zeile.append(feld, document.createTextNode(knopf.dataset.name + " "), loeschen);
-  liste.append(zeile);
-  feld.dispatchEvent(new Event("input", {bubbles: true}));
-});
-
 /*
  * Kleine Alpine-Komponente für die Kompetenzauswahl.
  * Sie hält die Marken (Kennung + Klartext) und spiegelt die Kennungen in das

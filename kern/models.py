@@ -982,6 +982,70 @@ class Verlinkung(Zeitstempel):
 # --- Anhänge ---------------------------------------------------------------
 
 
+class NextcloudOrdner(Zeitstempel):
+    name = models.CharField("Name", max_length=200)
+    pfad = models.CharField(
+        "Nextcloud-Ordnerpfad", max_length=500, unique=True,
+        help_text="Relativ zum technischen Konto, z. B. Kollegium/Konzepte. Keine URL.",
+    )
+    unterordner = models.BooleanField("Unterordner einbeziehen", default=True)
+    aktiv = models.BooleanField("Indexierung aktiv", default=True)
+    kollegiumsweit = models.BooleanField(
+        "Für alle aktiven Schulkonten sichtbar", default=False,
+        help_text="Andernfalls sehen nur die ausgewählten Gruppen und die Administration die Dateien.",
+    )
+    gruppen = models.ManyToManyField(
+        Group, verbose_name="Berechtigte Gruppen", blank=True,
+        related_name="nextcloud_ordner",
+        help_text="Ohne Gruppen und ohne schulweite Freigabe sieht nur die Administration die Dateien.",
+    )
+    geprueft_am = models.DateTimeField("Zuletzt geprüft", null=True, blank=True)
+    index_stand = models.DateTimeField("Ordner zuletzt vollständig eingelesen", null=True, blank=True)
+    index_fehler = models.CharField("Indexierungsfehler", max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = "Nextcloud-Suchordner"
+        verbose_name_plural = "Nextcloud-Suchordner"
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        self.pfad = self.pfad.strip().strip("/")
+        teile = self.pfad.split("/")
+        if not self.pfad or "://" in self.pfad or any(t in ("", ".", "..") for t in teile):
+            raise ValidationError({"pfad": "Bitte einen Ordnerpfad ohne URL, . oder .. eingeben."})
+        if self.aktiv:
+            for anderer in type(self).objects.filter(aktiv=True).exclude(pk=self.pk):
+                if (
+                    self.pfad == anderer.pfad
+                    or (anderer.unterordner and self.pfad.startswith(anderer.pfad + "/"))
+                    or (self.unterordner and anderer.pfad.startswith(self.pfad + "/"))
+                ):
+                    raise ValidationError({
+                        "pfad": f"Dieser Ordner überschneidet sich mit „{anderer.name}“.",
+                    })
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            alt = type(self).objects.select_for_update().filter(pk=self.pk).first() if self.pk else None
+            if alt and (
+                alt.pfad != self.pfad or alt.unterordner != self.unterordner or alt.aktiv != self.aktiv
+            ):
+                self.dateien.update(
+                    nextcloud_verfuegbar=False, extrahierter_text="", suchvektor=None,
+                    nextcloud_etag="", nextcloud_geprueft_am=None,
+                )
+                self.geprueft_am = self.index_stand = None
+                self.index_fehler = ""
+                if kwargs.get("update_fields") is not None:
+                    kwargs["update_fields"] = set(kwargs["update_fields"]) | {
+                        "geprueft_am", "index_stand", "index_fehler", "geaendert_am",
+                    }
+            super().save(*args, **kwargs)
+
+
 def anhang_pfad(anhang: Anhang, dateiname: str) -> str:
     return f"anhaenge/{timezone.now():%Y/%m}/{dateiname}"
 
@@ -1005,6 +1069,11 @@ class Anhang(Zeitstempel):
         on_delete=models.CASCADE,
         related_name="anhaenge",
     )
+    nextcloud_ordner = models.ForeignKey(
+        NextcloudOrdner, verbose_name="Nextcloud-Suchordner", null=True, blank=True,
+        on_delete=models.CASCADE, related_name="dateien",
+    )
+    nextcloud_verfuegbar = models.BooleanField("In Nextcloud verfügbar", default=True)
     verwendung = models.CharField(
         "Verwendung",
         max_length=20,
@@ -1018,6 +1087,7 @@ class Anhang(Zeitstempel):
     datei = models.FileField("Datei", upload_to=anhang_pfad, blank=True)
     nextcloud_pfad = models.CharField("Nextcloud-Pfad", max_length=500, blank=True)
     nextcloud_etag = models.CharField("Nextcloud-ETag", max_length=500, blank=True)
+    nextcloud_inventur_etag = models.CharField("ETag der Ordnerinventur", max_length=500, blank=True)
     nextcloud_geprueft_am = models.DateTimeField("Nextcloud geprüft am", null=True, blank=True)
     index_fehler = models.CharField("Indexierung: letzter Fehler", max_length=500, blank=True)
     nextcloud_link = models.URLField("Nextcloud-Link", max_length=500, blank=True)
@@ -1036,6 +1106,13 @@ class Anhang(Zeitstempel):
         verbose_name_plural = "Anhänge"
         ordering = ["dateiname"]
         indexes = [GinIndex(fields=["suchvektor"], name="anhang_suchvektor")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["nextcloud_ordner", "nextcloud_pfad"],
+                condition=models.Q(nextcloud_ordner__isnull=False),
+                name="nextcloud_ordner_dateipfad",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.dateiname
@@ -1070,6 +1147,8 @@ class Anhang(Zeitstempel):
         return ergebnis
 
     def clean(self) -> None:
+        if self.nextcloud_ordner_id and (self.eintrag_id or self.dokument_id or self.datei):
+            raise ValidationError("Dateien eines Suchordners werden automatisch verwaltet.")
         if not self.datei and not self.nextcloud_pfad and not self.nextcloud_link:
             raise ValidationError(
                 "Ein Anhang braucht entweder eine hochgeladene Datei oder einen Nextcloud-Verweis."

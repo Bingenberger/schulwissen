@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import nh3
 from django.contrib.postgres.search import (
     SearchHeadline,
     SearchQuery,
@@ -61,6 +62,8 @@ class Treffer:
     status: str = ""
     status_text: str = ""
     zusatz: str = ""
+    vorschau_url: str = ""
+    original_url: str = ""
 
     @property
     def ist_entwurf(self) -> bool:
@@ -431,14 +434,14 @@ def _dateien_suchen(
                 | Q(beschreibung__icontains=begriff)
                 | Q(extrahierter_text__icontains=begriff)
             )
-            .select_related("eintrag", "eintrag__dokument", "dokument")
+            .select_related("eintrag", "eintrag__dokument", "dokument", "nextcloud_ordner")
             .order_by("dateiname")
         )
     else:
         anfrage = _anfrage(begriff)
         treffer = (
             erlaubt.filter(suchvektor=anfrage)
-            .select_related("eintrag", "eintrag__dokument", "dokument")
+            .select_related("eintrag", "eintrag__dokument", "dokument", "nextcloud_ordner")
             .annotate(
                 rang=SearchRank(F("suchvektor"), anfrage),
                 ausschnitt=_ausschnitt("extrahierter_text", begriff),
@@ -457,6 +460,8 @@ def _dateien_suchen(
         else:
             url = anhang.datei.url if anhang.datei else anhang.nextcloud_link
             kontext = anhang.dokument.titel if anhang.dokument else "Freier Anhang"
+            if anhang.nextcloud_ordner_id:
+                kontext = f"Nextcloud › {anhang.nextcloud_ordner.name} › {anhang.nextcloud_pfad}"
 
         gruppe.treffer.append(
             Treffer(
@@ -467,12 +472,14 @@ def _dateien_suchen(
                     wortlaut_ausschnitt(anhang.extrahierter_text, begriff)
                     if wortlaut
                     else (
-                        anhang.ausschnitt
+                        mark_safe(nh3.clean(anhang.ausschnitt, tags={"mark"}, attributes={}))
                         if anhang.extrahierter_text
                         else escape(anhang.beschreibung)
                     )
                 ),
                 zusatz="Nextcloud" if anhang.nextcloud_link and not anhang.datei else "",
+                vorschau_url=reverse("kern:anhang_vorschau", args=[anhang.pk]),
+                original_url=anhang.datei.url if anhang.datei else anhang.nextcloud_link,
             )
         )
     return gruppe

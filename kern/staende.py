@@ -177,6 +177,9 @@ def sichtbare_anhaenge(nutzer, menge):
     sichtbar = rechte.sichtbare_eintraege(nutzer, Eintrag.objects.all())
     menge = menge.filter(Q(dokument__isnull=True) | Q(dokument__in=dokumente)).filter(
         Q(eintrag__isnull=True) | Q(eintrag__in=sichtbar)
+    ).filter(
+        Q(nextcloud_ordner__isnull=True)
+        | Q(nextcloud_ordner__in=rechte.sichtbare_nextcloud_ordner(nutzer), nextcloud_verfuegbar=True)
     )
     if not rechte.ist_nur_lesend(nutzer):
         return menge

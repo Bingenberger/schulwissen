@@ -1,5 +1,5 @@
 [Unit]
-Description=Schulwissen: verlinkte Nextcloud-Dateien indexieren
+Description=Schulwissen: Nextcloud-Suchordner und verlinkte Dateien indexieren
 After=docker.service
 Requires=docker.service
 

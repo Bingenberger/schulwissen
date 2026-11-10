@@ -51,6 +51,10 @@ ZEICHEN_JE_ENDUNG = {
 class NextcloudFehler(Exception):
     """Die Nextcloud ließ sich nicht erreichen oder antwortete unerwartet."""
 
+    def __init__(self, text="", status=None):
+        super().__init__(text)
+        self.status = status
+
 
 @dataclass
 class Eintrag:
@@ -149,7 +153,11 @@ def auflisten(pfad: str = "", zeitgrenze: float = 15.0) -> list[Eintrag]:
     if antwort.status_code == 401:
         raise NextcloudFehler("Die Nextcloud hat die Anmeldung abgelehnt. Stimmt das App-Passwort?")
     if antwort.status_code == 404:
-        raise NextcloudFehler(f"Den Ordner „{pfad or '/'}“ gibt es nicht.")
+        raise NextcloudFehler(f"Den Ordner „{pfad or '/'}“ gibt es nicht.", status=404)
+    if antwort.status_code in (403, 410):
+        raise NextcloudFehler(
+            "Dieser Nextcloud-Ordner ist nicht mehr zugänglich.", status=antwort.status_code,
+        )
     if antwort.status_code != 207:
         raise NextcloudFehler(f"Unerwartete Antwort der Nextcloud: {antwort.status_code}.")
 

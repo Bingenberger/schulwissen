@@ -389,6 +389,15 @@ Nach dem Neubau werden die Fachverwaltung, alle neun Fächer, der allgemeine
 Dokumenttyp „Arbeitsplan“ und die Metadaten zur Nextcloud-Indexierung migriert.
 Bestehende Deutschkennungen und Schulkonten bleiben erhalten.
 
+Migration **0014** ergänzt verwaltbare **Nextcloud-Suchordner** und deren
+Dateizuordnung. Vor dem Update die Datenbank sichern und den separaten
+Migrationsjob `python manage.py platform_migrate` ausführen. Die vorhandenen
+Anhänge und Zugriffsregeln bleiben erhalten. Danach lassen sich Ordner unter
+**Verwaltung → Nextcloud-Suchordner** eintragen; der vorhandene Nextcloud-Timer
+übernimmt Inventur und Dateiindexierung. Ohne konfigurierte Freigabe bleiben
+Ordnerdateien ausschließlich für die Administration sichtbar. Einrichtung,
+Laufbudgets und Fehlerverhalten: [PHASE4.md](PHASE4.md).
+
 ## Freigabekopien und Gültigkeit (AP09)
 
 Migration 0012 ergänzt ausschließlich das Wissensmodell. Vor dem Aktualisieren die PostgreSQL-Datenbank sichern. Verbindliche Dateifassungen werden als Binärdaten in PostgreSQL gespeichert; ein vollständiges Datenbankbackup muss auch `kern_freigegebenedatei` enthalten. Nur Nextcloud- und Medienordner zu sichern reicht für diese Kopien nicht aus. Der Download erfolgt ausschließlich durch die geschützte App-Route `/dateifassung/<id>`. Keinen öffentlichen Alias für diese Inhalte anlegen. Dynamische Anlagen des Altbestands werden nicht rückwirkend zu gesicherten Fassungen erklärt. Details: [AP09_WISSENSPFLEGE.md](docs/AP09_WISSENSPFLEGE.md).

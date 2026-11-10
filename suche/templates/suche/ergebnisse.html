@@ -31,10 +31,11 @@
     {% for gruppe in ergebnis.gefuellte_gruppen %}
       <section class="suchgruppe" aria-labelledby="gruppe-{{ gruppe.schluessel }}"><h2 id="gruppe-{{ gruppe.schluessel }}">{{ gruppe.name }} <span class="trefferzahl">{{ gruppe.gesamt }}</span></h2>
         <ul class="trefferliste">{% for treffer in gruppe.treffer %}<li class="treffer">
-          <div class="treffer-kopf"><h3><a class="treffer-titel" href="{{ treffer.url }}">{% if gruppe.schluessel == 'dateien' %}{% include "kern/_symbol.html" with name="datei" %}{% endif %}{{ treffer.titel }}</a></h3>{% if treffer.status %}<span class="schild schild-klein schild-{{ treffer.status }}">{{ treffer.status_text }}</span>{% endif %}</div>
+          <div class="treffer-kopf"><h3><a class="treffer-titel" href="{{ treffer.url }}"{% if treffer.vorschau_url %} data-dateivorschau="{{ treffer.vorschau_url }}" data-vorschau-original="{{ treffer.original_url }}" data-name="{{ treffer.titel }}"{% endif %}>{% if gruppe.schluessel == 'dateien' %}{% include "kern/_symbol.html" with name="datei" %}{% endif %}{{ treffer.titel }}</a></h3>{% if treffer.status %}<span class="schild schild-klein schild-{{ treffer.status }}">{{ treffer.status_text }}</span>{% endif %}</div>
           {% if treffer.kontext %}<p class="treffer-kontext">{{ treffer.kontext }}</p>{% endif %}
           {% if treffer.ausschnitt %}<p class="treffer-ausschnitt">{{ treffer.ausschnitt|safe }}</p>{% endif %}
           <div class="treffer-metainfo">{% if treffer.kennung %}<span class="kennung">{{ treffer.kennung }}</span>{% endif %}{% if treffer.zusatz %}<span>{{ treffer.zusatz }}</span>{% endif %}</div>
+          {% if treffer.vorschau_url %}<a class="knopf knopf-leise" href="{{ treffer.vorschau_url }}" target="_blank" rel="noopener" data-vorschau-oeffnen data-dateivorschau="{{ treffer.vorschau_url }}" data-vorschau-original="{{ treffer.original_url }}" data-name="{{ treffer.titel }}">Vorschau</a>{% endif %}
         </li>{% endfor %}</ul>
         {% if gruppe.mehr %}<p class="treffer-mehr">… und {{ gruppe.mehr }} weitere. <a href="{% querystring gruppe=gruppe.schluessel %}">Nur diese Gruppe zeigen</a></p>{% endif %}
       </section>
