@@ -1,0 +1,16 @@
+{% if fehler %}<p class="meldung meldung-error" role="alert">{{ fehler }}</p>{% else %}
+<nav aria-label="Nextcloud-Ordner">
+{% for name, pfad in brotkrumen %}
+<button type="button" class="knopf knopf-leise" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ kennung|urlencode }}&amp;pfad={{ pfad|urlencode }}" hx-target="#nextcloud-ordner">{{ name }}</button>
+{% endfor %}
+</nav>
+<ul>
+{% for zeile in dateien %}<li>
+{% if zeile.datei.ist_ordner %}
+<button type="button" class="knopf knopf-leise" hx-get="{% url 'kern:nextcloud_erfassung' dokument.schluessel %}?kennung={{ kennung|urlencode }}&amp;pfad={{ zeile.datei.pfad|urlencode }}" hx-target="#nextcloud-ordner">Ordner: {{ zeile.datei.name }}</button>
+{% else %}
+<button type="button" class="knopf" data-nextcloud-auswahl="{{ zeile.token }}" data-name="{{ zeile.datei.pfad }}">{{ zeile.datei.name }} hinzufügen</button>
+{% endif %}
+</li>{% empty %}<li>Dieser Ordner ist leer.</li>{% endfor %}
+</ul>
+{% endif %}

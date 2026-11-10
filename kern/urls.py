@@ -119,6 +119,11 @@ urlpatterns = [
     # --- Dokumente und Einträge ---
     path("d/<slug:schluessel>", views.dokument_ansehen, name="dokument"),
     path("d/<slug:schluessel>/neu/<str:eintragstyp>", views.eintrag_neu, name="eintrag_neu"),
+    path(
+        "d/<slug:schluessel>/anhangauswahl/nextcloud",
+        views.nextcloud_erfassung,
+        name="nextcloud_erfassung",
+    ),
     # Diese feste Route muss vor „<str:kennung>" stehen, sonst gilt
     # „aenderungen" als Kennung eines Eintrags.
     path("d/<slug:schluessel>/aenderungen", beschluss_views.aenderungen, name="aenderungen"),

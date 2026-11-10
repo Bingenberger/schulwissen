@@ -319,6 +319,12 @@ Konzepte und Konferenzprotokolle an. Kapitel und Tagesordnungspunkte entstehen
 über dieselben Formulare und durchlaufen denselben Beschlussworkflow wie
 der Arbeitsplan. Auf der Dokumentseite stehen Import und Exporte bereit.
 
+Schon beim Anlegen und Bearbeiten eines Eintrags können unter **Anhänge
+hinzufügen** mehrere Dateien vom Gerät, ein Nextcloud-Link oder Dateien aus
+**Nextcloud durchsuchen** ausgewählt werden. Die Anhänge werden gemeinsam mit
+dem Eintrag gespeichert. Eine Nextcloud-Auswahl bleibt bei Formularfehlern
+erhalten; Dateien vom Gerät müssen dann erneut ausgewählt werden.
+
 ## Entwickeln
 
 ```bash

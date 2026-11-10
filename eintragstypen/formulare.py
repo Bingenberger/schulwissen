@@ -9,6 +9,7 @@ Hilfetext, im richtigen Block und mit Pflichtmarkierung.
 from __future__ import annotations
 
 from django import forms
+from django.core import signing
 
 from eintragstypen import html
 from eintragstypen.dienste import Rohsatz
@@ -19,6 +20,21 @@ from kern.models import Status
 DATEN = "f_"
 #: Prefix der Verweisfelder (Kompetenzen, Bezüge).
 VERWEIS = "v_"
+
+
+class MehrdateiWidget(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MehrdateiFeld(forms.FileField):
+    widget = MehrdateiWidget
+
+    def clean(self, data, initial=None):
+        if not data:
+            return []
+        dateien = data if isinstance(data, (list, tuple)) else [data]
+        bereinigen = super().clean
+        return [bereinigen(datei, initial) for datei in dateien]
 
 
 class RichtextFeld(forms.CharField):
@@ -108,6 +124,11 @@ class EintragFormular(forms.Form):
     """Maske eines Eintrags – Felder und Blöcke kommen aus der Registry."""
 
     ausgangsstand = forms.CharField(required=False, widget=forms.HiddenInput)
+    anhang_dateien = MehrdateiFeld(label="Dateien vom Gerät", required=False)
+    anhang_link = forms.URLField(
+        label="Nextcloud-Link", required=False, max_length=500, assume_scheme="https"
+    )
+    anhang_nextcloud = forms.Field(required=False, widget=forms.MultipleHiddenInput)
 
     titel = forms.CharField(
         label="Titel",
@@ -119,6 +140,8 @@ class EintragFormular(forms.Form):
     def __init__(self, *args, eintragstyp: str, eintrag=None, nutzer=None, dokument=None, **kwargs):
         self.typ = registry.holen(eintragstyp)
         self.eintrag = eintrag
+        self.nutzer = nutzer
+        self.dokument = dokument or (eintrag.dokument if eintrag else None)
         super().__init__(*args, **kwargs)
 
         for feld in self.typ.felder:
@@ -151,6 +174,26 @@ class EintragFormular(forms.Form):
             # Ein neuer Eintrag ist ein Entwurf. Ohne diese Vorgabe stünde
             # „Idee" im Auswahlfeld, nur weil das der erste Wert der Liste ist.
             self.fields["status"].initial = Status.ENTWURF
+
+    def _nextcloud_lesen(self, token):
+        try:
+            daten = signing.loads(token, salt="anhang-erfassung")
+        except signing.BadSignature as fehler:
+            raise forms.ValidationError("Bitte wähle die Nextcloud-Datei erneut aus.") from fehler
+        if daten["nutzer"] != self.nutzer.pk or daten["dokument"] != self.dokument.pk:
+            raise forms.ValidationError("Die Nextcloud-Auswahl gehört zu einem anderen Dokument.")
+        return daten
+
+    def clean_anhang_nextcloud(self):
+        tokens = self.cleaned_data["anhang_nextcloud"] or []
+        return [self._nextcloud_lesen(token) for token in dict.fromkeys(tokens)]
+
+    def nextcloud_auswahl(self):
+        for token in self["anhang_nextcloud"].value() or []:
+            try:
+                yield {"token": token, **self._nextcloud_lesen(token)}
+            except forms.ValidationError:
+                continue
 
     def _vorbelegen(self, eintrag) -> None:
         self.fields["titel"].initial = eintrag.titel

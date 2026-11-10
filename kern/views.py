@@ -451,7 +451,8 @@ def eintrag_bearbeiten(request, schluessel: str, kennung: str):
 
     if request.method == "POST":
         formular = EintragFormular(
-            request.POST, eintragstyp=eintrag.eintragstyp, eintrag=eintrag, nutzer=request.user
+            request.POST, request.FILES,
+            eintragstyp=eintrag.eintragstyp, eintrag=eintrag, nutzer=request.user
         )
         gueltig = formular.is_valid()
         if getattr(eintrag, "entfernt", False):
@@ -502,7 +503,8 @@ def eintrag_neu(request, schluessel: str, eintragstyp: str):
 
     if request.method == "POST":
         formular = EintragFormular(
-            request.POST, eintragstyp=eintragstyp, dokument=dokument, nutzer=request.user
+            request.POST, request.FILES,
+            eintragstyp=eintragstyp, dokument=dokument, nutzer=request.user
         )
         if formular.is_valid():
             antwort = _speichern(request, dokument, formular, None, None)
@@ -620,6 +622,35 @@ def _speichern(request, dokument, formular, kennung: str, eintrag):
         if gruppe is not None:
             gespeichert.verantwortlich_gruppe = gruppe
             gespeichert.save(update_fields=["verantwortlich_gruppe"])
+
+    for datei in formular.cleaned_data.get("anhang_dateien", []):
+        Anhang.objects.create(
+            dokument=dokument, eintrag=gespeichert, erstellt_von=request.user,
+            datei=datei, dateiname=datei.name,
+            mimetype=getattr(datei, "content_type", "") or "", groesse=datei.size,
+        )
+    link = formular.cleaned_data.get("anhang_link")
+    if link:
+        Anhang.objects.create(
+            dokument=dokument, eintrag=gespeichert, erstellt_von=request.user,
+            nextcloud_link=link,
+            dateiname=link.rstrip("/").rsplit("/", 1)[-1][:300] or "Nextcloud",
+        )
+    from kern import nextcloud
+
+    for auswahl in formular.cleaned_data.get("anhang_nextcloud", []):
+        Anhang.objects.get_or_create(
+            eintrag=gespeichert, nextcloud_pfad=auswahl["pfad"],
+            defaults={
+                "dokument": dokument, "erstellt_von": request.user,
+                "dateiname": auswahl["name"], "mimetype": auswahl["mimetype"],
+                "groesse": auswahl["groesse"],
+                "nextcloud_link": nextcloud.weblink(auswahl["pfad"]),
+            },
+        )
+    if (formular.cleaned_data.get("anhang_dateien") or link
+            or formular.cleaned_data.get("anhang_nextcloud")):
+        dienste.suchtext_aktualisieren(gespeichert)
 
     if befundsatz.fehlende_pflichtfelder:
         for feld in befundsatz.fehlende_pflichtfelder:
@@ -797,6 +828,43 @@ def fassungen(request, schluessel: str, kennung: str):
 def gesundheit(request):
     """Einfacher Endpunkt für Überwachung und Healthcheck."""
     return HttpResponse("ok", content_type="text/plain")
+
+
+@login_required
+def nextcloud_erfassung(request, schluessel: str):
+    """Ordnerauswahl ohne vorzeitiges Speichern des Eintrags."""
+    from django.core import signing
+
+    from kern import nextcloud
+
+    dokument = get_object_or_404(rechte.sichtbare_dokumente(request.user), schluessel=schluessel)
+    kennung = request.GET.get("kennung", "")
+    if kennung:
+        eintrag = _eintrag_holen(request, schluessel, kennung)
+        erlaubt = rechte.darf_bearbeiten(request.user, eintrag)
+    else:
+        erlaubt = rechte.darf_anlegen(request.user, dokument)
+    if not erlaubt:
+        raise PermissionDenied("Zum Auswählen von Anhängen fehlt die Bearbeitungsberechtigung.")
+
+    pfad = request.GET.get("pfad", "")
+    dateien, fehler = [], ""
+    try:
+        for datei in nextcloud.auflisten(pfad):
+            token = ""
+            if not datei.ist_ordner:
+                token = signing.dumps({
+                    "nutzer": request.user.pk, "dokument": dokument.pk,
+                    "pfad": datei.pfad, "name": datei.name,
+                    "mimetype": datei.mimetype, "groesse": datei.groesse,
+                }, salt="anhang-erfassung")
+            dateien.append({"datei": datei, "token": token})
+    except nextcloud.NextcloudFehler as problem:
+        fehler = str(problem)
+    return render(request, "kern/_nextcloud_erfassung.html", {
+        "dokument": dokument, "kennung": kennung, "dateien": dateien,
+        "brotkrumen": nextcloud.brotkrumen(pfad), "fehler": fehler,
+    })
 
 
 @login_required
